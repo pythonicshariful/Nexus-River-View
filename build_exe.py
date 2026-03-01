@@ -22,6 +22,8 @@ args = [
     '--add-data=templates;templates',
     '--add-data=static;static',
     '--add-data=admin_config.json;.',
+    '--add-data=.env;.',
+    '--add-data=credentials.json;.',
     '--add-data=nexus-river-view-600x866.ico;.', 
     f'--add-data={cert_path};certifi', # Explicitly add certifi bundle
     # Hidden imports

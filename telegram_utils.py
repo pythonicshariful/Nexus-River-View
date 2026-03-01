@@ -3,9 +3,12 @@ import os
 import sys
 import certifi
 import datetime
+from dotenv import load_dotenv
 
-BOT_TOKEN = "8560044076:AAE9tHcAuBMY4U521Ynnrf6Y9VIUzahIr0A"
-CHAT_ID = "7809021498"
+load_dotenv()
+
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 def get_log_path():
     """Determines the log file path in the user's data directory."""

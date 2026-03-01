@@ -1,6 +1,6 @@
 import pandas as pd
 import openpyxl
-from models import Director, Customer, PettyCash, Transaction, Bank, BankTransaction
+from models import Director, Customer, PettyCash, Transaction, Bank, BankTransaction, Installment, CustomerInstallment
 import os
 import shutil
 from datetime import datetime
@@ -100,23 +100,14 @@ def sync_to_excel():
     # 9. Total Paid Until date | 10. Date & Deposit | 11. B.Name | 12. DUE
     
     for i, d in enumerate(all_directors, start=1):
-        total_share_val = d.total_share * d.per_share_value
-        total_payable = total_share_val + d.land_value_extra_share
-        due = total_payable - d.total_paid
-        
         director_list.append({
             'SL NO.': i,
             'Share name': d.name,
             'Total share': d.total_share,
-            'Per share value': d.per_share_value,
-            'Fair Cost': d.fair_cost,
-            'Total share value': total_share_val,
-            'Land value of Extra share': d.land_value_extra_share,
-            'Total share+ Extra share Value': total_payable,
-            'Total Paid Until date': d.total_paid,
-            'Date & Deposit': d.payment_history or '',
-            'B.Name': d.bank_name or '',
-            'DUE': due
+            'Total Paid': d.total_paid,
+            'Total Due': d.total_due,
+            'Bank Name': d.bank_name or '',
+            'History': d.payment_history or ''
         })
         
     df_directors = pd.DataFrame(director_list)
@@ -184,22 +175,45 @@ def sync_to_excel():
             'Status': b.status
         })
     df_banks = pd.DataFrame(bank_list)
-    
+    # Bank Transactions Sheet
     all_bank_tx = BankTransaction.query.order_by(BankTransaction.date).all()
-    bank_tx_list = []
-    for tx in all_bank_tx:
-        bank_tx_list.append({
-            'Bank Account No': tx.bank.account_no,
-            'Date': tx.date,
-            'Cheque No': tx.cheque_no,
-            'Ref No': tx.ref_no,
-            'Narration': tx.narration,
-            'Transaction Details': tx.transaction_details,
-            'Debit': tx.debit,
-            'Credit': tx.credit,
-            'Balance': tx.balance
+    bank_tx_data = []
+    for btx in all_bank_tx:
+        bank_tx_data.append({
+            'Date': btx.date,
+            'Bank ID': btx.bank_id,
+            'Bank Name': btx.bank.bank_name if btx.bank else "N/A",
+            'Narration': btx.narration,
+            'Debit': btx.debit,
+            'Credit': btx.credit,
+            'Balance': btx.balance
         })
-    df_bank_tx = pd.DataFrame(bank_tx_list)
+    df_bank_tx = pd.DataFrame(bank_tx_data)
+
+    # Installments Sheet
+    all_installments = Installment.query.all()
+    inst_list = []
+    for inst in all_installments:
+        inst_list.append({
+            'ID': inst.id,
+            'Name': inst.name,
+            'Amount Per Share': inst.amount_per_share
+        })
+    df_inst = pd.DataFrame(inst_list)
+
+    # Customer Installments Sheet
+    all_cust_inst = CustomerInstallment.query.all()
+    ci_list = []
+    for ci in all_cust_inst:
+        ci_list.append({
+            'Customer ID': ci.customer.customer_id,
+            'Customer Name': ci.customer.name,
+            'Installment Name': ci.installment.name,
+            'Total Amount': ci.total_amount,
+            'Paid Amount': ci.paid_amount,
+            'Due Amount': ci.due_amount
+        })
+    df_ci = pd.DataFrame(ci_list)
 
     # Write to Excel
     # We use engine='openpyxl' for xlsx
@@ -221,11 +235,13 @@ def sync_to_excel():
             df_transactions.to_excel(writer, sheet_name='Transactions', index=False)
             df_banks.to_excel(writer, sheet_name='Banks', index=False)
             df_bank_tx.to_excel(writer, sheet_name='Bank_Transactions', index=False)
+            df_inst.to_excel(writer, sheet_name='Installments', index=False)
+            df_ci.to_excel(writer, sheet_name='Customer_Installments', index=False)
             
             # Formatter function
             workbook = writer.book
             
-            for sheet_name in ['Master_Data', 'Directors_Summary', 'Petty_Cash', 'Transactions', 'Banks', 'Bank_Transactions']:
+            for sheet_name in ['Master_Data', 'Directors_Summary', 'Petty_Cash', 'Transactions', 'Banks', 'Bank_Transactions', 'Installments', 'Customer_Installments']:
                 if sheet_name in writer.sheets:
                     worksheet = writer.sheets[sheet_name]
                     for column in worksheet.columns:
@@ -312,12 +328,13 @@ def restore_from_excel(file_path):
             d = Director(
                 name=row['Share name'],
                 total_share=row['Total share'],
-                per_share_value=row['Per share value'],
-                fair_cost=row['Fair Cost'],
-                land_value_extra_share=row['Land value of Extra share'],
-                total_paid=row['Total Paid Until date'],
-                payment_history=str(row['Date & Deposit']) if pd.notna(row['Date & Deposit']) else '',
-                bank_name=str(row['B.Name']) if pd.notna(row['B.Name']) else ''
+                per_share_value=0,
+                fair_cost=0,
+                land_value_extra_share=0,
+                total_paid=row.get('Total Paid', 0),
+                total_due=row.get('Total Due', 0),
+                payment_history=str(row.get('History', '')) if pd.notna(row.get('History')) else '',
+                bank_name=str(row.get('Bank Name', '')) if pd.notna(row.get('Bank Name')) else ''
             )
             db.session.add(d)
             db.session.flush() # Get ID
@@ -429,6 +446,8 @@ def restore_from_data_dict(data_dict):
     """
     try:
         # Wipe Database
+        CustomerInstallment.query.delete()
+        Installment.query.delete()
         BankTransaction.query.delete()
         Bank.query.delete()
         PettyCash.query.delete()
@@ -444,10 +463,11 @@ def restore_from_data_dict(data_dict):
             d = Director(
                 name=row['name'],
                 total_share=float(row['total_share'] or 0),
-                per_share_value=float(row['per_share_value'] or 0),
-                fair_cost=float(row['fair_cost'] or 0),
-                land_value_extra_share=float(row['land_value_extra_share'] or 0),
+                per_share_value=0,
+                fair_cost=0,
+                land_value_extra_share=0,
                 total_paid=float(row['total_paid'] or 0),
+                total_due=float(row.get('total_due') or 0),
                 payment_history=str(row['payment_history']),
                 bank_name=str(row['bank_name']),
                 updated_at=datetime.strptime(row['updated_at'], "%Y-%m-%d %H:%M:%S") if row.get('updated_at') else datetime.utcnow()
@@ -574,6 +594,36 @@ def restore_from_data_dict(data_dict):
                 updated_at=datetime.strptime(row['updated_at'], "%Y-%m-%d %H:%M:%S") if row.get('updated_at') else datetime.utcnow()
             )
             db.session.add(btx)
+
+        # Restore Installments
+        installment_id_map = {}
+        for row in data_dict.get('installment', []):
+            old_inst_id = str(row.get('id'))
+            inst = Installment(
+                name=row['name'],
+                amount_per_share=float(row['amount_per_share'] or 0)
+            )
+            db.session.add(inst)
+            db.session.flush()
+            installment_id_map[old_inst_id] = inst.id
+
+        # Restore Customer Installments
+        for row in data_dict.get('customer_installment', []):
+            old_cust_id = str(row.get('customer_id'))
+            old_inst_id = str(row.get('installment_id'))
+            
+            new_cust_id = customer_id_map.get(old_cust_id)
+            new_inst_id = installment_id_map.get(old_inst_id)
+            
+            if new_cust_id and new_inst_id:
+                ci = CustomerInstallment(
+                    customer_id=new_cust_id,
+                    installment_id=new_inst_id,
+                    total_amount=float(row['total_amount'] or 0),
+                    paid_amount=float(row['paid_amount'] or 0),
+                    due_amount=float(row['due_amount'] or 0)
+                )
+                db.session.add(ci)
 
         db.session.commit()
         return True, "Data successfully restored from sync (ID mapping applied)."

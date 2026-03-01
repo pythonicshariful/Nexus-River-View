@@ -65,12 +65,9 @@
                                     
                                     <select name="category" class="form-select form-select-sm" style="width: 130px;">
                                         <option value="All">All Categories</option>
-                                        <option value="Office" {% if request.args.get('category') == 'Office' %}selected{% endif %}>Office</option>
-                                        <option value="Food" {% if request.args.get('category') == 'Food' %}selected{% endif %}>Food</option>
-                                        <option value="Transport" {% if request.args.get('category') == 'Transport' %}selected{% endif %}>Transport</option>
-                                        <option value="Salary" {% if request.args.get('category') == 'Salary' %}selected{% endif %}>Salary</option>
-                                        <option value="Maintenance" {% if request.args.get('category') == 'Maintenance' %}selected{% endif %}>Maintenance</option>
-                                        <option value="Other" {% if request.args.get('category') == 'Other' %}selected{% endif %}>Other</option>
+                                        {% for cat in available_categories %}
+                                        <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                                        {% endfor %}
                                     </select>
                                     
                                     <button type="submit" class="btn btn-sm btn-outline-primary"><i class="fas fa-filter"></i></button>
@@ -187,15 +184,13 @@
                             <input type="text" name="description" id="inputDescription" class="form-control" placeholder="e.g. Office Rent" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted">Category</label>
-                            <select name="category" id="inputCategory" class="form-select">
-                                <option value="Office">Office</option>
-                                <option value="Food">Food</option>
-                                <option value="Transport">Transport</option>
-                                <option value="Salary">Salary</option>
-                                <option value="Maintenance">Maintenance</option>
-                                <option value="Other">Other</option>
-                            </select>
+                            <label class="form-label small fw-bold text-muted">Category (Select or Type New)</label>
+                            <input list="categoryOptions" name="category" id="inputCategory" class="form-control" placeholder="e.g. Office" required>
+                            <datalist id="categoryOptions">
+                                {% for cat in available_categories %}
+                                <option value="{{ cat }}">
+                                {% endfor %}
+                            </datalist>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted">Type</label>

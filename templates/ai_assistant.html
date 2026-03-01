@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row h-100 justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0 d-flex align-items-center">
+                <i class="fas fa-robot text-primary me-2"></i> Nexus AI Assistant
+            </h2>
+            <button id="clear-chat-btn" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fas fa-trash me-1"></i> Clear Chat</button>
+        </div>
+        
+        <div class="card shadow-lg border-0 d-flex flex-column" style="height: 65vh;">
+            <div class="card-body bg-light overflow-auto p-4" id="chat-box" style="flex-grow: 1;">
+                <!-- Initial Welcome Message -->
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-white p-3 rounded-3 shadow-sm d-inline-block border">
+                            <p class="mb-0 text-dark">Hello! I am your AI assistant for Nexus River View. I can query our database to answer your questions. For example, try asking: "How many customers do we have?", "What is our total due amount?", or "koto taka petty cash ache?"</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Chat messages will be appended here -->
+            </div>
+            
+            <div class="card-footer bg-white border-top border-light p-3">
+                <form id="chat-form" class="input-group">
+                    <input type="text" id="chat-input" class="form-control border-end-0 shadow-none px-3 py-2" placeholder="Ask a question about your data..." aria-label="Ask a question" autocomplete="off" required>
+                    <button class="btn btn-outline-primary border-start-0 px-4" type="submit" id="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatBox = document.getElementById('chat-box');
+        const sendBtn = document.getElementById('send-button');
+        
+        const clearChatBtn = document.getElementById('clear-chat-btn');
+        let chatHistory = JSON.parse(localStorage.getItem('nexus_ai_chat_history')) || [];
+
+        const saveHistory = () => {
+             localStorage.setItem('nexus_ai_chat_history', JSON.stringify(chatHistory));
+        };
+
+        // Ensure scrolling to bottom
+        const scrollToBottom = () => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        const appendMessage = (message, sender) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = `d-flex mb-4 ${sender === 'user' ? 'flex-row-reverse' : ''}`;
+            wrapper.classList.add('chat-message-entry'); // For clearing
+            
+            const iconBg = sender === 'user' ? 'bg-secondary' : 'bg-primary';
+            const icon = sender === 'user' ? 'fa-user' : 'fa-robot';
+            const msgBg = sender === 'user' ? 'bg-primary text-white border-0' : 'bg-white text-dark border';
+            const msMe = sender === 'user' ? 'me-3' : 'ms-3';
+            
+            // Convert simple markdown newlines to breaks for AI responses
+            let formattedMessage = message;
+            if(sender === 'ai') {
+                 formattedMessage = formattedMessage.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                 formattedMessage = formattedMessage.replace(/\n/g, '<br>');
+            }
+
+            wrapper.innerHTML = `
+                <div class="flex-shrink-0">
+                    <div class="${iconBg} text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                </div>
+                <div class="${msMe}">
+                    <div class="${msgBg} p-3 rounded-3 shadow-sm d-inline-block" style="max-width: 85%;">
+                        <p class="mb-0">${formattedMessage}</p>
+                    </div>
+                </div>
+            `;
+            chatBox.appendChild(wrapper);
+            scrollToBottom();
+        };
+
+        // Render previous history on load
+        chatHistory.forEach(msg => {
+            const role = msg.role === 'model' ? 'ai' : 'user';
+            const text = msg.parts[0].text;
+            appendMessage(text, role);
+        });
+
+        const appendTypingIndicator = () => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'd-flex mb-4';
+            wrapper.id = 'typing-indicator';
+            wrapper.innerHTML = `
+                <div class="flex-shrink-0">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                </div>
+                <div class="ms-3 align-self-center">
+                    <div class="text-muted fst-italic small">Thinking... <i class="fas fa-circle-notch fa-spin ms-1"></i></div>
+                </div>
+            `;
+            chatBox.appendChild(wrapper);
+            scrollToBottom();
+        };
+
+        const removeTypingIndicator = () => {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        };
+
+        clearChatBtn.addEventListener('click', () => {
+             if(confirm('Are you sure you want to clear the chat history?')) {
+                  chatHistory = [];
+                  saveHistory();
+                  document.querySelectorAll('.chat-message-entry').forEach(el => el.remove());
+             }
+        });
+
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Display user message
+            appendMessage(message, 'user');
+            
+            // The history sent to the server should NOT include the current message, 
+            // because the backend passes `message` separately as the prompt.
+            const historyToSend = [...chatHistory];
+            
+            // Now save current message to local history
+            chatHistory.push({ role: 'user', parts: [{ text: message }] });
+            saveHistory();
+
+            chatInput.value = '';
+            
+            // Disable input while waiting
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+            appendTypingIndicator();
+
+            try {
+                const response = await fetch("{{ url_for('main.api_ai_chat') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message, history: historyToSend })
+                });
+
+                const data = await response.json();
+                removeTypingIndicator();
+                
+                if (data.reply) {
+                    appendMessage(data.reply, 'ai');
+                    chatHistory.push({ role: 'model', parts: [{ text: data.reply }] });
+                    saveHistory();
+                } else if (data.error) {
+                    appendMessage(`Error: ${data.error}`, 'ai');
+                }
+            } catch (error) {
+                removeTypingIndicator();
+                appendMessage("Failed to communicate with the server. Please ensure the app is running.", 'ai');
+            } finally {
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInput.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}

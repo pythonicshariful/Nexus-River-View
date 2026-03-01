@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
     <title>Nexus River View - Accounting</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -23,19 +24,46 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <!-- Search Bar in Navbar -->
+                <div class="ms-auto me-auto px-lg-4 pb-2 pb-lg-0 w-100" style="max-width: 450px;">
+                    <div class="input-group input-group-sm rounded-pill overflow-hidden border">
+                        <span class="input-group-text bg-white border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-0" id="searchBar" placeholder="Search customers...">
+                    </div>
+                </div>
+
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.add_director') }}"><i class="fas fa-user-tie me-1"></i> Add Director</a>
+                        <a class="nav-link" href="{{ url_for('main.add_director') }}" title="Add Director"><i class="fas fa-user-tie"></i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.add_customer') }}"><i class="fas fa-user-plus me-1"></i> Add Customer</a>
+                        <a class="nav-link" href="{{ url_for('main.add_customer') }}" title="Add Customer"><i class="fas fa-user-plus"></i></a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.manage_petty_cash') }}"><i class="fas fa-coins me-1"></i> Petty Cash</a>
+                    </li>
+                    <li class="nav-item border-start border-secondary ms-2 ps-2">
                         <a class="nav-link" href="{{ url_for('main.manage_banks') }}"><i class="fas fa-university me-1"></i> Bank Mgmt</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-success text-white ms-2 px-3 shadow-sm rounded-pill" href="{{ url_for('main.download_report') }}">
-                            <i class="fas fa-file-excel me-1"></i> Report
+                        <a class="nav-link" href="{{ url_for('main.ai_assistant') }}"><i class="fas fa-robot me-1"></i> AI</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.notifications') }}" title="Logs"><i class="fas fa-bell"></i></a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a href="{{ url_for('main.download_all_customers_report') }}" class="btn btn-sm btn-success text-white px-3 rounded-pill shadow-sm" title="Export All Data">
+                            <i class="fas fa-file-excel me-1"></i> Export
+                        </a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a href="{{ url_for('main.change_password_request') }}" class="nav-link" title="Change Password">
+                            <i class="fas fa-key text-warning"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.settings') }}" class="nav-link" title="Settings">
+                            <i class="fas fa-cog text-light"></i>
                         </a>
                     </li>
                 </ul>

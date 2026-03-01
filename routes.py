@@ -1,13 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_from_directory
 from werkzeug.utils import secure_filename
 import os
-from models import Director, Customer, Transaction, PettyCash, Bank, BankTransaction
+from models import Director, Customer, Transaction, PettyCash, Bank, BankTransaction, Installment, CustomerInstallment
 from database import db
 from logic import sync_to_excel, restore_from_excel
 import pandas as pd
 import io
 from datetime import datetime
-from flask import send_file
+from flask import send_file, jsonify
 import random
 import string
 import json
@@ -15,49 +15,117 @@ from telegram_utils import send_telegram_message, send_telegram_document
 
 import threading
 
-def run_in_background(target, *args, **kwargs):
+def run_in_background(target, app, *args, **kwargs):
     """Universal helper to run a function in a background thread."""
-    thread = threading.Thread(target=target, args=args, kwargs=kwargs)
+    def run_with_context():
+        with app.app_context():
+            target(*args, **kwargs)
+            
+    thread = threading.Thread(target=run_with_context)
     thread.daemon = True
     thread.start()
+
+_global_sync_lock = threading.Lock()
+
+def get_director_initials(name):
+    """Generates initials from director name, ignoring special characters."""
+    if not name:
+        return "DIR"
+    
+    # Filter for alphanumeric and groups
+    clean_name = ''.join(c if c.isalnum() or c.isspace() else ' ' for c in name)
+    parts = clean_name.split()
+    
+    if len(parts) >= 2:
+        return (parts[0][0] + parts[1][0]).upper()
+    return parts[0][:2].upper() if parts else "DI"
+
+def generate_next_customer_id(director_id):
+    """Generates next customer ID like AI-01, AH-01 etc."""
+    director = Director.query.get(director_id)
+    if not director:
+        return "CUST-01"
+    
+    initials = get_director_initials(director.name)
+    count = Customer.query.filter_by(director_id=director_id).count()
+    return f"{initials}-{count + 1:02d}"
+
+def recalculate_customer_totals(customer):
+    """
+    Recalculates a customer's total_price, total_paid and due_amount based on
+    actual transactions and created installments.
+    """
+    # 1. Total Paid = Sum of all transactions
+    customer.total_paid = sum(t.amount for t in customer.transactions)
+    
+    # 2. Total Expected = Sum of all CustomerInstallments (true amount owed)
+    total_expected = sum(ci.total_amount for ci in customer.installments)
+    
+    # 3. Sync total_price to reflect true installment total
+    #    Only override if installments exist, otherwise keep manual total_price
+    if customer.installments:
+        customer.total_price = total_expected
+    
+    # 4. Due = Expected - Paid
+    customer.due_amount = total_expected - customer.total_paid
+    
+    # 5. Sync Director Totals: use total_share (not assigned shares) × installment rates
+    director = customer.director
+    if director:
+        director.total_paid = sum(c.total_paid for c in director.customers)
+        # Total expected for director = total_share × sum of all installment amount_per_share
+        from models import Installment
+        total_rate_per_share = sum(inst.amount_per_share for inst in Installment.query.all())
+        director_total_expected = director.total_share * total_rate_per_share
+        director.total_due = director_total_expected - director.total_paid
+    
+    return customer
 
 def background_sync_all(action_name="Data Update"):
     """
     Consolidates all high-latency tasks into a single background thread.
     This prevents multiple threads from competing for SQLite locks or CPU.
     """
-    from flask import current_app
     app = current_app._get_current_object()
     
-    def _worker():
-        with app.app_context():
-            # 1. Google Sheets Sync
-            try:
-                from sync_manager import sync_manager
-                sync_manager.sync_to_sheets()
-            except Exception as e:
-                print(f"Background Sheets sync failed: {e}")
-
-            # 2. Master Excel Sync
+    if not _global_sync_lock.acquire(blocking=False):
+        from telegram_utils import log_debug
+        log_debug(f"[{action_name}] Sync skipped: A sync is already in progress.")
+        return
+        
+    def sync_task(app_obj):
+        try:
+            from sync_manager import sync_manager
+            from telegram_utils import log_debug
+            log_debug(f"Starting Background Tasks due to: {action_name}")
+            
+            sync_manager.sync_to_sheets()
+            
+            # 2. Master Excel Sync (Disabled/Moved elsewhere if needed to save time, or we can leave it)
             try:
                 sync_to_excel()
             except Exception as e:
-                print(f"Background Excel sync failed: {e}")
+                log_debug(f"Background Excel sync failed: {e}")
 
             # 3. Telegram DB Backup
             try:
-                db_path = os.path.abspath(os.path.join(os.environ.get('NEXUS_DATA_PATH', '.'), 'nexus.db'))
-                if os.path.exists(db_path):
+                db_path = app_obj.config.get('DATABASE_PATH')
+                if db_path and os.path.exists(db_path):
+                    from telegram_utils import send_telegram_document
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     caption = f"Backup triggered by: {action_name}\nTime: {timestamp}"
                     send_telegram_document(db_path, caption=caption)
             except Exception as e:
-                print(f"Background Telegram backup failed: {e}")
+                log_debug(f"Background Telegram sync failed: {e}")
+                
+        except Exception as e:
+             from telegram_utils import log_debug
+             log_debug(f"Background Task Error: {e}")
+        finally:
+             _global_sync_lock.release()
 
-    thread = threading.Thread(target=_worker)
-    thread.daemon = True
-    thread.start()
-
+    # Dispatch to thread
+    run_in_background(sync_task, app, app)
 # For backward compatibility with existing calls, we redefine these to call the consolidated worker
 def trigger_sync():
     background_sync_all("Google Sheets Sync")
@@ -78,30 +146,85 @@ def uploaded_file(filename):
 def index():
     directors = Director.query.all()
     
-    # Calculate Grand Totals
-    total_payable = 0
-    total_paid = 0
-    total_due = 0
-    
-    for d in directors:
-        share_val = (d.total_share * d.per_share_value) + d.land_value_extra_share
-        total_payable += share_val
-        total_paid += d.total_paid
-        total_due += (share_val - d.total_paid)
-        
-    # Calculate Customer Totals
+    # Calculate Grand Totals (from all customers)
     customers = Customer.query.all()
-    cust_total_payable = sum(c.total_price for c in customers)
-    cust_total_paid = sum(c.total_paid for c in customers)
-    cust_total_due = sum(c.due_amount for c in customers)
+    grand_total_payable = sum(c.total_price for c in customers)
+    grand_total_paid = sum(c.total_paid for c in customers)
+    # Total Due = Sum of all individual customer dues
+    grand_total_due = sum(c.due_amount for c in customers)
+    # Total Outstanding = Total Project Value - Total Collection (Total remaining to be collected)
+    grand_total_outstanding = grand_total_payable - grand_total_paid
+        
+    # Financial Overview Calculation
+    total_bank_balance = sum(tx.credit - tx.debit for tx in BankTransaction.query.all())
+    
+    cash_income = sum(pc.amount for pc in PettyCash.query.filter_by(type='Income').all())
+    cash_expense = sum(pc.amount for pc in PettyCash.query.filter_by(type='Expense').all())
+    cash_in_hand = cash_income - cash_expense
+
+    # Chart Data (Last 6 Months)
+    from collections import defaultdict
+    income_by_month = defaultdict(float)
+    expense_by_month = defaultdict(float)
+    
+    def get_month_key(date_str):
+        if not date_str: return None
+        for fmt in ('%d-%m-%Y', '%Y-%m-%d'):
+            try:
+                return datetime.strptime(date_str, fmt).strftime('%Y-%m')
+            except ValueError:
+                pass
+        return None
+
+    # 1. Customer Transactions (Income)
+    for tx in Transaction.query.all():
+        m = get_month_key(tx.date)
+        if m: income_by_month[m] += tx.amount
+        
+    # 2. Bank Transactions
+    for tx in BankTransaction.query.all():
+        m = get_month_key(tx.date)
+        if m:
+            income_by_month[m] += tx.credit
+            expense_by_month[m] += tx.debit
+            
+    # 3. Petty Cash
+    for pc in PettyCash.query.all():
+        m = get_month_key(pc.date)
+        if m:
+            if pc.type == 'Income': income_by_month[m] += pc.amount
+            else: expense_by_month[m] += pc.amount
+
+    # Prepare labels and values for the last 6 months
+    import calendar
+    from datetime import date
+    chart_labels = []
+    chart_income = []
+    chart_expense = []
+    
+    current_date = date.today().replace(day=1)
+    for _ in range(6):
+        m_key = current_date.strftime('%Y-%m')
+        chart_labels.insert(0, calendar.month_name[current_date.month][:3] + " " + str(current_date.year)[2:])
+        chart_income.insert(0, income_by_month[m_key])
+        chart_expense.insert(0, expense_by_month[m_key])
+        # Move to previous month
+        if current_date.month == 1:
+            current_date = current_date.replace(year=current_date.year - 1, month=12)
+        else:
+            current_date = current_date.replace(month=current_date.month - 1)
 
     return render_template('index.html', directors=directors, 
-                         grand_total_payable=total_payable, 
-                         grand_total_paid=total_paid, 
-                         grand_total_due=total_due,
-                         cust_total_payable=cust_total_payable,
-                         cust_total_paid=cust_total_paid,
-                         cust_total_due=cust_total_due)
+                         grand_total_payable=grand_total_payable, 
+                         grand_total_paid=grand_total_paid, 
+                         grand_total_due=grand_total_due,
+                         grand_total_outstanding=grand_total_outstanding,
+                         total_bank_balance=total_bank_balance,
+                         cash_in_hand=cash_in_hand,
+                         chart_labels=chart_labels,
+                         chart_income=chart_income,
+                         chart_expense=chart_expense,
+                         installments=Installment.query.order_by(Installment.created_at).all())
 
 def verify_password():
     password = request.form.get('admin_password')
@@ -178,12 +301,14 @@ def add_director():
                 phone=phone,
                 bank_name=request.form.get('bank_name'),
                 total_share=float(request.form.get('total_share') or 0),
-                per_share_value=float(request.form.get('per_share_value') or 0),
-                fair_cost=float(request.form.get('fair_cost') or 0),
-                land_value_extra_share=float(request.form.get('land_value_extra_share') or 0),
-                total_paid=float(request.form.get('total_paid') or 0),
+                per_share_value=0,
+                fair_cost=0,
+                land_value_extra_share=0,
+                total_paid=0,
+                total_due=0,
                 payment_history=request.form.get('payment_history')
             )
+            # No calculation needed for new empty director
             db.session.add(new_director)
             db.session.commit()
             trigger_excel_sync()
@@ -208,9 +333,12 @@ def edit_director(id):
         director.per_share_value = float(request.form.get('per_share_value') or 0)
         director.fair_cost = float(request.form.get('fair_cost') or 0)
         director.land_value_extra_share = float(request.form.get('land_value_extra_share') or 0)
-        director.total_paid = float(request.form.get('total_paid') or 0)
-        director.payment_history = request.form.get('payment_history')
+        # total_paid and total_due are handled by background sync or manual recalculation
         
+        # Recalculate Totals from Customers
+        director.total_paid = sum(c.total_paid for c in director.customers)
+        director.total_due = sum(c.due_amount for c in director.customers)
+
         db.session.commit()
         trigger_excel_sync()
         trigger_sync()
@@ -269,10 +397,18 @@ def add_customer():
         down_payment = float(request.form.get('down_payment') or 0)
         monthly_installment = float(request.form.get('monthly_installment') or 0)
         total_paid = float(request.form.get('total_paid') or 0)
+        shares = float(request.form.get('shares') or 0)
         
+        # Validation: Check Director Shares
+        director = Director.query.get(director_id)
+        if shares > director.available_shares:
+            flash(f'Error: Director only has {director.available_shares} shares available.', 'danger')
+            return redirect(url_for('main.add_customer'))
+
+        if not customer_id:
+            customer_id = generate_next_customer_id(director_id)
+
         # Calculation
-        due_amount = total_price - total_paid
-        
         new_customer = Customer(
             director_id=director_id,
             customer_id=customer_id,
@@ -291,9 +427,15 @@ def add_customer():
             down_payment=down_payment,
             monthly_installment=monthly_installment,
             total_paid=total_paid,
-            due_amount=due_amount
+            due_amount=0, # Will be recalculated
+            shares=shares
         )
         db.session.add(new_customer)
+        db.session.flush() # Get ID
+        
+        # Initial recalculation
+        recalculate_customer_totals(new_customer)
+        
         db.session.commit()
         trigger_excel_sync()
         trigger_sync()
@@ -313,7 +455,21 @@ def edit_customer(id):
             flash('Invalid Admin Password!', 'danger')
             return redirect(url_for('main.edit_customer', id=id))
 
-        customer.director_id = request.form.get('director_id')
+        old_director = Director.query.get(customer.director_id)
+        new_director_id = request.form.get('director_id')
+        new_director = Director.query.get(new_director_id)
+        new_shares = float(request.form.get('shares') or 0)
+
+        # Validation: Check Available Shares (adjusting for current shares)
+        available = new_director.available_shares + (customer.shares if old_director.id == new_director.id else 0)
+        if new_shares > available:
+            flash(f'Error: Director only has {available} shares available.', 'danger')
+            return redirect(url_for('main.edit_customer', id=id))
+
+        # Revert old values for Director
+        old_director.total_paid -= customer.total_paid
+        
+        customer.director_id = new_director_id
         customer.customer_id = request.form.get('customer_id')
         customer.name = request.form.get('name')
         customer.phone = request.form.get('phone')
@@ -330,10 +486,19 @@ def edit_customer(id):
         customer.down_payment = float(request.form.get('down_payment') or 0)
         customer.monthly_installment = float(request.form.get('monthly_installment') or 0)
         customer.total_paid = float(request.form.get('total_paid') or 0)
+        customer.shares = new_shares
         
         # Calc Due
         customer.due_amount = customer.total_price - customer.total_paid
         
+        # Update New Director
+        new_director.total_paid += customer.total_paid
+        
+        # Recalculate Both Directors
+        for d in [old_director, new_director]:
+            d.total_paid = sum(c.total_paid for c in d.customers)
+            d.total_due = sum(c.due_amount for c in d.customers)
+
         db.session.commit()
         trigger_excel_sync()
         trigger_sync()
@@ -350,6 +515,12 @@ def delete_customer(id):
         return redirect(url_for('main.index'))
 
     customer = Customer.query.get_or_404(id)
+    director = Director.query.get(customer.director_id)
+    
+    # Update Director Totals
+    director.total_paid = sum(c.total_paid for c in director.customers if c.id != customer.id)
+    director.total_due = sum(c.due_amount for c in director.customers if c.id != customer.id)
+
     db.session.delete(customer)
     db.session.commit()
     # Sync to Excel
@@ -359,7 +530,117 @@ def delete_customer(id):
     flash('Customer deleted!', 'success')
     return redirect(url_for('main.index'))
 
-# --- Transaction Routes ---
+# --- Installment Management ---
+@main.route('/installment/create', methods=['POST'])
+def create_installment():
+    if not verify_password():
+        flash('Invalid Admin Password!', 'danger')
+        return redirect(url_for('main.index'))
+    
+    name = request.form.get('name')
+    amount_per_share = float(request.form.get('amount_per_share') or 0)
+    
+    if name and amount_per_share > 0:
+        new_inst = Installment(name=name, amount_per_share=amount_per_share)
+        db.session.add(new_inst)
+        db.session.flush() # Get ID
+        
+        # Generate for all customers
+        customers = Customer.query.all()
+        for c in customers:
+            total_amt = c.shares * amount_per_share
+            if total_amt > 0:
+                cust_inst = CustomerInstallment(
+                    customer_id=c.id,
+                    installment_id=new_inst.id,
+                    total_amount=total_amt,
+                    due_amount=total_amt
+                )
+                db.session.add(cust_inst)
+            # Ensure totals are correct for this customer
+            recalculate_customer_totals(c)
+        
+        db.session.commit()
+        flash(f'Installment "{name}" created for all applicable customers.', 'success')
+    else:
+        flash('Invalid Installment Name or Amount.', 'danger')
+        
+    return redirect(url_for('main.index'))
+
+@main.route('/installment/edit/<int:id>', methods=['POST'])
+def edit_installment(id):
+    if not verify_password():
+        flash('Invalid Admin Password!', 'danger')
+        return redirect(url_for('main.index'))
+
+    inst = Installment.query.get_or_404(id)
+    new_name = request.form.get('name', '').strip()
+    new_amount = float(request.form.get('amount_per_share') or 0)
+
+    if not new_name or new_amount <= 0:
+        flash('Invalid name or amount.', 'danger')
+        return redirect(url_for('main.index'))
+
+    inst.name = new_name
+    inst.amount_per_share = new_amount
+
+    # Recalculate all CustomerInstallment records for this installment
+    for ci in inst.customer_installments:
+        ci.total_amount = ci.customer.shares * new_amount
+        ci.due_amount = ci.total_amount - ci.paid_amount
+
+    db.session.flush()
+
+    # Recalculate all affected customers
+    affected_customers = set(ci.customer for ci in inst.customer_installments)
+    for c in affected_customers:
+        recalculate_customer_totals(c)
+
+    # Recalculate all director dues using total_share
+    total_rate_per_share = sum(i.amount_per_share for i in Installment.query.all())
+    from models import Director as Dir
+    for d in Dir.query.all():
+        d.total_paid = sum(c.total_paid for c in d.customers)
+        d.total_due = d.total_share * total_rate_per_share - d.total_paid
+
+    db.session.commit()
+    backup_to_telegram("Edited Installment")
+    flash(f'Installment "{inst.name}" updated and all totals recalculated.', 'success')
+    return redirect(url_for('main.index'))
+
+
+@main.route('/installment/delete/<int:id>', methods=['POST'])
+def delete_installment(id):
+    if not verify_password():
+        flash('Invalid Admin Password!', 'danger')
+        return redirect(url_for('main.index'))
+
+    inst = Installment.query.get_or_404(id)
+    inst_name = inst.name
+
+    # Collect affected customers before deleting
+    affected_customers = set(ci.customer for ci in inst.customer_installments)
+
+    # Delete the installment (cascade deletes CustomerInstallment records via model)
+    db.session.delete(inst)
+    db.session.flush()
+
+    # Recalculate customer totals now that installment is removed
+    for c in affected_customers:
+        recalculate_customer_totals(c)
+
+    # Recalculate all director dues
+    total_rate_per_share = sum(i.amount_per_share for i in Installment.query.all())
+    from models import Director as Dir
+    for d in Dir.query.all():
+        d.total_paid = sum(c.total_paid for c in d.customers)
+        d.total_due = d.total_share * total_rate_per_share - d.total_paid
+
+    db.session.commit()
+    backup_to_telegram("Deleted Installment")
+    flash(f'Installment "{inst_name}" deleted and all totals recalculated.', 'success')
+    return redirect(url_for('main.index'))
+
 @main.route('/manage_transactions/<int:customer_id>', methods=['GET', 'POST'])
 def manage_transactions(customer_id):
     customer = Customer.query.get_or_404(customer_id)
@@ -372,6 +653,7 @@ def manage_transactions(customer_id):
         date = request.form.get('date')
         amount = float(request.form.get('amount') or 0)
         installment_type = request.form.get('installment_type')
+        cust_inst_id = request.form.get('customer_installment_id')
         bank_name = request.form.get('bank_name')
         transaction_id = request.form.get('transaction_id')
         remarks = request.form.get('remarks')
@@ -389,20 +671,43 @@ def manage_transactions(customer_id):
         new_tx = Transaction(
             date=date,
             amount=amount,
-            installment_type=installment_type,
-            bank_name=bank_name,
-            transaction_id=transaction_id,
-            remarks=remarks,
-            images=','.join(images),
-            customer=customer
+            installment_type=request.form.get('installment_type'),
+            bank_name=request.form.get('bank_name'),
+            transaction_id=request.form.get('transaction_id'),
+            remarks=request.form.get('remarks'),
+            customer_id=customer_id,
+            customer_installment_id=cust_inst_id,
+            images=','.join(images)
         )
+        db.session.add(new_tx)
         
         # Update Customer Totals
         customer.total_paid += amount
         customer.due_amount = customer.total_price - customer.total_paid
         
+        # Update Director Totals
+        director = Director.query.get(customer.director_id)
+        director.total_paid = sum(c.total_paid for c in director.customers)
+        director.total_due = sum(c.due_amount for c in director.customers)
+
+        # Update Specific Installment if selected
+        if cust_inst_id:
+            cust_inst = CustomerInstallment.query.get(cust_inst_id)
+            if cust_inst:
+                cust_inst.paid_amount += amount
+                cust_inst.due_amount = cust_inst.total_amount - cust_inst.paid_amount
+                # Mirror installment name if not set
+                if not new_tx.installment_type:
+                    new_tx.installment_type = cust_inst.installment.name
+        
+        db.session.add(new_tx)
         db.session.add(new_tx)
         db.session.commit()
+
+        # Recalculate everything
+        recalculate_customer_totals(customer)
+        db.session.commit()
+
         trigger_excel_sync()
         trigger_sync()
         backup_to_telegram("Added Transaction for Customer: " + customer.name)
@@ -410,14 +715,18 @@ def manage_transactions(customer_id):
         return redirect(url_for('main.manage_transactions', customer_id=customer_id))
         
     transactions = Transaction.query.filter_by(customer_id=customer_id).all()
-    return render_template('customer_transactions.html', customer=customer, transactions=transactions)
+    # Fetch active installments for this customer
+    customer_installments = CustomerInstallment.query.filter_by(customer_id=customer_id).all()
+    
+    return render_template('customer_transactions.html', 
+                         customer=customer, 
+                         transactions=transactions, 
+                         customer_installments=customer_installments)
 
-@main.route('/delete_transaction/<int:id>')
+@main.route('/delete_transaction/<int:id>', methods=['GET', 'POST'])
 def delete_transaction(id):
     if not verify_password():
         flash('Invalid Admin Password!', 'danger')
-        # We need customer_id to redirect, but we don't have it easily without querying tx first
-        # But we can query tx first
         tx = Transaction.query.get(id)
         if tx:
              return redirect(url_for('main.manage_transactions', customer_id=tx.customer_id))
@@ -427,15 +736,23 @@ def delete_transaction(id):
     customer_id = tx.customer_id
     customer = Customer.query.get(customer_id)
     
-    # Revert Customer Totals
-    customer.total_paid -= tx.amount
-    customer.due_amount = customer.total_price - customer.total_paid
+    # Revert Installment if associated
+    if tx.customer_installment_id:
+        ci = CustomerInstallment.query.get(tx.customer_installment_id)
+        if ci:
+            ci.paid_amount -= tx.amount
+            ci.due_amount = ci.total_amount - ci.paid_amount
     
     db.session.delete(tx)
     db.session.commit()
+    
+    # Final Recalculation
+    recalculate_customer_totals(customer)
+    db.session.commit()
+    
     trigger_excel_sync()
     trigger_sync()
-    backup_to_telegram("Deleted Transaction")
+    backup_to_telegram("Deleted Transaction for: " + customer.name)
     flash('Transaction Deleted!', 'warning')
     return redirect(url_for('main.manage_transactions', customer_id=customer_id))
 
@@ -549,6 +866,16 @@ def manage_petty_cash():
         
     entries = query.order_by(PettyCash.date.desc()).all()
     
+    # Fetch unique categories for dynamic suggestions
+    available_categories = db.session.query(PettyCash.category).distinct().all()
+    available_categories = [c[0] for c in available_categories if c[0]]
+    # Ensure some defaults are always there if empty
+    defaults = ["Office", "Food", "Transport", "Salary", "Maintenance", "Utility", "Stationery", "Marketing", "Entertainment", "Repair", "Bank", "Travel"]
+    for d in defaults:
+        if d not in available_categories:
+            available_categories.append(d)
+    available_categories.sort()
+
     total_income = sum(e.amount for e in entries if e.type == 'Income')
     total_expense = sum(e.amount for e in entries if e.type == 'Expense')
     current_balance = total_income - total_expense
@@ -556,7 +883,8 @@ def manage_petty_cash():
     return render_template('petty_cash.html', entries=entries, 
                          total_income=total_income, 
                          total_expense=total_expense, 
-                         current_balance=current_balance)
+                         current_balance=current_balance,
+                         available_categories=available_categories)
 
 @main.route('/petty_cash/export')
 def export_petty_cash_report():
@@ -768,6 +1096,24 @@ def format_excel_width(writer, sheet_name):
 
 # --- New Customer Reports ---
 
+def save_and_open_excel(output_bytes, filename):
+    """
+    Saves an Excel BytesIO to the user's Documents/NexusRiverView folder
+    and opens it automatically. This works inside pywebview where send_file downloads don't work.
+    Returns (saved_path, error_msg).
+    """
+    import os, subprocess
+    try:
+        docs_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'NexusRiverView')
+        os.makedirs(docs_dir, exist_ok=True)
+        save_path = os.path.join(docs_dir, filename)
+        with open(save_path, 'wb') as f:
+            f.write(output_bytes.read())
+        os.startfile(save_path)  # Opens with Excel
+        return save_path, None
+    except Exception as e:
+        return None, str(e)
+
 @main.route('/report/customers/all')
 def download_all_customers_report():
     from telegram_utils import log_debug
@@ -783,10 +1129,14 @@ def download_all_customers_report():
         all_c = Customer.query.count()
         all_d = Director.query.count()
         log_debug(f"Total in DB: Customers={all_c}, Directors={all_d}")
+        installments = Installment.query.order_by(Installment.id).all()
+        inst_names = [inst.name for inst in installments]
         data = []
         for c in customers:
-            data.append({
-                'Director Name': c.director.name,
+            # Build installment lookup
+            ci_map = {ci.installment_id: ci for ci in c.installments}
+            row = {
+                'Director Name': c.director.name if c.director else '',
                 'Customer ID': c.customer_id,
                 'Customer Name': c.name,
                 'Phone': c.phone,
@@ -799,22 +1149,32 @@ def download_all_customers_report():
                 'Present Address': c.present_address,
                 'Permanent Address': c.permanent_address,
                 'Plot No': c.plot_no,
-                'Total Price': c.total_price,
-                'Down Payment': c.down_payment,
-                'Monthly Installment': c.monthly_installment,
-                'Total Paid': c.total_paid,
-                'Due Amount': c.due_amount
-            })
-            
+                'Shares': int(c.shares) if c.shares == int(c.shares) else c.shares,
+            }
+            # Add per-installment columns
+            for inst in installments:
+                ci = ci_map.get(inst.id)
+                row[f'{inst.name} (Total)'] = ci.total_amount if ci else 0
+                row[f'{inst.name} (Paid)'] = ci.paid_amount if ci else 0
+                row[f'{inst.name} (Due)'] = ci.due_amount if ci else 0
+            row['Total Price'] = c.total_price
+            row['Total Paid'] = c.total_paid
+            row['Due Amount'] = c.due_amount
+            data.append(row)
+
         df = pd.DataFrame(data)
-        
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name='All_Customers', index=False)
             format_excel_width(writer, 'All_Customers')
-            
         output.seek(0)
-        return send_file(output, download_name="All_Customers.xlsx", as_attachment=True)
+        filename = f"All_Customers_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        path, err = save_and_open_excel(output, filename)
+        if err:
+            flash(f"Export failed: {err}", "danger")
+        else:
+            flash(f"Exported! File saved to Documents/NexusRiverView/{filename}", "success")
+        return redirect(url_for('main.index'))
     except Exception as e:
         from telegram_utils import log_debug
         log_debug(f"Excel Export Error (All Customers): {e}")
@@ -829,10 +1189,11 @@ def download_director_customers_report(id):
     customers = director.customers
     
     try:
+        installments = Installment.query.order_by(Installment.id).all()
         data = []
         for c in customers:
-            data.append({
-                'Director Name': director.name,
+            ci_map = {ci.installment_id: ci for ci in c.installments}
+            row = {
                 'Customer ID': c.customer_id,
                 'Customer Name': c.name,
                 'Phone': c.phone,
@@ -845,24 +1206,31 @@ def download_director_customers_report(id):
                 'Present Address': c.present_address,
                 'Permanent Address': c.permanent_address,
                 'Plot No': c.plot_no,
-                'Total Price': c.total_price,
-                'Down Payment': c.down_payment,
-                'Monthly Installment': c.monthly_installment,
-                'Total Paid': c.total_paid,
-                'Due Amount': c.due_amount
-            })
+                'Shares': int(c.shares) if c.shares == int(c.shares) else c.shares,
+            }
+            for inst in installments:
+                ci = ci_map.get(inst.id)
+                row[f'{inst.name} (Total)'] = ci.total_amount if ci else 0
+                row[f'{inst.name} (Paid)'] = ci.paid_amount if ci else 0
+                row[f'{inst.name} (Due)'] = ci.due_amount if ci else 0
+            row['Total Price'] = c.total_price
+            row['Total Paid'] = c.total_paid
+            row['Due Amount'] = c.due_amount
+            data.append(row)
             
         df = pd.DataFrame(data)
-        
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            sheet_name = 'Customers'
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
-            format_excel_width(writer, sheet_name)
-            
+            df.to_excel(writer, sheet_name='Customers', index=False)
+            format_excel_width(writer, 'Customers')
         output.seek(0)
-        filename = f"Director_{secure_filename(director.name)}_Customers.xlsx"
-        return send_file(output, download_name=filename, as_attachment=True)
+        filename = f"Director_{secure_filename(director.name)}_Customers_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        path, err = save_and_open_excel(output, filename)
+        if err:
+            flash(f"Export failed: {err}", "danger")
+        else:
+            flash(f"Exported! File saved to Documents/NexusRiverView/{filename}", "success")
+        return redirect(url_for('main.index'))
     except Exception as e:
         from telegram_utils import log_debug
         log_debug(f"Excel Export Error (Director Customers): {e}")
@@ -915,15 +1283,16 @@ def download_individual_customer_report(id):
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df_profile.to_excel(writer, sheet_name='Profile', index=False)
         format_excel_width(writer, 'Profile')
-        
         df_tx.to_excel(writer, sheet_name='Transactions', index=False)
         format_excel_width(writer, 'Transactions')
-        
     output.seek(0)
-    filename = f"Customer_{secure_filename(c.name)}_Report.xlsx"
-    return send_file(output, download_name=filename, as_attachment=True)
-
-    return send_file(output, download_name=filename, as_attachment=True)
+    filename = f"Customer_{secure_filename(c.name)}_Report_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    path, err = save_and_open_excel(output, filename)
+    if err:
+        flash(f"Export failed: {err}", "danger")
+    else:
+        flash(f"Exported! File saved to Documents/NexusRiverView/{filename}", "success")
+    return redirect(url_for('main.manage_transactions', customer_id=c.id))
 
 # --- Bank Management Routes ---
 @main.route('/banks', methods=['GET', 'POST'])
@@ -1310,6 +1679,7 @@ def restore_data():
             
     return redirect(url_for('main.settings'))
 
+
 @main.route('/sync', methods=['GET', 'POST'])
 def sync_resolution():
     from sync_manager import sync_manager
@@ -1346,3 +1716,91 @@ def check_sync_mismatch():
     if current_app.config.get('SYNC_MISMATCH') and \
        request.endpoint not in ['main.sync_resolution', 'main.uploaded_file', 'static']:
         return redirect(url_for('main.sync_resolution'))
+
+# --- Notifications / Logs ---
+@main.route('/notifications')
+def notifications():
+    from telegram_utils import get_log_path
+    log_file = get_log_path()
+    logs = ""
+    if os.path.exists(log_file):
+        try:
+            # Read the last 500 lines for performance
+            with open(log_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                logs = "".join(lines[-500:])
+        except Exception as e:
+            logs = f"Error reading logs: {e}"
+    
+    return render_template('notifications.html', logs=logs)
+
+@main.route('/clear_logs', methods=['POST'])
+def clear_logs():
+    if not verify_password():
+        flash('Invalid Admin Password!', 'danger')
+        return redirect(url_for('main.notifications'))
+        
+    from telegram_utils import get_log_path
+    log_file = get_log_path()
+    try:
+        if os.path.exists(log_file):
+            with open(log_file, 'w', encoding='utf-8') as f:
+                f.write("") # Clear
+        flash('Logs cleared successfully.', 'success')
+    except Exception as e:
+        flash(f'Failed to clear logs: {e}', 'danger')
+        
+    return redirect(url_for('main.notifications'))
+
+# --- AI Assistant ---
+@main.route('/ai_assistant')
+def ai_assistant():
+    return render_template('ai_assistant.html')
+
+@main.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@main.route('/api/chat', methods=['POST'])
+def api_ai_chat():
+    from ai_chat import chat_with_db
+    data = request.get_json()
+    if not data or 'message' not in data:
+        return {"error": "No message provided"}, 400
+        
+    user_message = data['message']
+    history = data.get('history', [])
+    
+    try:
+        reply = chat_with_db(user_message, chat_history=history)
+        return {"reply": reply}
+    except Exception as e:
+        from telegram_utils import log_debug
+        log_debug(f"AI Route Error: {e}")
+        return {"error": str(e)}, 500
+
+# --- Global Error Handler ---
+@main.app_errorhandler(Exception)
+def handle_exception(e):
+    from telegram_utils import log_debug
+    from flask import request, jsonify
+    import traceback
+    
+    error_details = traceback.format_exc()
+    log_debug(f"Unhandled Exception in {request.path}: {e}\n{error_details}")
+    
+    # If this is an API route, return JSON instead of a redirect
+    if request.path.startswith('/api/'):
+        return jsonify({
+            'error': str(e),
+            'type': type(e).__name__
+        }), 500
+        
+    flash("An unexpected error occurred. Please check the Notifications log for details.", "danger")
+    # Redirect to index, which is usually safe
+    try:
+        return redirect(url_for('main.index'))
+    except:
+        return "A critical error occurred.", 500
+

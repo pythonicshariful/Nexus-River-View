@@ -15,8 +15,14 @@ class Director(db.Model):
     land_value_extra_share = db.Column(db.Float, default=0.0)
     
     total_paid = db.Column(db.Float, default=0.0)
+    total_due = db.Column(db.Float, default=0.0)
     payment_history = db.Column(db.Text) # Date & Deposit text blob
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @property
+    def available_shares(self):
+        assigned_shares = sum(c.shares for c in self.customers)
+        return self.total_share - assigned_shares
 
 
 class Customer(db.Model):
@@ -30,10 +36,12 @@ class Customer(db.Model):
     monthly_installment = db.Column(db.Float, default=0.0)
     total_paid = db.Column(db.Float, default=0.0)
     due_amount = db.Column(db.Float, default=0.0)
+    shares = db.Column(db.Float, default=0.0)
     
     director_id = db.Column(db.Integer, db.ForeignKey('director.id'), nullable=False)
     
     transactions = db.relationship('Transaction', backref='customer', lazy=True, cascade="all, delete-orphan")
+    installments = db.relationship('CustomerInstallment', backref='customer', lazy=True, cascade="all, delete-orphan")
 
     # New Fields
     father_name = db.Column(db.String(100))
@@ -48,17 +56,36 @@ class Customer(db.Model):
 
 Director.customers = db.relationship('Customer', backref='director', lazy=True, order_by=Customer.customer_id)
 
+class Installment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False) # e.g. "Piling Installment"
+    amount_per_share = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    customer_installments = db.relationship('CustomerInstallment', backref='installment', lazy=True, cascade="all, delete-orphan")
+
+class CustomerInstallment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    installment_id = db.Column(db.Integer, db.ForeignKey('installment.id'), nullable=False)
+    total_amount = db.Column(db.Float, default=0.0) # Calculated: shares * amount_per_share
+    paid_amount = db.Column(db.Float, default=0.0)
+    due_amount = db.Column(db.Float, default=0.0) # Calculated: total_amount - paid_amount
+    
+    transactions = db.relationship('Transaction', backref='customer_installment', lazy=True)
+
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.String(20), nullable=False)
     amount = db.Column(db.Float, default=0.0)
-    installment_type = db.Column(db.String(50)) # Full, Part, Booking, etc.
+    installment_type = db.Column(db.String(50)) # Full, Part, Booking, Installment Name, etc.
     bank_name = db.Column(db.String(100))
     transaction_id = db.Column(db.String(100))
     remarks = db.Column(db.Text)
     images = db.Column(db.Text) # Comma-separated paths
     
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    customer_installment_id = db.Column(db.Integer, db.ForeignKey('customer_installment.id'), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class PettyCash(db.Model):

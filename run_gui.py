@@ -56,9 +56,10 @@ def select_data_folder():
 
 def start_server():
     app = create_app()
-    # Disable the reloader so we don't start two instances or restart unexpectedly
-    # Threaded=True is important for handling multiple requests
-    app.run(host='127.0.0.1', port=5000, threaded=True, use_reloader=False)
+    try:
+        app.run(host='127.0.0.1', port=5000, use_reloader=False)
+    except Exception as e:
+        print(f"Server Startup Error: {e}")
 
 def open_browser_fallback(url):
     """

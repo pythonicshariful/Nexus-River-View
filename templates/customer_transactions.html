@@ -61,12 +61,27 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small fw-bold text-muted">Installment Type</label>
-                                <select name="installment_type" class="form-select">
+                                <label class="form-label small fw-bold text-muted">Installment Selection</label>
+                                <select name="customer_installment_id" class="form-select" id="installmentSelect" onchange="updateDueHint()">
+                                    <option value="">General Payment (No specific installment)</option>
+                                    {% for ci in customer_installments %}
+                                    <option value="{{ ci.id }}" data-due="{{ ci.due_amount }}">
+                                        {{ ci.installment.name }} (Due: ৳{{ "{:,.0f}".format(ci.due_amount) }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div id="dueHint" class="small text-danger mt-1" style="display: none;"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Payment Type / Installment Name</label>
+                                <select name="installment_type" class="form-select" id="typeSelect">
                                     <option value="Part">Part Payment</option>
                                     <option value="Full">Full Payment</option>
                                     <option value="Booking">Booking Money</option>
                                     <option value="Down Payment">Down Payment</option>
+                                    {% for ci in customer_installments %}
+                                    <option value="{{ ci.installment.name }}">{{ ci.installment.name }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -222,6 +237,30 @@
         
         // Scroll to form
         form.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function updateDueHint() {
+        const select = document.getElementById('installmentSelect');
+        const hint = document.getElementById('dueHint');
+        const selectedOption = select.options[select.selectedIndex];
+        const typeSelect = document.getElementById('typeSelect');
+        
+        if (selectedOption.value) {
+            const due = selectedOption.getAttribute('data-due');
+            hint.innerHTML = `<i class="fas fa-info-circle me-1"></i> Current Due for this installment: ৳${Number(due).toLocaleString()}`;
+            hint.style.display = 'block';
+            
+            // Auto-select corresponding installment name in typeSelect if it matches
+            const instName = selectedOption.text.split(' (Due:')[0].trim();
+            for (let i = 0; i < typeSelect.options.length; i++) {
+                if (typeSelect.options[i].value === instName) {
+                    typeSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        } else {
+            hint.style.display = 'none';
+        }
     }
     
     function resetForm() {

@@ -1,42 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold text-dark-blue">Dashboard</h2>
-        <p class="text-muted mb-0">Overview of Company Financials</p>
-    </div>
-    <div class="d-flex gap-2">
-        <a href="{{ url_for('main.manage_petty_cash') }}" class="btn btn-outline-primary rounded-pill">
-            <i class="fas fa-coins me-2"></i>Petty Cash
-        </a>
-        <a href="{{ url_for('main.download_all_customers_report') }}" class="btn btn-outline-success rounded-pill">
-            <i class="fas fa-file-excel me-2"></i>Export All
-        </a>
-        <div class="input-group">
-            <input type="text" class="form-control" id="searchBar" placeholder="Search customers...">
-            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-        </div>
-        <a href="{{ url_for('main.change_password_request') }}" class="btn btn-light rounded-circle border shadow-sm" title="Change Password">
-            <i class="fas fa-key text-warning"></i>
-        </a>
-        <a href="{{ url_for('main.settings') }}" class="btn btn-light rounded-circle border shadow-sm" title="Settings">
-            <i class="fas fa-cog text-secondary"></i>
-        </a>
-    </div>
-</div>
-
-
-
-<!-- Grand Summary (Directors) -->
-<div class="row mb-2">
+<div class="row mb-4 g-3">
     <div class="col-12">
-        <h5 class="text-muted small text-uppercase fw-bold ps-1">Directors Summary</h5>
+        <div class="d-flex justify-content-end align-items-center mb-2">
+            <button class="btn btn-sm btn-primary rounded-pill shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#createInstallmentModal">
+                <i class="fas fa-plus me-1"></i> Create Installment
+            </button>
+        </div>
     </div>
+    
+    <!-- Row 1 -->
     <div class="col-md-4">
         <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10">
             <div class="card-body text-center p-3">
-                <div class="text-uppercase small fw-bold text-primary mb-1">Total Payable (Directors)</div>
+                <div class="text-uppercase small fw-bold text-primary mb-1">Total Project Value</div>
                 <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(grand_total_payable) }}</div>
             </div>
         </div>
@@ -44,47 +22,176 @@
     <div class="col-md-4">
         <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
             <div class="card-body text-center p-3">
-                <div class="text-uppercase small fw-bold text-success mb-1">Total Paid (Directors)</div>
+                <div class="text-uppercase small fw-bold text-success mb-1">Total Collection</div>
                 <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(grand_total_paid) }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100 bg-danger bg-opacity-10">
+        <div class="card border-0 shadow-sm h-100 bg-info bg-opacity-10">
             <div class="card-body text-center p-3">
-                <div class="text-uppercase small fw-bold text-danger mb-1">Total Due (Directors)</div>
+                <div class="text-uppercase small fw-bold text-info mb-1">Total Due</div>
                 <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(grand_total_due) }}</div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Grand Summary (Customers) -->
-<div class="row mb-5">
-    <div class="col-12">
-        <h5 class="text-muted small text-uppercase fw-bold ps-1">Customers Summary</h5>
-    </div>
+    <!-- Row 2 -->
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100 bg-info bg-opacity-10">
+        <div class="card border-0 shadow-sm h-100 bg-danger bg-opacity-10">
             <div class="card-body text-center p-3">
-                <div class="text-uppercase small fw-bold text-info mb-1">Total Price (Customers)</div>
-                <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(cust_total_payable) }}</div>
+                <div class="text-uppercase small fw-bold text-danger mb-1">Total Outstanding</div>
+                <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(grand_total_outstanding) }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
+        <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10">
             <div class="card-body text-center p-3">
-                <div class="text-uppercase small fw-bold text-success mb-1">Total Paid (Customers)</div>
-                <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(cust_total_paid) }}</div>
+                <div class="text-uppercase small fw-bold text-primary mb-1">Bank Balance</div>
+                <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(total_bank_balance) }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
             <div class="card-body text-center p-3">
-                <div class="text-uppercase small fw-bold text-warning mb-1">Total Due (Customers)</div>
-                <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(cust_total_due) }}</div>
+                <div class="text-uppercase small fw-bold text-warning mb-1">Cash In Hand</div>
+                <div class="fs-2 fw-bold text-dark">৳{{ "{:,.0f}".format(cash_in_hand) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Installment Modal -->
+<div class="modal fade" id="createInstallmentModal" tabindex="-1" aria-labelledby="createInstallmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('main.create_installment') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createInstallmentModalLabel">Create New Installment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if installments %}
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-muted mb-2"><i class="fas fa-list me-1"></i> Existing Installments</h6>
+                        <table class="table table-sm table-bordered rounded">
+                            <thead class="table-light"><tr><th>Name</th><th>Rate/Share</th><th class="text-center">Actions</th></tr></thead>
+                            <tbody>
+                            {% for inst in installments %}
+                            <tr>
+                                <td>{{ inst.name }}</td>
+                                <td>৳{{ "{:,.0f}".format(inst.amount_per_share) }}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2"
+                                        data-bs-toggle="modal" data-bs-target="#editInstallmentModal"
+                                        data-id="{{ inst.id }}" data-name="{{ inst.name }}" data-amount="{{ inst.amount_per_share }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
+                                        data-bs-toggle="modal" data-bs-target="#deleteInstallmentModal"
+                                        data-id="{{ inst.id }}" data-name="{{ inst.name }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <hr>
+                    </div>
+                    {% endif %}
+                    <h6 class="fw-bold text-muted mb-3"><i class="fas fa-plus-circle me-1"></i> Add New Installment</h6>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Installment Name (e.g., Piling Installment)</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="Enter name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount_per_share" class="form-label">Amount Per Share (৳)</label>
+                        <input type="number" step="0.01" class="form-control" id="amount_per_share" name="amount_per_share" required placeholder="0.00">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Admin Password Required</label>
+                        <input type="password" class="form-control" name="admin_password" required placeholder="Password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create & Generate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Installment Modal -->
+<div class="modal fade" id="editInstallmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editInstallmentForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Installment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Installment Name</label>
+                        <input type="text" class="form-control" id="editInstName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount Per Share (৳)</label>
+                        <input type="number" step="0.01" class="form-control" id="editInstAmount" name="amount_per_share" required>
+                    </div>
+                    <div class="alert alert-warning py-2 small"><i class="fas fa-exclamation-triangle me-1"></i> This will recalculate all customer totals and director dues.</div>
+                    <div class="mb-2">
+                        <label class="form-label text-muted small">Admin Password Required</label>
+                        <input type="password" class="form-control" name="admin_password" required placeholder="Password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Installment Modal -->
+<div class="modal fade" id="deleteInstallmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form id="deleteInstallmentForm" method="POST">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Delete Installment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Delete installment <strong id="deleteInstName"></strong>?<br>
+                    <span class="text-danger small">All related customer records and totals will be recalculated.</span></p>
+                    <div class="mb-2">
+                        <input type="password" class="form-control" name="admin_password" required placeholder="Admin Password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <!-- Full Width Chart -->
+    <div class="col-12 mb-4">
+        <h5 class="text-muted small text-uppercase fw-bold ps-1 mb-3">Cash Flow Trend</h5>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div style="height: 350px;">
+                    <canvas id="cashFlowChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -109,12 +216,22 @@
                     aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse{{ director.id }}">
                     <span class="d-flex align-items-center">
                         <i class="fas fa-user-tie me-2 text-primary"></i> {{ director.name }}
-                        <span class="badge bg-light text-dark ms-2 border">{{ director.customers|length }}
-                            Customers</span>
+                        <span class="badge bg-light text-dark ms-2 border">{{ director.customers|length }} Customers</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary ms-2 border border-primary border-opacity-25">
+                            <i class="fas fa-chart-pie me-1"></i> {{ (director.customers|sum(attribute='shares'))|int }}/{{ director.total_share|int }} Shares
+                        </span>
                     </span>
-                    <span class="ms-auto me-3 text-muted small">
-                        <i class="fas fa-phone-alt me-1"></i> {{ director.phone }}
-                    </span>
+                    <div class="ms-auto me-3 d-flex align-items-center gap-3">
+                        <span class="text-success small fw-bold">
+                            <i class="fas fa-check-circle me-1"></i> Paid: ৳{{ "{:,.0f}".format(director.total_paid) }}
+                        </span>
+                        <span class="text-danger small fw-bold">
+                            <i class="fas fa-exclamation-circle me-1"></i> Due: ৳{{ "{:,.0f}".format(director.total_due) }}
+                        </span>
+                        <span class="text-muted small">
+                            <i class="fas fa-phone-alt me-1"></i> {{ director.phone if director.phone else 'N/A' }}
+                        </span>
+                    </div>
                 </button>
                 <div class="border-bottom p-2 bg-light d-flex align-items-center" style="min-height: 100%;">
                     <a href="{{ url_for('main.download_director_customers_report', id=director.id) }}" 
@@ -145,37 +262,23 @@
                         <div class="col-md-3 border-end">
                             <div class="text-muted small text-uppercase fw-bold mb-1">Share Info</div>
                             <div>Total Share: <strong>{{ director.total_share }}</strong></div>
-                            <div>Per Share: ৳{{ "{:,.0f}".format(director.per_share_value) }}</div>
-                            <div>Fair Cost: ৳{{ "{:,.0f}".format(director.fair_cost) }}</div>
-                            <div class="text-primary fw-bold mt-1">
-                                Value: ৳{{ "{:,.0f}".format(director.total_share * director.per_share_value) }}
-                            </div>
+                            <div>Assigned: <strong>{{ director.total_share - director.available_shares }}</strong></div>
+                            <div class="text-success">Available: <strong>{{ director.available_shares }}</strong></div>
                         </div>
                         <div class="col-md-3 border-end">
-                            <div class="text-muted small text-uppercase fw-bold mb-1">Assets & Dues</div>
-                            <div>Extra Land: ৳{{ "{:,.0f}".format(director.land_value_extra_share) }}</div>
-                            <div class="mt-2 text-muted small text-uppercase fw-bold">Total Payable</div>
-                            {% set total_share_val = director.total_share * director.per_share_value %}
-                            <div class="fw-bold text-dark">৳{{ "{:,.0f}".format(total_share_val +
-                                director.land_value_extra_share) }}</div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-muted small text-uppercase fw-bold mb-1">Payment Status</div>
+                            <div class="text-muted small text-uppercase fw-bold mb-1">Financial Summary</div>
                             <div class="d-flex justify-content-between">
-                                <span>Paid:</span>
+                                <span>Total Paid:</span>
                                 <span class="text-success fw-bold">৳{{ "{:,.0f}".format(director.total_paid) }}</span>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Due:</span>
-                                {% set total_payable = total_share_val + director.land_value_extra_share %}
-                                <span class="text-danger fw-bold">৳{{ "{:,.0f}".format(total_payable -
-                                    director.total_paid) }}</span>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span>Total Due:</span>
+                                <span class="text-danger fw-bold">৳{{ "{:,.0f}".format(director.total_due) }}</span>
                             </div>
-                            <div class="mt-2 small text-muted border-top pt-2">
-                                <div class="fw-bold text-uppercase" style="font-size: 0.75rem;">Payment History:</div>
-                                <div style="max-height: 60px; overflow-y: auto; white-space: pre-wrap;">{{
-                                    director.payment_history or 'No history' }}</div>
-                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-muted small text-uppercase fw-bold mb-1">Payment History</div>
+                            <div class="mt-1 small text-muted" style="max-height: 80px; overflow-y: auto; white-space: pre-wrap;">{{ director.payment_history or 'No history' }}</div>
                         </div>
                     </div>
                 </div>
@@ -189,6 +292,7 @@
                                 <th>Name</th>
                                 <th>Phone</th>
                                 <th>Plot</th>
+                                <th>Shares</th>
                                 <th>Total</th>
                                 <th>Paid</th>
                                 <th>Due</th>
@@ -204,6 +308,7 @@
                                 <td><span
                                         class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">{{
                                         customer.plot_no }}</span></td>
+                                <td class="fw-bold text-primary">{{ customer.shares|int }}</td>
                                 <td class="text-secondary">{{ "{:,.0f}".format(customer.total_price) }}</td>
                                 <td class="text-success fw-semibold">{{ "{:,.0f}".format(customer.total_paid) }}</td>
                                 <td class="text-danger fw-semibold">{{ "{:,.0f}".format(customer.due_amount) }}</td>
@@ -220,6 +325,7 @@
                             {% endfor %}
                             <tr class="bg-white fw-bold border-top">
                                 <td colspan="4" class="text-end">Subtotal:</td>
+                                <td class="text-primary">{{ (director.customers|sum(attribute='shares'))|int }}</td>
                                 <td class="text-secondary">{{
                                     "{:,.0f}".format(director.customers|sum(attribute='total_price')) }}</td>
                                 <td class="text-success">{{
@@ -241,54 +347,111 @@
     </div>
     {% endfor %}
 </div>
+{% endif %}
+{% endblock %}
 
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.getElementById('searchBar').addEventListener('keyup', function () {
-        let value = this.value.toLowerCase().trim();
-        let directors = document.querySelectorAll('.accordion-item');
+    // Search Functionality
+    const searchBar = document.getElementById('searchBar');
+    if (searchBar) {
+        searchBar.addEventListener('keyup', function () {
+            let value = this.value.toLowerCase().trim();
+            let directors = document.querySelectorAll('.accordion-item');
 
-        directors.forEach(function (director) {
-            let rows = director.querySelectorAll('.searchable-row');
-            let hasMatch = false;
+            directors.forEach(function (director) {
+                let rows = director.querySelectorAll('.searchable-row');
+                let hasMatch = false;
 
-            // 1. Filter Rows (Customers)
-            rows.forEach(function (row) {
-                let text = row.textContent.toLowerCase();
-                if (value === '' || text.indexOf(value) > -1) {
-                    row.style.display = ''; // Show row
-                    if (value !== '') hasMatch = true; 
-                } else {
-                    row.style.display = 'none'; // Hide row
-                }
-            });
+                rows.forEach(function (row) {
+                    let text = row.textContent.toLowerCase();
+                    if (value === '' || text.indexOf(value) > -1) {
+                        row.style.display = '';
+                        if (value !== '') hasMatch = true; 
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
 
-            // 2. Handle Director Visibility & Accordion State
-            let collapseDiv = director.querySelector('.accordion-collapse');
-            
-            if (value === '') {
-                // Reset: Show all directors
-                director.style.display = '';
-                // Optional: We don't force collapse here to preserve state, 
-                // or we could revert to original state if tracked. 
-                // For simplicity, we leave the expansion state as is when clearing.
-            } else {
-                if (hasMatch) {
-                    director.style.display = ''; // Show director
-                    // Auto-Expand if hidden
+                let collapseDiv = director.querySelector('.accordion-collapse');
+                if (value !== '' && hasMatch) {
+                    director.style.display = '';
                     if (collapseDiv && !collapseDiv.classList.contains('show')) {
                         new bootstrap.Collapse(collapseDiv, { toggle: false }).show();
                     }
+                } else if (value === '') {
+                    director.style.display = '';
                 } else {
-                    director.style.display = 'none'; // Hide director if no customer matches
-                    // Optional: Collapse it to be tidy?
-                    // if (collapseDiv && collapseDiv.classList.contains('show')) {
-                    //    new bootstrap.Collapse(collapseDiv, { toggle: false }).hide();
-                    // }
+                    director.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Chart.js Initialization
+    const ctx = document.getElementById('cashFlowChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [{
+                label: 'Income',
+                data: {{ chart_income | tojson }},
+                borderColor: '#2ecc71',
+                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2
+            }, {
+                label: 'Expense',
+                data: {{ chart_expense | tojson }},
+                borderColor: '#e74c3c',
+                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { boxWidth: 10, font: { size: 10 } }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { font: { size: 9 } },
+                    grid: { display: false }
+                },
+                x: {
+                    ticks: { font: { size: 9 } },
+                    grid: { display: false }
                 }
             }
-        });
+        }
     });
+    // --- Installment Modal Wiring ---
+    const editInstModal = document.getElementById('editInstallmentModal');
+    if (editInstModal) {
+        editInstModal.addEventListener('show.bs.modal', function(event) {
+            const btn = event.relatedTarget;
+            document.getElementById('editInstName').value = btn.getAttribute('data-name');
+            document.getElementById('editInstAmount').value = btn.getAttribute('data-amount');
+            document.getElementById('editInstallmentForm').action = '/installment/edit/' + btn.getAttribute('data-id');
+        });
+    }
+    const delInstModal = document.getElementById('deleteInstallmentModal');
+    if (delInstModal) {
+        delInstModal.addEventListener('show.bs.modal', function(event) {
+            const btn = event.relatedTarget;
+            document.getElementById('deleteInstName').textContent = btn.getAttribute('data-name');
+            document.getElementById('deleteInstallmentForm').action = '/installment/delete/' + btn.getAttribute('data-id');
+        });
+    }
 </script>
-
-{% endif %}
 {% endblock %}

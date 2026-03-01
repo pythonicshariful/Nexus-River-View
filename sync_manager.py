@@ -5,8 +5,10 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import time
+import threading
 from database import db
 from models import Director, Customer, Transaction, PettyCash, Bank, BankTransaction
+from telegram_utils import log_debug
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -35,14 +37,15 @@ def get_credentials_path():
     return resource_path("credentials.json")
 
 # Configuration
-SHEET_ID = "1Uapf1c4wDZ4hGfa1bqSbRjF45VodFv2-jtzgLL4VDq0"
 CREDENTIALS_FILE = get_credentials_path()
+SHEET_ID = "1Uapf1c4wDZ4hGfa1bqSbRjF45VodFv2-jtzgLL4VDq0"
 
 class SyncManager:
     def __init__(self, app=None):
         self.app = app
         self._client = None
         self._spreadsheet = None
+        self._sync_lock = threading.Lock()
 
     @property
     def client(self):
@@ -52,7 +55,7 @@ class SyncManager:
                 creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
                 self._client = gspread.authorize(creds)
             except Exception as e:
-                print(f"Failed to authorize Google Sheets: {e}")
+                log_debug(f"Failed to authorize Google Sheets: {e}")
         return self._client
 
     @property
@@ -61,19 +64,22 @@ class SyncManager:
             try:
                 self._spreadsheet = self.client.open_by_key(SHEET_ID)
             except Exception as e:
-                print(f"Failed to open spreadsheet: {e}")
+                log_debug(f"Failed to open spreadsheet: {e}")
         return self._spreadsheet
 
     def get_all_tables_data(self):
         """Fetches all data from the database."""
         data = {}
+        from models import Installment, CustomerInstallment
         models = {
             'director': Director,
             'customer': Customer,
             'transaction': Transaction,
             'petty_cash': PettyCash,
             'bank': Bank,
-            'bank_transaction': BankTransaction
+            'bank_transaction': BankTransaction,
+            'installment': Installment,
+            'customer_installment': CustomerInstallment
         }
         for name, model in models.items():
             if name == 'customer':
@@ -99,27 +105,38 @@ class SyncManager:
 
     def sync_to_sheets(self):
         """Exports local database to Google Sheets (One-way: DB -> Sheets)."""
-        if not self.spreadsheet:
-            return False, "Spreadsheet not found"
+        if not self.sync_lock_acquire():
+            log_debug("Sync to sheets skipped: Another sync is in progress.")
+            return False, "Sync already in progress"
 
-        data = self.get_all_tables_data()
-        for table_name, rows in data.items():
-            try:
+        try:
+            if not self.spreadsheet:
+                return False, "Spreadsheet not found"
+
+            data = self.get_all_tables_data()
+            for table_name, rows in data.items():
                 try:
-                    worksheet = self.spreadsheet.worksheet(table_name)
-                    worksheet.clear()
-                except gspread.exceptions.WorksheetNotFound:
-                    worksheet = self.spreadsheet.add_worksheet(title=table_name, rows="100", cols="20")
-                
-                if rows:
-                    headers = list(rows[0].keys())
-                    values = [headers] + [[row[h] for h in headers] for row in rows]
-                    worksheet.resize(rows=len(values), cols=len(headers))
-                    worksheet.update('A1', values)
-                time.sleep(1) # Rate limiting
-            except Exception as e:
-                print(f"Error syncing {table_name} to sheets: {e}")
-        return True, "Sync to sheets completed"
+                    try:
+                        worksheet = self.spreadsheet.worksheet(table_name)
+                        worksheet.clear()
+                    except gspread.exceptions.WorksheetNotFound:
+                        worksheet = self.spreadsheet.add_worksheet(title=table_name, rows="100", cols="20")
+                    
+                    if rows:
+                        headers = list(rows[0].keys())
+                        values = [headers] + [[row[h] for h in headers] for row in rows]
+                        worksheet.resize(rows=len(values), cols=len(headers))
+                        worksheet.update('A1', values)
+                    time.sleep(1) # Rate limiting
+                except Exception as e:
+                    log_debug(f"Error syncing {table_name} to sheets: {e}")
+            log_debug("Sync to sheets completed successfully.")
+            return True, "Sync to sheets completed"
+        finally:
+            self._sync_lock.release()
+
+    def sync_lock_acquire(self, blocking=False):
+        return self._sync_lock.acquire(blocking=blocking)
 
     def fetch_from_sheets(self):
         """Fetches all data from Google Sheets."""
