@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_from_directory
 from werkzeug.utils import secure_filename
 import os
-from models import Director, Customer, Transaction, PettyCash, Bank, BankTransaction, Installment, CustomerInstallment
+from models import Director, Customer, Transaction, PettyCash, PettyCashCategory, Bank, BankTransaction, Installment, CustomerInstallment
 from database import db
 from logic import sync_to_excel, restore_from_excel
 import pandas as pd
@@ -653,10 +653,23 @@ def manage_transactions(customer_id):
         date = request.form.get('date')
         amount = float(request.form.get('amount') or 0)
         installment_type = request.form.get('installment_type')
-        cust_inst_id = request.form.get('customer_installment_id')
-        bank_name = request.form.get('bank_name')
+        cust_inst_id = request.form.get('customer_installment_id') or None
         transaction_id = request.form.get('transaction_id')
         remarks = request.form.get('remarks')
+        payment_source = request.form.get('payment_source', 'cash')  # 'bank', 'petty_cash', or 'cash'
+        
+        # Payment source specific fields
+        bank_id = request.form.get('bank_id') or None
+        bank_name = request.form.get('bank_name', '')
+        cheque_no = request.form.get('cheque_no', '')
+        bank_narration = request.form.get('bank_narration', '')
+        bank_remarks = request.form.get('bank_remarks', '')
+        petty_cash_desc = request.form.get('petty_cash_desc', f'Payment from {customer.name}')
+        petty_cash_category = request.form.get('petty_cash_category', 'Customer Payment')
+        
+        # Merge remarks: bank_remarks takes priority when bank is selected
+        if payment_source == 'bank' and bank_remarks:
+            remarks = bank_remarks
         
         # Handle Images
         images = []
@@ -668,13 +681,21 @@ def manage_transactions(customer_id):
                     file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
                     images.append(filename)
         
+        # Determine bank_name to store on transaction
+        if payment_source == 'bank' and bank_id:
+            selected_bank = Bank.query.get(bank_id)
+            if selected_bank:
+                bank_name = selected_bank.bank_name
+        elif payment_source == 'petty_cash':
+            bank_name = 'Petty Cash'
+        
         new_tx = Transaction(
             date=date,
             amount=amount,
-            installment_type=request.form.get('installment_type'),
-            bank_name=request.form.get('bank_name'),
-            transaction_id=request.form.get('transaction_id'),
-            remarks=request.form.get('remarks'),
+            installment_type=installment_type,
+            bank_name=bank_name,
+            transaction_id=transaction_id,
+            remarks=remarks,
             customer_id=customer_id,
             customer_installment_id=cust_inst_id,
             images=','.join(images)
@@ -699,9 +720,36 @@ def manage_transactions(customer_id):
                 # Mirror installment name if not set
                 if not new_tx.installment_type:
                     new_tx.installment_type = cust_inst.installment.name
+
+        # Handle Payment Source: update bank balance or petty cash
+        if payment_source == 'bank' and bank_id:
+            selected_bank = Bank.query.get(bank_id)
+            if selected_bank:
+                # Calculate running balance
+                last_tx = BankTransaction.query.filter_by(bank_id=selected_bank.id).order_by(BankTransaction.id.desc()).first()
+                running_balance = (last_tx.balance if last_tx else 0) + amount
+                bank_tx = BankTransaction(
+                    date=date,
+                    cheque_no=cheque_no or None,
+                    ref_no=transaction_id or None,
+                    narration=bank_narration or f'Customer Payment - {customer.name} ({customer.customer_id})',
+                    transaction_details=installment_type or 'Customer Payment',
+                    credit=amount,
+                    debit=0,
+                    balance=running_balance,
+                    bank_id=selected_bank.id
+                )
+                db.session.add(bank_tx)
+        elif payment_source == 'petty_cash':
+            pc_entry = PettyCash(
+                date=date,
+                description=petty_cash_desc or f'Customer Payment - {customer.name}',
+                category=petty_cash_category or 'Customer Payment',
+                type='Income',
+                amount=amount
+            )
+            db.session.add(pc_entry)
         
-        db.session.add(new_tx)
-        db.session.add(new_tx)
         db.session.commit()
 
         # Recalculate everything
@@ -717,11 +765,23 @@ def manage_transactions(customer_id):
     transactions = Transaction.query.filter_by(customer_id=customer_id).all()
     # Fetch active installments for this customer
     customer_installments = CustomerInstallment.query.filter_by(customer_id=customer_id).all()
-    
+    banks = Bank.query.filter_by(status='Active').all()
+    # Seed categories if empty
+    if PettyCashCategory.query.count() == 0:
+        defaults = ["Bank", "Customer Payment", "Entertainment", "Food", "Maintenance",
+                    "Marketing", "Office", "Repair", "Salary", "Stationery", "Transport",
+                    "Travel", "Utility"]
+        for d in defaults:
+            db.session.add(PettyCashCategory(name=d))
+        db.session.commit()
+    petty_cash_categories = [c.name for c in PettyCashCategory.query.order_by(PettyCashCategory.name).all()]
+
     return render_template('customer_transactions.html', 
                          customer=customer, 
                          transactions=transactions, 
-                         customer_installments=customer_installments)
+                         customer_installments=customer_installments,
+                         banks=banks,
+                         petty_cash_categories=petty_cash_categories)
 
 @main.route('/delete_transaction/<int:id>', methods=['GET', 'POST'])
 def delete_transaction(id):
@@ -865,26 +925,72 @@ def manage_petty_cash():
         query = query.filter(PettyCash.category == filter_category)
         
     entries = query.order_by(PettyCash.date.desc()).all()
-    
-    # Fetch unique categories for dynamic suggestions
-    available_categories = db.session.query(PettyCash.category).distinct().all()
-    available_categories = [c[0] for c in available_categories if c[0]]
-    # Ensure some defaults are always there if empty
-    defaults = ["Office", "Food", "Transport", "Salary", "Maintenance", "Utility", "Stationery", "Marketing", "Entertainment", "Repair", "Bank", "Travel"]
-    for d in defaults:
-        if d not in available_categories:
-            available_categories.append(d)
-    available_categories.sort()
+
+    # Use managed PettyCashCategory table; seed defaults if empty
+    if PettyCashCategory.query.count() == 0:
+        defaults = ["Bank", "Customer Payment", "Entertainment", "Food", "Maintenance",
+                    "Marketing", "Office", "Repair", "Salary", "Stationery", "Transport",
+                    "Travel", "Utility"]
+        for d in defaults:
+            db.session.add(PettyCashCategory(name=d))
+        db.session.commit()
+
+    available_categories = [c.name for c in PettyCashCategory.query.order_by(PettyCashCategory.name).all()]
 
     total_income = sum(e.amount for e in entries if e.type == 'Income')
     total_expense = sum(e.amount for e in entries if e.type == 'Expense')
     current_balance = total_income - total_expense
     
+    pc_categories = PettyCashCategory.query.order_by(PettyCashCategory.name).all()
     return render_template('petty_cash.html', entries=entries, 
                          total_income=total_income, 
                          total_expense=total_expense, 
                          current_balance=current_balance,
-                         available_categories=available_categories)
+                         available_categories=available_categories,
+                         pc_categories=pc_categories)
+
+# --- Petty Cash Category CRUD ---
+@main.route('/petty_cash/category/add', methods=['POST'])
+def add_petty_cash_category():
+    name = request.form.get('name', '').strip()
+    if name:
+        existing = PettyCashCategory.query.filter_by(name=name).first()
+        if not existing:
+            db.session.add(PettyCashCategory(name=name))
+            db.session.commit()
+            flash(f'Category "{name}" added!', 'success')
+        else:
+            flash(f'Category "{name}" already exists.', 'warning')
+    return redirect(url_for('main.manage_petty_cash'))
+
+@main.route('/petty_cash/category/edit/<int:id>', methods=['POST'])
+def edit_petty_cash_category(id):
+    cat = PettyCashCategory.query.get_or_404(id)
+    new_name = request.form.get('name', '').strip()
+    if new_name and new_name != cat.name:
+        old_name = cat.name
+        cat.name = new_name
+        # Also update all existing PettyCash entries with this category
+        PettyCash.query.filter_by(category=old_name).update({'category': new_name})
+        db.session.commit()
+        flash(f'Category renamed to "{new_name}".', 'success')
+    return redirect(url_for('main.manage_petty_cash'))
+
+@main.route('/petty_cash/category/delete/<int:id>', methods=['POST'])
+def delete_petty_cash_category(id):
+    cat = PettyCashCategory.query.get_or_404(id)
+    name = cat.name
+    db.session.delete(cat)
+    db.session.commit()
+    flash(f'Category "{name}" deleted.', 'info')
+    return redirect(url_for('main.manage_petty_cash'))
+
+@main.route('/petty_cash/categories', methods=['GET'])
+def get_petty_cash_categories():
+    """JSON endpoint for category list (used by customer_transactions form)."""
+    cats = [c.name for c in PettyCashCategory.query.order_by(PettyCashCategory.name).all()]
+    from flask import jsonify
+    return jsonify(cats)
 
 @main.route('/petty_cash/export')
 def export_petty_cash_report():

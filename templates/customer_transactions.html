@@ -60,18 +60,25 @@
                                     <input type="number" step="0.01" name="amount" class="form-control" required>
                                 </div>
                             </div>
+
+                            <!-- Installment Selection -->
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-muted">Installment Selection</label>
                                 <select name="customer_installment_id" class="form-select" id="installmentSelect" onchange="updateDueHint()">
                                     <option value="">General Payment (No specific installment)</option>
                                     {% for ci in customer_installments %}
-                                    <option value="{{ ci.id }}" data-due="{{ ci.due_amount }}">
-                                        {{ ci.installment.name }} (Due: ৳{{ "{:,.0f}".format(ci.due_amount) }})
+                                    <option value="{{ ci.id }}" data-due="{{ ci.due_amount }}" data-name="{{ ci.installment.name }}">
+                                        {{ ci.installment.name }} — Due: ৳{{ "{:,.0f}".format(ci.due_amount) }} / Total: ৳{{ "{:,.0f}".format(ci.total_amount) }}
                                     </option>
                                     {% endfor %}
                                 </select>
                                 <div id="dueHint" class="small text-danger mt-1" style="display: none;"></div>
+                                {% if not customer_installments %}
+                                <div class="small text-warning mt-1"><i class="fas fa-info-circle me-1"></i>No installments assigned yet.</div>
+                                {% endif %}
                             </div>
+
+                            <!-- Payment Type -->
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-muted">Payment Type / Installment Name</label>
                                 <select name="installment_type" class="form-select" id="typeSelect">
@@ -84,18 +91,96 @@
                                     {% endfor %}
                                 </select>
                             </div>
+
+                            <!-- Payment Source -->
                             <div class="mb-3">
-                                <label class="form-label small fw-bold text-muted">Bank Name</label>
-                                <input type="text" name="bank_name" class="form-control" placeholder="e.g. City Bank">
+                                <label class="form-label small fw-bold text-muted">Payment Received In</label>
+                                <div class="d-flex gap-3 flex-wrap">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_source" id="srcCash" value="cash" checked onchange="togglePaymentSource()">
+                                        <label class="form-check-label small" for="srcCash"><i class="fas fa-money-bill-wave me-1 text-success"></i>Cash</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_source" id="srcBank" value="bank" onchange="togglePaymentSource()">
+                                        <label class="form-check-label small" for="srcBank"><i class="fas fa-university me-1 text-primary"></i>Bank</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_source" id="srcPettyCash" value="petty_cash" onchange="togglePaymentSource()">
+                                        <label class="form-check-label small" for="srcPettyCash"><i class="fas fa-wallet me-1 text-warning"></i>Petty Cash</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-muted">Transaction ID</label>
-                                <input type="text" name="transaction_id" class="form-control" placeholder="Optional">
+
+                            <!-- Bank Fields (shown when Bank is selected) -->
+                            <div id="bankFields" class="mb-3 p-3 rounded border border-primary-subtle bg-light" style="display: none;">
+                                <label class="form-label small fw-bold text-primary mb-2"><i class="fas fa-university me-1"></i>Bank Details</label>
+                                {% if banks %}
+                                <div class="mb-2">
+                                    <label class="form-label small text-muted">Select Bank Account *</label>
+                                    <select name="bank_id" id="bankSelect" class="form-select form-select-sm" onchange="updateBankName()">
+                                        <option value="">-- Select Bank --</option>
+                                        {% for bank in banks %}
+                                        <option value="{{ bank.id }}" data-name="{{ bank.bank_name }}">{{ bank.bank_name }} ({{ bank.account_no }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning py-2 small mb-2">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> No active bank accounts. <a href="{{ url_for('main.manage_banks') }}">Add one here.</a>
+                                </div>
+                                {% endif %}
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted">Cheque No</label>
+                                        <input type="text" name="cheque_no" class="form-control form-control-sm" placeholder="e.g. 123456">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted">Ref / Transaction ID</label>
+                                        <input type="text" name="transaction_id" id="bankTxId" class="form-control form-control-sm" placeholder="e.g. TXN-001">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted">Narration / Description</label>
+                                        <input type="text" name="bank_narration" class="form-control form-control-sm" placeholder="e.g. Customer payment for piling">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted">Remarks</label>
+                                        <textarea name="bank_remarks" class="form-control form-control-sm" rows="2" placeholder="Any additional notes..."></textarea>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3">
+
+                            <!-- Petty Cash Fields (shown when Petty Cash is selected) -->
+                            <div id="pettyCashFields" class="mb-3 p-3 rounded border border-warning-subtle bg-light" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold text-warning mb-0"><i class="fas fa-wallet me-1"></i>Petty Cash Details</label>
+                                    <a href="{{ url_for('main.manage_petty_cash') }}" target="_blank" class="small text-muted"><i class="fas fa-cog me-1"></i>Manage Categories</a>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted">Description</label>
+                                        <input type="text" name="petty_cash_desc" class="form-control form-control-sm" placeholder="e.g. Cash received from customer" value="Customer Payment">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted">Category</label>
+                                        <select name="petty_cash_category" class="form-select form-select-sm">
+                                            {% for cat in petty_cash_categories %}
+                                            <option value="{{ cat }}" {% if cat == 'Customer Payment' %}selected{% endif %}>{{ cat }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted">Remarks</label>
+                                        <textarea name="petty_cash_remarks" class="form-control form-control-sm" rows="2" placeholder="Any notes..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cash fields: just remarks about where received -->
+                            <div id="cashFields" class="mb-3">
                                 <label class="form-label small fw-bold text-muted">Remarks</label>
                                 <textarea name="remarks" class="form-control" rows="2"></textarea>
                             </div>
+
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-muted">Evidence/Proof (Images)</label>
                                 <input type="file" name="evidence" class="form-control" multiple accept="image/*">
@@ -194,6 +279,16 @@
 </div>
 
 <script>
+    function togglePaymentSource() {
+        const source = document.querySelector('input[name="payment_source"]:checked').value;
+        document.getElementById('bankFields').style.display = (source === 'bank') ? 'block' : 'none';
+        document.getElementById('pettyCashFields').style.display = (source === 'petty_cash') ? 'block' : 'none';
+    }
+
+    function updateBankName() {
+        // auto-fill display only - actual name is resolved server-side
+    }
+
     function editTx(btn) {
         // Switch Form to Edit Mode
         const form = document.getElementById('transactionForm');
@@ -213,8 +308,6 @@
         form.querySelector('input[name="date"]').value = date;
         form.querySelector('input[name="amount"]').value = amount;
         form.querySelector('select[name="installment_type"]').value = type;
-        form.querySelector('input[name="bank_name"]').value = bank;
-        form.querySelector('input[name="transaction_id"]').value = txId;
         form.querySelector('textarea[name="remarks"]').value = remarks;
         
         // Update Button
@@ -247,11 +340,11 @@
         
         if (selectedOption.value) {
             const due = selectedOption.getAttribute('data-due');
+            const instName = selectedOption.getAttribute('data-name');
             hint.innerHTML = `<i class="fas fa-info-circle me-1"></i> Current Due for this installment: ৳${Number(due).toLocaleString()}`;
             hint.style.display = 'block';
             
             // Auto-select corresponding installment name in typeSelect if it matches
-            const instName = selectedOption.text.split(' (Due:')[0].trim();
             for (let i = 0; i < typeSelect.options.length; i++) {
                 if (typeSelect.options[i].value === instName) {
                     typeSelect.selectedIndex = i;
@@ -275,6 +368,9 @@
         
         const cancelBtn = document.getElementById('cancelEditBtn');
         if (cancelBtn) cancelBtn.remove();
+
+        // Reset payment source visibility
+        togglePaymentSource();
     }
 </script>
 {% endblock %}

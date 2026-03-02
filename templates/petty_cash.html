@@ -7,10 +7,15 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="fw-bold text-dark-blue">Petty Cash Management</h2>
-                <p class="text-muted mb-0">Track Daily Office Income & Expenses</p>
+                <p class="text-muted mb-0">Track Daily Office Income &amp; Expenses</p>
             </div>
-            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill"><i
-                    class="fas fa-arrow-left me-1"></i> Back to Dashboard</a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary rounded-pill btn-sm" onclick="openCategoryModal()">
+                    <i class="fas fa-tags me-1"></i> Manage Categories
+                </button>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill"><i
+                        class="fas fa-arrow-left me-1"></i> Back to Dashboard</a>
+            </div>
         </div>
 
         <!-- Summary Cards -->
@@ -63,7 +68,7 @@
                                     <span class="text-muted">-</span>
                                     <input type="date" name="end_date" class="form-control form-control-sm" value="{{ request.args.get('end_date', '') }}" title="End Date">
                                     
-                                    <select name="category" class="form-select form-select-sm" style="width: 130px;">
+                                    <select name="category" class="form-select form-select-sm" style="width: 150px;">
                                         <option value="All">All Categories</option>
                                         {% for cat in available_categories %}
                                         <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
@@ -184,13 +189,12 @@
                             <input type="text" name="description" id="inputDescription" class="form-control" placeholder="e.g. Office Rent" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted">Category (Select or Type New)</label>
-                            <input list="categoryOptions" name="category" id="inputCategory" class="form-control" placeholder="e.g. Office" required>
-                            <datalist id="categoryOptions">
+                            <label class="form-label small fw-bold text-muted">Category</label>
+                            <select name="category" id="inputCategory" class="form-select" required>
                                 {% for cat in available_categories %}
-                                <option value="{{ cat }}">
+                                <option value="{{ cat }}">{{ cat }}</option>
                                 {% endfor %}
-                            </datalist>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted">Type</label>
@@ -221,14 +225,86 @@
     </div>
 </div>
 
+<!-- Category Management Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-tags me-2"></i>Manage Categories</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Add New Category -->
+                <form method="POST" action="{{ url_for('main.add_petty_cash_category') }}" class="d-flex gap-2 mb-4" onsubmit="return confirmAction(event, 'addCatForm')" id="addCatForm">
+                    <input type="text" name="name" class="form-control" placeholder="New category name (e.g. Legal)" required>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold text-nowrap">
+                        <i class="fas fa-plus me-1"></i> Add
+                    </button>
+                </form>
+
+                <!-- Category List (sorted) -->
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="bg-light text-uppercase text-muted">
+                            <tr>
+                                <th>#</th>
+                                <th>Category Name</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryTableBody">
+                            {% for cat in pc_categories %}
+                            <tr id="catRow_{{ cat.id }}">
+                                <td class="text-muted">{{ loop.index }}</td>
+                                <td>
+                                    <span id="catName_{{ cat.id }}" class="fw-medium">{{ cat.name }}</span>
+                                    <input type="text" id="catInput_{{ cat.id }}" class="form-control form-control-sm d-none" value="{{ cat.name }}" style="max-width: 200px;">
+                                </td>
+                                <td class="text-end">
+                                    <!-- Edit toggle -->
+                                    <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="toggleEditCat({{ cat.id }})" id="editBtn_{{ cat.id }}" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <!-- Save inline -->
+                                    <form method="POST" action="{{ url_for('main.edit_petty_cash_category', id=cat.id) }}" id="saveForm_{{ cat.id }}" class="d-inline">
+                                        <input type="hidden" name="name" id="saveInput_{{ cat.id }}">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-circle me-1 d-none" id="saveBtn_{{ cat.id }}" title="Save" onclick="prepSave({{ cat.id }})">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <!-- Cancel edit -->
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle me-1 d-none" id="cancelBtn_{{ cat.id }}" onclick="cancelEditCat({{ cat.id }})" title="Cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <!-- Delete -->
+                                    <form method="POST" action="{{ url_for('main.delete_petty_cash_category', id=cat.id) }}" class="d-inline" onsubmit="return confirm('Delete category \'{{ cat.name }}\'?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">No categories yet. Add one above.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Ensure Bootstrap is loaded
-    var entryModal;
+    var entryModal, categoryModal;
     document.addEventListener("DOMContentLoaded", function(){
         entryModal = new bootstrap.Modal(document.getElementById('entryModal'));
+        categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
     });
 
     function openAddModal() {
@@ -240,7 +316,6 @@
         // Clear fields
         document.getElementById('inputDate').value = new Date().toISOString().slice(0, 10);
         document.getElementById('inputDescription').value = '';
-        document.getElementById('inputCategory').value = 'Office';
         document.getElementById('inputType').value = 'Expense';
         document.getElementById('inputAmount').value = '';
         
@@ -258,19 +333,46 @@
         const type = btn.getAttribute('data-type');
         const amount = btn.getAttribute('data-amount');
         
-        // Construct Edit Action URL
         document.getElementById('entryForm').action = "/petty_cash/edit/" + id;
-        
         document.getElementById('editEvidenceNote').classList.remove('d-none');
 
-        // Populate fields
         document.getElementById('inputDate').value = date;
         document.getElementById('inputDescription').value = description;
-        document.getElementById('inputCategory').value = category;
+        // Select matching option
+        const sel = document.getElementById('inputCategory');
+        for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === category) { sel.selectedIndex = i; break; }
+        }
         document.getElementById('inputType').value = type;
         document.getElementById('inputAmount').value = amount;
 
         entryModal.show();
+    }
+
+    function openCategoryModal() {
+        categoryModal.show();
+    }
+
+    function toggleEditCat(id) {
+        document.getElementById('catName_' + id).classList.add('d-none');
+        document.getElementById('catInput_' + id).classList.remove('d-none');
+        document.getElementById('editBtn_' + id).classList.add('d-none');
+        document.getElementById('saveBtn_' + id).classList.remove('d-none');
+        document.getElementById('cancelBtn_' + id).classList.remove('d-none');
+        document.getElementById('catInput_' + id).focus();
+    }
+
+    function cancelEditCat(id) {
+        document.getElementById('catName_' + id).classList.remove('d-none');
+        document.getElementById('catInput_' + id).classList.add('d-none');
+        document.getElementById('editBtn_' + id).classList.remove('d-none');
+        document.getElementById('saveBtn_' + id).classList.add('d-none');
+        document.getElementById('cancelBtn_' + id).classList.add('d-none');
+    }
+
+    function prepSave(id) {
+        const val = document.getElementById('catInput_' + id).value;
+        document.getElementById('saveInput_' + id).value = val;
     }
 </script>
 {% endblock %}
