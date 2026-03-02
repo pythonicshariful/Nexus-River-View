@@ -565,7 +565,7 @@ def create_installment():
     else:
         flash('Invalid Installment Name or Amount.', 'danger')
         
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.manage_installments_page'))
 
 @main.route('/installment/edit/<int:id>', methods=['POST'])
 def edit_installment(id):
@@ -606,7 +606,7 @@ def edit_installment(id):
     db.session.commit()
     backup_to_telegram("Edited Installment")
     flash(f'Installment "{inst.name}" updated and all totals recalculated.', 'success')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.manage_installments_page'))
 
 
 @main.route('/installment/delete/<int:id>', methods=['POST'])
@@ -639,7 +639,12 @@ def delete_installment(id):
     db.session.commit()
     backup_to_telegram("Deleted Installment")
     flash(f'Installment "{inst_name}" deleted and all totals recalculated.', 'success')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.manage_installments_page'))
+
+@main.route('/installments')
+def manage_installments_page():
+    installments = Installment.query.order_by(Installment.created_at).all()
+    return render_template('installments.html', installments=installments)
 
 @main.route('/manage_transactions/<int:customer_id>', methods=['GET', 'POST'])
 def manage_transactions(customer_id):

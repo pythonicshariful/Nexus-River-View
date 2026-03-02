@@ -36,3 +36,191 @@ body {
     border: none;
     border-radius: 12px;
 }
+
+/* Installment Card Styles */
+.installment-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+}
+
+.installment-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #1d68ff, #00d2ff);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.installment-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+}
+
+.installment-card:hover::before {
+    opacity: 1;
+}
+
+.inst-number-badge {
+    background: #f0f7ff;
+    color: #1d68ff;
+    font-weight: 800;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    box-shadow: inset 0 2px 4px rgba(29, 104, 255, 0.1);
+}
+
+.inst-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 2px;
+    letter-spacing: -0.02em;
+}
+
+.inst-meta {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.inst-stat-container {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px 8px;
+    margin-top: auto;
+}
+
+.inst-stat-label {
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #64748b;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+}
+
+.inst-stat-value {
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.inst-stat-value.due { color: #0f172a; }
+.inst-stat-value.collected { color: #10b981; }
+.inst-stat-value.remaining { color: #ef4444; }
+
+.inst-currency-symbol {
+    font-size: 0.9rem;
+    margin-right: 1px;
+    vertical-align: middle;
+    opacity: 0.7;
+}
+
+.btn-view-details {
+    background: #1d68ff;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-grow: 1;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(29, 104, 255, 0.2);
+}
+
+.btn-view-details:hover {
+    background: #0056e0;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(29, 104, 255, 0.3);
+}
+
+.action-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #f1f5f9;
+    color: #64748b;
+    background: #f8fafc;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.action-btn.delete:hover {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #e11d48;
+}
+
+/* Dashboard Financial Overview Cards */
+.dashboard-card {
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+}
+
+.dashboard-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    opacity: 0.8;
+}
+
+.dashboard-card.card-primary::after { background: linear-gradient(90deg, #1d68ff, #60a5fa); }
+.dashboard-card.card-success::after { background: linear-gradient(90deg, #10b981, #34d399); }
+.dashboard-card.card-info::after { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+.dashboard-card.card-danger::after { background: linear-gradient(90deg, #ef4444, #f87171); }
+.dashboard-card.card-warning::after { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+.dashboard-card .card-title-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+}
+
+.dashboard-card .card-value {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: #0f172a;
+}

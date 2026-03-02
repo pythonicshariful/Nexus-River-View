@@ -64,6 +64,18 @@ class Installment(db.Model):
     
     customer_installments = db.relationship('CustomerInstallment', backref='installment', lazy=True, cascade="all, delete-orphan")
 
+    @property
+    def total_expected(self):
+        return sum(ci.total_amount for ci in self.customer_installments)
+
+    @property
+    def total_collected(self):
+        return sum(ci.paid_amount for ci in self.customer_installments)
+
+    @property
+    def total_due(self):
+        return sum(ci.due_amount for ci in self.customer_installments)
+
 class CustomerInstallment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)

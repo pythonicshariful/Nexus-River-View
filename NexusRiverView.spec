@@ -5,7 +5,7 @@ a = Analysis(
     ['run_gui.py'],
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates'), ('static', 'static'), ('admin_config.json', '.'), ('.env', '.'), ('credentials.json', '.'), ('nexus-river-view-600x866.ico', '.'), ('G:\\TEst\\Software - Copy\\venv\\Lib\\site-packages\\certifi\\cacert.pem', 'certifi')],
+    datas=[('templates', 'templates'), ('static', 'static'), ('admin_config.json', '.'), ('.env', '.'), ('credentials.json', '.'), ('nexus-river-view-600x866.ico', '.'), ('C:\\Users\\USER\\AppData\\Roaming\\Python\\Python313\\site-packages\\certifi\\cacert.pem', 'certifi')],
     hiddenimports=['engineio.async_drivers.threading', 'certifi', 'pandas', 'openpyxl', 'openpyxl.cell._writer', 'webview', 'tkinter', 'filedialog'],
     hookspath=[],
     hooksconfig={},

@@ -32,28 +32,31 @@
                     </div>
                 </div>
 
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.add_director') }}" title="Add Director"><i class="fas fa-user-tie"></i></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.add_customer') }}" title="Add Customer"><i class="fas fa-user-plus"></i></a>
+                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.add_director') }}" title="Add Director"><i class="fas fa-user-tie mb-1"></i><span style="font-size: 0.7rem;">Director</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.manage_petty_cash') }}"><i class="fas fa-coins me-1"></i> Petty Cash</a>
-                    </li>
-                    <li class="nav-item border-start border-secondary ms-2 ps-2">
-                        <a class="nav-link" href="{{ url_for('main.manage_banks') }}"><i class="fas fa-university me-1"></i> Bank Mgmt</a>
+                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.add_customer') }}" title="Add Customer"><i class="fas fa-user-plus mb-1"></i><span style="font-size: 0.7rem;">Customer</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.ai_assistant') }}"><i class="fas fa-robot me-1"></i> AI</a>
+                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_petty_cash') }}"><i class="fas fa-coins mb-1"></i><span style="font-size: 0.7rem;">Petty Cash</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.notifications') }}" title="Logs"><i class="fas fa-bell"></i></a>
+                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_installments_page') }}"><i class="fas fa-tasks mb-1"></i><span style="font-size: 0.7rem;">Installments</span></a>
                     </li>
-                    <li class="nav-item ms-2">
-                        <a href="{{ url_for('main.download_all_customers_report') }}" class="btn btn-sm btn-success text-white px-3 rounded-pill shadow-sm" title="Export All Data">
-                            <i class="fas fa-file-excel me-1"></i> Export
+                    <li class="nav-item border-start border-secondary ms-1 ps-1">
+                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_banks') }}"><i class="fas fa-university mb-1"></i><span style="font-size: 0.7rem;">Bank Mgmt</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.ai_assistant') }}"><i class="fas fa-robot mb-1"></i><span style="font-size: 0.7rem;">AI</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.notifications') }}" title="Logs"><i class="fas fa-bell mb-1"></i><span style="font-size: 0.7rem;">Logs</span></a>
+                    </li>
+                    <li class="nav-item ms-2 d-flex align-items-center">
+                        <a href="{{ url_for('main.download_all_customers_report') }}" class="btn btn-sm btn-success text-white px-3 rounded-pill shadow-sm text-nowrap d-flex align-items-center gap-1" title="Export All Data">
+                            <i class="fas fa-file-excel"></i> Export
                         </a>
                     </li>
                     <li class="nav-item ms-2">
