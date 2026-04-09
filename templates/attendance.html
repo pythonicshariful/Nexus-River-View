@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2>Attendance Record</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('main.mark_attendance') }}" class="btn btn-primary"><i class="fas fa-check-square"></i> Mark Attendance</a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="GET" class="row gx-3 gy-2 align-items-center">
+            <div class="col-sm-3">
+                <label class="visually-hidden" for="date">Date</label>
+                <input type="date" class="form-control" id="date" name="date" value="{{ selected_date }}">
+            </div>
+            <div class="col-sm-4">
+                <label class="visually-hidden" for="employee_id">Employee</label>
+                <select class="form-select" id="employee_id" name="employee_id">
+                    <option value="">All Employees</option>
+                    {% for emp in employees %}
+                        <option value="{{ emp.id }}" {% if selected_employee == emp.id|string %}selected{% endif %}>{{ emp.name }} ({{ emp.employee_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{{ url_for('main.view_attendance') }}" class="btn btn-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>In Time</th>
+                        <th>Out Time</th>
+                        <th>Working Hours</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>{{ record.employee.name }}</td>
+                        <td>{{ record.in_time or '-' }}</td>
+                        <td>{{ record.out_time or '-' }}</td>
+                        <td>{{ "{:.2f}".format(record.working_hours) if record.working_hours else '-' }}</td>
+                        <td>
+                            {% if record.status == 'Present' %}
+                                <span class="badge bg-success">Present</span>
+                            {% elif record.status == 'Absent' %}
+                                <span class="badge bg-danger">Absent</span>
+                            {% elif record.status == 'Leave' %}
+                                <span class="badge bg-warning text-dark">Leave</span>
+                            {% elif record.status == 'Late' %}
+                                <span class="badge bg-info text-dark">Late</span>
+                            {% elif record.status == 'Off Day' %}
+                                <span class="badge bg-secondary">Off Day</span>
+                            {% elif record.status == 'FL' %}
+                                <span class="badge" style="background-color: #e83e8c;">FL</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ record.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.notes or '' }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAttModal{{ record.id }}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="{{ url_for('main.delete_attendance', id=record.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this attendance record?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
+                            
+                            <!-- Edit Modal -->
+                            <div class="modal fade" id="editAttModal{{ record.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Attendance: {{ record.employee.name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('main.edit_attendance', id=record.id) }}" method="POST">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Status</label>
+                                                    <select class="form-select" name="status">
+                                                        <option value="Present" {% if record.status == 'Present' %}selected{% endif %}>Present</option>
+                                                        <option value="Absent" {% if record.status == 'Absent' %}selected{% endif %}>Absent</option>
+                                                        <option value="Leave" {% if record.status == 'Leave' %}selected{% endif %}>Leave</option>
+                                                        <option value="Late" {% if record.status == 'Late' %}selected{% endif %}>Late</option>
+                                                        <option value="Off Day" {% if record.status == 'Off Day' %}selected{% endif %}>Off Day</option>
+                                                        <option value="FL" {% if record.status == 'FL' %}selected{% endif %}>Festival Leave (FL)</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">In Time</label>
+                                                    <input type="time" name="in_time" class="form-control" value="{{ record.in_time }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Out Time</label>
+                                                    <input type="time" name="out_time" class="form-control" value="{{ record.out_time }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Notes</label>
+                                                    <input type="text" name="notes" class="form-control" value="{{ record.notes or '' }}">
+                                                </div>
+                                                {% if not verify_password %}
+                                                <div class="mb-3">
+                                                    <label class="form-label text-danger">Admin Password *</label>
+                                                    <input type="password" name="admin_password" class="form-control" required>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not records %}
+                    <tr><td colspan="8" class="text-center text-muted">No attendance records found.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

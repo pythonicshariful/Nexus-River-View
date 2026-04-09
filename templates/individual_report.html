@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Individual Report - {{ company_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Search Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-user-clock me-2"></i>Individual Attendance Report</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.individual_report') }}" id="reportForm" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label text-muted fw-bold">Select Month</label>
+                    <input type="month" name="month_year" id="reportMonth" class="form-control" value="{{ selected_month_year }}" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label text-muted fw-bold">Select Employee</label>
+                    <select name="employee_id" id="reportEmp" class="form-control select2" required>
+                        <option value="">-- Select Employee --</option>
+                        {% for e in employees %}
+                        <option value="{{ e.id }}" {% if selected_emp_id|string == e.id|string %}selected{% endif %}>
+                            {{ e.employee_id }} - {{ e.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill"><i class="fas fa-search me-1"></i>Generate</button>
+                    {% if report_data %}
+                    <button type="button" class="btn btn-success flex-fill" onclick="submitExport()"><i class="fas fa-file-excel me-1"></i>Export Excel</button>
+                    {% endif %}
+                </div>
+            </form>
+
+            <!-- Hidden Export Form -->
+            {% if report_data %}
+            <form method="POST" action="{{ url_for('main.individual_report_export_excel') }}" id="exportForm">
+                <input type="hidden" name="month_year" value="{{ selected_month_year }}">
+                <input type="hidden" name="employee_id" value="{{ selected_emp_id }}">
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    {% if report_data and emp %}
+    <div class="print-area p-4">
+        <div class="text-center mb-4">
+            <h4 class="fw-bold text-uppercase">Monthly Attendance Report</h4>
+            <h5 class="text-primary">{{ display_month }}</h5>
+        </div>
+
+        <!-- Employee Info -->
+        <div class="row mb-4">
+            <div class="col-md-6 col-sm-6">
+                <table class="table table-borderless table-sm mb-0 p-0" style="font-size: 0.95rem;">
+                    <tr><td width="150" class="fw-bold text-muted">Employee ID:</td><td class="fw-bold">{{ emp.employee_id }}</td></tr>
+                    <tr><td class="fw-bold text-muted">Name:</td><td class="fw-bold fs-5">{{ emp.name }}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6 col-sm-6 text-end">
+                <table class="table table-borderless table-sm mb-0 p-0" style="font-size: 0.95rem;">
+                    <tr><td class="text-end fw-bold text-muted">Designation:</td><td width="200" class="text-start fw-bold">{{ emp.designation or '-' }}</td></tr>
+                    <tr><td class="text-end fw-bold text-muted">Department:</td><td class="text-start fw-bold">{{ emp.department or '-' }}</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row text-center mb-4 g-2">
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Present</div><div class="fs-4 fw-bold text-success">{{ stats['Present'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Absent</div><div class="fs-4 fw-bold text-danger">{{ stats['Absent'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Late</div><div class="fs-4 fw-bold text-warning">{{ stats['Late'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Off Day (OD)</div><div class="fs-4 fw-bold text-info">{{ stats['Off Day'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Leave</div><div class="fs-4 fw-bold text-secondary">{{ stats['Leave'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Casual (CL)</div><div class="fs-4 fw-bold text-dark">{{ stats['CL'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Medical (ML)</div><div class="fs-4 fw-bold text-dark">{{ stats['ML'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Festival (FL)</div><div class="fs-4 fw-bold text-primary">{{ stats['FL'] }}</div></div></div>
+            <div class="col"><div class="p-2 border rounded bg-light"><div class="small text-muted fw-bold">Earned (EL)</div><div class="fs-4 fw-bold text-primary">{{ stats['EL'] }}</div></div></div>
+        </div>
+
+        <!-- Detailed Attendance Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle table-sm border-dark">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Date</th>
+                        <th>Day</th>
+                        <th>In Time</th>
+                        <th>Out Time</th>
+                        <th>Status</th>
+                        <th>Work Hrs</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center" style="font-size: 0.9rem;">
+                    {% for row in report_data %}
+                    <tr>
+                        <td class="fw-bold">{{ row.date }}</td>
+                        <td class="text-muted">{{ row.day_name }}</td>
+                        <td>{{ row.in_time }}</td>
+                        <td>{{ row.out_time }}</td>
+                        <td>
+                            {% if row.status == 'Present' %}
+                                <span class="badge bg-success w-100">Present</span>
+                            {% elif row.status == 'Absent' %}
+                                <span class="badge bg-danger w-100">Absent</span>
+                            {% elif row.status == 'Late' %}
+                                <span class="badge bg-warning text-dark w-100">Late</span>
+                            {% elif row.status == 'Off Day' %}
+                                <span class="badge bg-info text-dark w-100">Off Day</span>
+                            {% elif row.status in ['FL', 'EL', 'CL', 'ML'] %}
+                                <span class="badge bg-primary w-100">{{ row.status }}</span>
+                            {% elif row.status == '-' or row.status == 'Unmarked' %}
+                                <span class="text-muted">-</span>
+                            {% else %}
+                                <span class="badge bg-secondary w-100">{{ row.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.working_hours|round(2) if row.working_hours else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% elif request.method == 'POST' and not emp %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i> Employee not found or missing records.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function submitExport() {
+    document.getElementById('exportForm').submit();
+}
+</script>
+{% endblock %}

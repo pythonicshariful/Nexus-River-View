@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row mb-4 d-print-none">
+    <div class="col-md-6">
+        <h2>Monthly Salary Sheet</h2>
+    </div>
+    {% if salaries %}
+    <div class="col-md-6 text-end">
+        <form action="{{ url_for('main.export_salary_sheet_excel') }}" method="POST" class="d-inline">
+            <input type="hidden" name="month_year" value="{{ selected_month_year }}">
+            <button type="submit" class="btn btn-success"><i class="fas fa-file-excel"></i> Export Excel</button>
+        </form>
+        <button class="btn btn-outline-secondary" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card shadow mb-4 d-print-none">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('main.generate_salary_sheet') }}" class="row gx-3 gy-2 align-items-end">
+            <div class="col-sm-3">
+                <label class="form-label fw-bold">Select Month</label>
+                <input type="month" class="form-control" name="month_year" value="{{ selected_month_year }}" required>
+            </div>
+            <div class="col-sm-3">
+                <label class="form-label fw-bold">Employees</label>
+                <select class="form-select" name="employee_ids" multiple size="3" required>
+                    <!-- "all" option or iterate employees. Wait, we need the employees list passed. -->
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" selected>{{ emp.name }} ({{ emp.employee_id }})</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text mt-1 text-muted" style="font-size: 0.75rem;">Hold Ctrl/Cmd to select multiple. Defaults to all.</div>
+            </div>
+            {% if not verify_password %}
+            <div class="col-sm-4">
+                <label class="form-label fw-bold text-danger">Admin Password *</label>
+                <input type="password" name="admin_password" class="form-control" required placeholder="Required to Generate/Update">
+            </div>
+            {% endif %}
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary" name="action" value="generate"><i class="fas fa-calculator"></i> Generate/Update Sheet</button>
+                <button type="submit" class="btn btn-secondary" name="action" value="view"><i class="fas fa-eye"></i> View Current</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if selected_month_year %}
+<div class="card shadow print-mt-0">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Salary Sheet for {{ display_month }}</h5>
+        <span class="badge bg-primary">Total Employees: {{ salaries|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle mb-0">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>ID</th>
+                        <th>Employee Name</th>
+                        <th>Net Salary</th>
+                        <th>Work Days</th>
+                        <th>Present</th>
+                        <th>Leave</th>
+                        <th>OD</th>
+                        <th>Absent</th>
+                        <th>Late</th>
+                        <th>Deduction</th>
+                        <th>Mob. Bill</th>
+                        <th>Bonus</th>
+                        <th class="bg-primary text-white border-primary">Final Payable</th>
+                        <th class="d-print-none">Status & Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    {% for s in salaries %}
+                    <tr>
+                        <td>{{ s.employee.employee_id }}</td>
+                        <td class="text-start fw-bold">{{ s.employee.name }}</td>
+                        <td class="text-end">{{ "{:,.2f}".format(s.net_salary) }}</td>
+                        <td>{{ s.working_days }}</td>
+                        <td class="text-success">{{ s.present_days }}</td>
+                        <td class="text-warning">{{ s.leave_days }}</td>
+                        <td class="text-info fw-bold">{{ s.off_days }}</td>
+                        <td class="text-danger fw-bold">{{ s.absent_days }}</td>
+                        <td class="text-danger fw-bold">{{ s.late_days }}</td>
+                        <td class="text-danger text-end">{{ "{:,.2f}".format(s.deduction) }}</td>
+                        <td class="text-success text-end">{{ "{:,.2f}".format(s.mobile_bill) }}</td>
+                        <td class="text-success text-end">{{ "{:,.2f}".format(s.bonus) }}</td>
+                        <td class="bg-light fw-bold text-end fs-5">{{ "{:,.2f}".format(s.final_salary) }}</td>
+                        <td class="d-print-none text-nowrap">
+                            {% if s.status == 'Paid' %}
+                                <span class="badge bg-success">Paid</span>
+                                <div class="small text-muted mb-1">{{ s.payment_date }}</div>
+                                <form action="{{ url_for('main.mark_salary_unpaid', id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Revert this record back to Unpaid? Password Required.');">
+                                    <input type="hidden" name="admin_password" class="revert-pw-{{s.id}}">
+                                    <button type="button" class="btn btn-xs btn-outline-warning py-0 px-2" data-bs-toggle="modal" data-bs-target="#authModal" onclick="pendingFormId='revertForm{{ s.id }}'" title="Revert to Unpaid"><i class="fas fa-undo"></i></button>
+                                </form>
+                                <form id="revertForm{{ s.id }}" action="{{ url_for('main.mark_salary_unpaid', id=s.id) }}" method="POST" class="d-none"></form>
+                            {% else %}
+                                <span class="badge bg-secondary mb-1">Unpaid</span>
+                                <form action="{{ url_for('main.mark_salary_paid', id=s.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-xs btn-outline-success py-0 px-2" title="Mark Paid"><i class="fas fa-check"></i></button>
+                                </form>
+                            {% endif %}
+                            
+                            <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" data-bs-toggle="modal" data-bs-target="#editSalModal{{ s.id }}" title="Edit Extras">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="{{ url_for('main.delete_salary', id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this salary record?');">
+                                <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-2" title="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
+                            
+                            <!-- Edit Modal -->
+                            <div class="modal fade" id="editSalModal{{ s.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Allowances: {{ s.employee.name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('main.edit_salary', id=s.id) }}" method="POST">
+                                            <div class="modal-body text-start">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Mobile Bill</label>
+                                                    <input type="number" step="0.01" name="mobile_bill" class="form-control" value="{{ s.mobile_bill }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Bonus</label>
+                                                    <input type="number" step="0.01" name="bonus" class="form-control" value="{{ s.bonus }}">
+                                                </div>
+                                                {% if not verify_password %}
+                                                <div class="mb-3">
+                                                    <label class="form-label text-danger">Admin Password *</label>
+                                                    <input type="password" name="admin_password" class="form-control" required>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not salaries %}
+                    <tr>
+                        <td colspan="12" class="text-center py-4 text-muted">No salary records found for this month. Click Generate.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+                {% if salaries %}
+                <tfoot class="table-light fw-bold text-end">
+                    <tr>
+                        <td colspan="2" class="text-center">Total</td>
+                        <td>{{ "{:,.2f}".format(salaries|sum(attribute='net_salary')) }}</td>
+                        <td colspan="6"></td>
+                        <td class="text-danger">{{ "{:,.2f}".format(salaries|sum(attribute='deduction')) }}</td>
+                        <td class="text-success">{{ "{:,.2f}".format(salaries|sum(attribute='mobile_bill')) }}</td>
+                        <td class="text-success">{{ "{:,.2f}".format(salaries|sum(attribute='bonus')) }}</td>
+                        <td class="fs-5 text-primary">{{ "{:,.2f}".format(salaries|sum(attribute='final_salary')) }}</td>
+                        <td class="d-print-none"></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+@media print {
+    .d-print-none { display: none !important; }
+    .d-print-block { display: block !important; }
+    .print-mt-0 { margin-top: 0 !important; box-shadow: none !important; border: none !important; }
+    .card-header { background-color: transparent !important; border-bottom: 2px solid #000 !important; }
+    .table-dark th { background-color: #f8f9fa !important; color: #000 !important; border-bottom: 2px solid #000 !important; }
+    .table-light td { background-color: #f8f9fa !important; border-top: 2px solid #000 !important; }
+    .bg-primary { background-color: transparent !important; color: #000 !important; }
+    .badge { border: 1px solid #000; color: #000 !important; background-color: transparent !important; }
+    body { background-color: #fff; padding: 20px; font-size: 0.9rem; }
+}
+</style>
+{% endblock %}

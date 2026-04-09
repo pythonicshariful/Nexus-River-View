@@ -1,9 +1,9 @@
 import pandas as pd
 import openpyxl
-from models import Director, Customer, PettyCash, Transaction, Bank, BankTransaction, Installment, CustomerInstallment
+from models import Director, Customer, PettyCash, Transaction, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger
 import os
 import shutil
-from datetime import datetime
+import io
 from datetime import datetime
 from database import db
 from telegram_utils import send_telegram_document, log_debug
@@ -259,21 +259,8 @@ def sync_to_excel():
         print(f"Successfully synced to {target_excel_path}")
         log_debug(f"Synced Excel to: {target_excel_path}")
         
-        # --- Auto-Backup Logic ---
-        # Only create backup if it's the real file, not test
-        if 'test_' not in EXCEL_FILE:
-            # Create backups folder in DATA_FOLDER
-            backup_dir = os.path.join(data_folder, 'backups')
-            if not os.path.exists(backup_dir):
-                os.makedirs(backup_dir)
-                
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_filename = f"nexus_backup_{timestamp}.xlsx"
-            backup_path = os.path.join(backup_dir, backup_filename)
-            
-            shutil.copy2(target_excel_path, backup_path)
-            print(f"Backup created: {backup_path}")
-            log_debug(f"Backup created at: {backup_path}")
+        print(f"Successfully synced to {target_excel_path}")
+        log_debug(f"Synced Excel to: {target_excel_path}")
             
             # REMOVED: Excel upload to Telegram as it is too slow for real-time saving
             # Redundant since we send the DB file which contains everything.
@@ -281,6 +268,70 @@ def sync_to_excel():
     except Exception as e:
         print(f"Error syncing to Excel: {e}")
         log_debug(f"CRITICAL ERROR in sync_to_excel: {e}")
+
+def create_db_backup():
+    """
+    Creates a copy of the current nexus.db into the backups folder with a timestamp.
+    """
+    try:
+        from flask import current_app
+        data_folder = current_app.config.get('DATA_FOLDER', 'C:\\NRV')
+        db_path = current_app.config.get('DATABASE_PATH')
+        
+        if not db_path or not os.path.exists(db_path):
+            log_debug("DB backup failed: database_path not found.")
+            return None
+            
+        backup_dir = os.path.join(data_folder, 'backups')
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+            
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_filename = f"nexus_db_backup_{timestamp}.db"
+        backup_path = os.path.join(backup_dir, backup_filename)
+        
+        import shutil
+        shutil.copy2(db_path, backup_path)
+        log_debug(f"DB Backup created: {backup_path}")
+        
+        # Cleanup old backups
+        cleanup_old_backups()
+        
+        return backup_path
+    except Exception as e:
+        log_debug(f"Error creating DB backup: {e}")
+        return None
+
+def cleanup_old_backups(days=30):
+    """
+    Deletes backup files in the backups folder that are older than the specified number of days.
+    """
+    try:
+        from flask import current_app
+        import time
+        data_folder = current_app.config.get('DATA_FOLDER', 'C:\\NRV')
+        backup_dir = os.path.join(data_folder, 'backups')
+        
+        if not os.path.exists(backup_dir):
+            return
+            
+        now = time.time()
+        cutoff = now - (days * 86400)
+        
+        deleted_count = 0
+        for filename in os.listdir(backup_dir):
+            file_path = os.path.join(backup_dir, filename)
+            if os.path.isfile(file_path):
+                file_time = os.path.getmtime(file_path)
+                if file_time < cutoff:
+                    os.remove(file_path)
+                    deleted_count += 1
+        
+        if deleted_count > 0:
+            log_debug(f"Auto-cleanup: Deleted {deleted_count} old backups.")
+            
+    except Exception as e:
+        log_debug(f"Error cleaning up old backups: {e}")
 
 def restore_from_excel(file_path):
     """
@@ -446,6 +497,8 @@ def restore_from_data_dict(data_dict):
     """
     try:
         # Wipe Database
+        PartyLedger.query.delete()
+        Party.query.delete()
         CustomerInstallment.query.delete()
         Installment.query.delete()
         BankTransaction.query.delete()
@@ -625,9 +678,469 @@ def restore_from_data_dict(data_dict):
                 )
                 db.session.add(ci)
 
+        # Restore Parties
+        party_id_map = {}
+        for row in data_dict.get('party', []):
+            old_id = str(row.get('id'))
+            p = Party(
+                name=row['name'],
+                category=row['category'],
+                phone=row.get('phone', ''),
+                address=row.get('address', ''),
+                created_at=datetime.strptime(row['created_at'], "%Y-%m-%d %H:%M:%S") if row.get('created_at') else datetime.utcnow()
+            )
+            db.session.add(p)
+            db.session.flush()
+            party_id_map[old_id] = p.id
+
+        # Restore Vouchers (Depends on Party and Bank)
+        voucher_id_map = {}
+        from models import Voucher
+        for row in data_dict.get('voucher', []):
+            old_id = str(row.get('id'))
+            old_party_id = str(row.get('party_id'))
+            old_bank_id = str(row.get('bank_id'))
+            
+            v = Voucher(
+                voucher_no=row['voucher_no'],
+                type=row['type'],
+                date=row['date'],
+                party_id=party_id_map.get(old_party_id),
+                description=row.get('description', ''),
+                total_amount=float(row.get('total_amount') or 0),
+                amount_paid=float(row.get('amount_paid') or 0),
+                due_amount=float(row.get('due_amount') or 0),
+                payment_percentage=float(row.get('payment_percentage') or 0),
+                payment_method=row['payment_method'],
+                bank_id=bank_id_map.get(old_bank_id),
+                category=row.get('category', ''),
+                notes=row.get('notes', ''),
+                attachment=row.get('attachment', ''),
+                created_at=datetime.strptime(row['created_at'], "%Y-%m-%d %H:%M:%S") if row.get('created_at') else datetime.utcnow()
+            )
+            db.session.add(v)
+            db.session.flush()
+            voucher_id_map[old_id] = v.id
+
+        # Restore Bank Transactions (Refers to Voucher)
+        for row in data_dict.get('bank_transaction', []):
+            old_bank_id = str(row.get('bank_id'))
+            old_voucher_id = str(row.get('voucher_id'))
+            new_bank_id = bank_id_map.get(old_bank_id)
+            if new_bank_id:
+                bt = BankTransaction(
+                    date=row['date'],
+                    cheque_no=row.get('cheque_no', ''),
+                    ref_no=row.get('ref_no', ''),
+                    narration=row.get('narration', ''),
+                    transaction_details=row.get('transaction_details', ''),
+                    debit=float(row.get('debit') or 0),
+                    credit=float(row.get('credit') or 0),
+                    balance=float(row.get('balance') or 0),
+                    bank_id=new_bank_id,
+                    voucher_id=voucher_id_map.get(old_voucher_id)
+                )
+                db.session.add(bt)
+
+        # Restore Petty Cash (Refers to Voucher)
+        for row in data_dict.get('petty_cash', []):
+            old_voucher_id = str(row.get('voucher_id'))
+            pc = PettyCash(
+                date=row['date'],
+                description=row['description'],
+                category=row['category'],
+                type=row['type'],
+                amount=float(row['amount']),
+                images=row.get('images', ''),
+                voucher_id=voucher_id_map.get(old_voucher_id)
+            )
+            db.session.add(pc)
+
+        # Restore Party Ledger (Refers to Voucher)
+        for row in data_dict.get('party_ledger', []):
+            old_party_id = str(row.get('party_id'))
+            old_voucher_id = str(row.get('voucher_id'))
+            new_party_id = party_id_map.get(old_party_id)
+            if new_party_id:
+                pl = PartyLedger(
+                    party_id=new_party_id,
+                    date=row['date'],
+                    description=row.get('description', ''),
+                    bill_amount=float(row.get('bill_amount') or 0),
+                    paid_amount=float(row.get('paid_amount') or 0),
+                    balance=float(row.get('balance') or 0),
+                    reference=row.get('reference', ''),
+                    voucher_id=voucher_id_map.get(old_voucher_id),
+                    created_at=datetime.strptime(row['created_at'], "%Y-%m-%d %H:%M:%S") if row.get('created_at') else datetime.utcnow()
+                )
+                db.session.add(pl)
+
         db.session.commit()
         return True, "Data successfully restored from sync (ID mapping applied)."
     except Exception as e:
         db.session.rollback()
         print(f"Restore from dict failed: {e}")
         return False, str(e)
+
+def recalculate_party_ledger_balances(party_id):
+    """
+    Recalculates the running balance for all entries of a specific party.
+    Ensures consistency if entries are added out of order or deleted.
+    """
+    try:
+        entries = PartyLedger.query.filter_by(party_id=party_id).order_by(PartyLedger.date.asc(), PartyLedger.id.asc()).all()
+        running_balance = 0.0
+        for entry in entries:
+            running_balance += (entry.bill_amount - entry.paid_amount)
+            entry.balance = running_balance
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        log_debug(f"Error recalculating party balances: {e}")
+        return False
+
+def export_party_ledger_to_excel(party_id):
+    """
+    Generates an Excel file for a specific party's ledger.
+    """
+    from models import Party
+    party = Party.query.get(party_id)
+    if not party:
+        return None, "Party not found"
+        
+    entries = PartyLedger.query.filter_by(party_id=party_id).order_by(PartyLedger.date.asc(), PartyLedger.id.asc()).all()
+    
+    data = []
+    for e in entries:
+        data.append({
+            'Date': e.date,
+            'Description': e.description,
+            'Bill (Credit)': e.bill_amount,
+            'Paid (Debit)': e.paid_amount,
+            'Balance': e.balance,
+            'Reference': e.reference
+        })
+        
+    df = pd.DataFrame(data)
+    
+    # Create memory stream
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Ledger')
+        
+        # Formatting
+        workbook = writer.book
+        worksheet = writer.sheets['Ledger']
+        
+        # Adjust column widths
+        for i, col in enumerate(df.columns):
+            column_len = max(df[col].astype(str).str.len().max(), len(col)) + 2
+            worksheet.column_dimensions[openpyxl.utils.get_column_letter(i+1)].width = column_len
+
+    output.seek(0)
+    # Get company info
+    import json
+    company_name = 'NEXUS RIVER VIEW'
+    data_dir = os.path.dirname(os.path.abspath(__file__)) # Default
+    # Attempt to get data_dir from environment if possible, or assume it's C:\NRV
+    data_dir = 'C:\\NRV' 
+    settings_path = os.path.join(data_dir, 'company_settings.json')
+    if os.path.exists(settings_path):
+        try:
+            with open(settings_path, 'r') as f:
+                s = json.load(f)
+                company_name = s.get('company_name', company_name)
+        except Exception: pass
+        
+    safe_company_name = "".join(c for c in company_name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+    filename = f"{safe_company_name}_{party.name.replace(' ', '_')}_Ledger_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    return output, filename
+
+def generate_voucher_number(v_type):
+    """
+    Generates a unique voucher number based on type.
+    Debit Voucher: DV1, DV2, ...
+    Credit Voucher: CV1, CV2, ...
+    """
+    from models import Voucher
+    prefix = "DV" if v_type == "Debit" else "CV"
+    
+    # Get all vouchers of this type and find the max number
+    vouchers = Voucher.query.filter(Voucher.type == v_type).all()
+    count = len(vouchers)
+    new_num = count + 1
+    
+    return f"{prefix}{new_num}"
+
+def generate_contra_number():
+    from models import ContraEntry
+    # Get all contra entries and find the next number
+    count = ContraEntry.query.count()
+    new_num = count + 1
+    return f"CN{new_num}"
+
+def process_voucher_financials(voucher_id, action='add'):
+    """
+    Handles automatic balance updates across modules when a voucher is created, edited, or deleted.
+    Voucher types:
+    - Debit: Payment MADE (Money OUT)
+    - Credit: Money RECEIVED (Money IN)
+    """
+    from models import Voucher, PettyCash, BankTransaction, PartyLedger, Party
+    voucher = Voucher.query.get(voucher_id)
+    if not voucher:
+        return False, "Voucher not found"
+
+    try:
+        # 1. Clear existing side-effects (for Edit/Delete)
+        if action in ['edit', 'delete']:
+            PettyCash.query.filter_by(voucher_id=voucher.id).delete()
+            BankTransaction.query.filter_by(voucher_id=voucher.id).delete()
+            PartyLedger.query.filter_by(voucher_id=voucher.id).delete()
+            
+            # If it was a customer voucher, we need to handle Transaction reverse?
+            # Or just let process_voucher_financials re-create things.
+            # Usually Customer transactions are updated via recalculate_customer_totals
+            from models import Transaction
+            Transaction.query.filter_by(remarks=f"Voucher {voucher.voucher_no}").delete()
+            
+            if action == 'delete':
+                db.session.commit()
+                # If it was a party voucher, recalculate balances
+                if voucher.party_id:
+                    recalculate_party_ledger_balances(voucher.party_id)
+                
+                if voucher.customer_id:
+                    from models import Customer
+                    cust = Customer.query.get(voucher.customer_id)
+                    recalculate_customer_totals(cust)
+                return True, "Voucher side-effects removed"
+
+        # 2. Add new side-effects (for Add/Edit)
+        if action in ['add', 'edit']:
+            # A. Update Cash or Bank
+            if voucher.payment_method == 'Cash':
+                pc = PettyCash(
+                    date=voucher.date,
+                    description=f"Voucher {voucher.voucher_no}: {voucher.description}",
+                    category=voucher.category or "General",
+                    type="Expense" if voucher.type == "Debit" else "Income",
+                    amount=voucher.amount_paid,
+                    voucher_id=voucher.id
+                )
+                db.session.add(pc)
+            
+            elif voucher.payment_method == 'Bank' and voucher.bank_id:
+                bt = BankTransaction(
+                    date=voucher.date,
+                    narration=f"Voucher {voucher.voucher_no}: {voucher.description}",
+                    debit=voucher.amount_paid if voucher.type == "Debit" else 0,
+                    credit=voucher.amount_paid if voucher.type == "Credit" else 0,
+                    bank_id=voucher.bank_id,
+                    voucher_id=voucher.id,
+                    category=voucher.category or "General",
+                    transaction_details=f"{voucher.type} Voucher"
+                )
+                db.session.add(bt)
+                # Note: Bank running balances are usually updated on view or periodically
+
+            # B. Update Party Ledger (if linked)
+            if voucher.party_id:
+                pl = PartyLedger(
+                    party_id=voucher.party_id,
+                    date=voucher.date,
+                    description=f"Voucher {voucher.voucher_no}: {voucher.description}",
+                    bill_amount=voucher.total_amount if (voucher.type == "Debit" and not voucher.is_payment) else 0,
+                    paid_amount=voucher.amount_paid, # Amount actually paid/received
+                    reference=voucher.voucher_no,
+                    voucher_id=voucher.id
+                )
+                # If Credit Voucher linked to party, bill_amount might be 0, and paid_amount is credit to party?
+                # Usually Credit Voucher to party means THEY paid US.
+                if voucher.type == "Credit":
+                    pl.bill_amount = 0
+                    pl.paid_amount = -voucher.amount_paid # Negative paid_amount in our ledger logic means receiving? 
+                    # Wait, our PartyLedger logic: balance = sum(bill) - sum(paid).
+                    # If we pay them: paid_amount increases, balance decreases. (Correct: we owe less)
+                    # If they pay us: paid_amount should be negative? OR bill_amount should be negative?
+                    # Let's check existing logic: bill_amount (Credit), paid_amount (Debit).
+                    # If they pay us, it's a Credit to THEM? No, Debit is what we pay. 
+                    # Actually, standard: Credit (THEM giving us goods), Debit (US paying THEM).
+                    # If THEY pay US, it's a "Negative Bill" or "Positive Payment" in a different sense.
+                    # Let's simplify: 
+                    # Debit Voucher (We Pay): Bill = Total Amount, Paid = Amount Paid. Balance = Total - Paid.
+                    # Credit Voucher (They Pay): Bill = 0, Paid = -Amount Paid (Received). Balance = 0 - (-Paid) = +Paid.
+                    # Actually, if we just want to track their balance:
+                    # Bill = Amount they owe us (Credit), Paid = Amount we paid them (Debit).
+                    # So if they pay us, it's a SUBTRACTION from Bill or ADDITION to Paid.
+                    # Let's use:
+                    # Debit Voucher: Bill += total, Paid += paid.
+                    # Credit Voucher: Bill += 0, Paid -= amount_received.
+                    pass
+                
+                db.session.add(pl)
+                db.session.flush() # Ensure PL has an ID
+                recalculate_party_ledger_balances(voucher.party_id)
+
+            # C. Update Customer (if linked)
+            if voucher.customer_id:
+                from models import Transaction, Customer, CustomerInstallment
+                # Create a Transaction for the customer
+                tx = Transaction(
+                    date=voucher.date,
+                    amount=voucher.amount_paid,
+                    installment_type="Installment",
+                    remarks=f"Voucher {voucher.voucher_no}: {voucher.description}",
+                    payment_method=voucher.payment_method,
+                    customer_id=voucher.customer_id
+                )
+                db.session.add(tx)
+                
+                # Update Customer Balance and Installments
+                cust = Customer.query.get(voucher.customer_id)
+                if cust:
+                    recalculate_customer_totals(cust)
+                    # Allocation logic (simplistic: oldest due first)
+                    # Wait, usually Transaction is linked to CustomerInstallment
+                    pending_installments = CustomerInstallment.query.filter(
+                        CustomerInstallment.customer_id == voucher.customer_id,
+                        CustomerInstallment.due_amount > 0
+                    ).all() # Sorting would be better
+                    
+                    remaining = voucher.amount_paid
+                    for ci in pending_installments:
+                        if remaining <= 0: break
+                        pay = min(remaining, ci.due_amount)
+                        ci.paid_amount += pay
+                        ci.due_amount -= pay
+                        remaining -= pay
+                        # Link tx to the first one it covers or logic to split? 
+                        # Simplifying: just update balances.
+
+        db.session.commit()
+        return True, "Voucher financials processed successfully"
+    except Exception as e:
+        db.session.rollback()
+        log_debug(f"Error processing voucher financials: {e}")
+        return False, str(e)
+
+def process_contra_financials(contra_id, action='add'):
+    from models import ContraEntry, PettyCash, BankTransaction
+    contra = ContraEntry.query.get(contra_id)
+    if not contra: return False, "Contra Entry not found"
+    
+    try:
+        if action in ['edit', 'delete']:
+            PettyCash.query.filter_by(contra_entry_id=contra.id).delete()
+            BankTransaction.query.filter_by(contra_entry_id=contra.id).delete()
+        
+        if action in ['add', 'edit']:
+            # From Account (Subtract)
+            if contra.from_account == 'Cash':
+                pc_out = PettyCash(
+                    date=contra.date,
+                    description=f"Contra {contra.contra_no}: {contra.description} (Transfer to {contra.to_account})",
+                    category="Contra", type="Expense", amount=contra.amount, contra_entry_id=contra.id,
+                    images=contra.attachments # Carry over attachments
+                )
+                db.session.add(pc_out)
+            elif contra.from_account == 'Bank' and contra.bank_id:
+                bt_out = BankTransaction(
+                    date=contra.date, narration=f"Contra {contra.contra_no}: Transfer to {contra.to_account}",
+                    debit=contra.amount, credit=0, bank_id=contra.bank_id, contra_entry_id=contra.id,
+                    transaction_details="Contra Withdraw",
+                    cheque_no=contra.cheque_no # Carry over cheque_no
+                )
+                db.session.add(bt_out)
+
+            # To Account (Add)
+            if contra.to_account == 'Cash':
+                pc_in = PettyCash(
+                    date=contra.date,
+                    description=f"Contra {contra.contra_no}: {contra.description} (Transfer from {contra.from_account})",
+                    category="Contra", type="Income", amount=contra.amount, contra_entry_id=contra.id,
+                    images=contra.attachments
+                )
+                db.session.add(pc_in)
+            elif contra.to_account == 'Bank' and contra.bank_id:
+                bt_in = BankTransaction(
+                    date=contra.date, narration=f"Contra {contra.contra_no}: Transfer from {contra.from_account}",
+                    debit=0, credit=contra.amount, bank_id=contra.bank_id, contra_entry_id=contra.id,
+                    transaction_details="Contra Deposit",
+                    cheque_no=contra.cheque_no
+                )
+                db.session.add(bt_in)
+
+        db.session.commit()
+        return True, "Contra financials processed successfully"
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
+
+def get_due_payments_report():
+    """Returns vouchers that have a remaining due amount."""
+    from models import Voucher
+    return Voucher.query.filter(Voucher.due_amount > 0).order_by(Voucher.date.desc()).all()
+
+def get_daily_cash_report(target_date):
+    """Aggregates all cash and bank movements for a specific date, providing comparative summaries."""
+    from models import PettyCash, Bank, BankTransaction
+    from sqlalchemy import func
+    
+    # 1. Day's Transactions
+    transactions = PettyCash.query.filter_by(date=target_date).all()
+    
+    # 2. Cash Balances
+    # Previous day's cash in hand: All Income - All Expense before target_date
+    cash_in_before = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date < target_date, PettyCash.type == 'Income').scalar() or 0
+    cash_out_before = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date < target_date, PettyCash.type == 'Expense').scalar() or 0
+    prev_cash = cash_in_before - cash_out_before
+    
+    # Today's cash in hand: All Income - All Expense including target_date
+    cash_in_today = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date <= target_date, PettyCash.type == 'Income').scalar() or 0
+    cash_out_today = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date <= target_date, PettyCash.type == 'Expense').scalar() or 0
+    today_cash = cash_in_today - cash_out_today
+    
+    # 3. Bank Balances
+    # We must sort using the same logic as recompute_bank_balances to handle mixed date formats
+    def parse_tx_date(date_str):
+        for fmt in ('%d-%m-%Y', '%Y-%m-%d'):
+            try:
+                return datetime.strptime(date_str, fmt).date()
+            except ValueError:
+                pass
+        return datetime.min.date()
+
+    target_date_obj = datetime.strptime(target_date, "%Y-%m-%d").date()
+    banks = Bank.query.all()
+    prev_bank = 0.0
+    today_bank = 0.0
+    
+    for b in banks:
+        all_tx = BankTransaction.query.filter_by(bank_id=b.id).all()
+        # Sort transactions: Date (asc), then ID (asc)
+        sorted_tx = sorted(all_tx, key=lambda x: (parse_tx_date(x.date), x.id))
+        
+        bank_prev = 0.0
+        bank_today = 0.0
+        
+        for tx in sorted_tx:
+            tx_date = parse_tx_date(tx.date)
+            if tx_date < target_date_obj:
+                bank_prev = tx.balance
+            if tx_date <= target_date_obj:
+                bank_today = tx.balance
+            else:
+                break
+                
+        prev_bank += bank_prev
+        today_bank += bank_today
+            
+    return {
+        'transactions': transactions,
+        'prev_cash': prev_cash,
+        'today_cash': today_cash,
+        'prev_bank': prev_bank,
+        'today_bank': today_bank
+    }

@@ -1,4 +1,5 @@
-from flask import Flask, request
+from flask import Flask, request, redirect, url_for
+from flask_login import LoginManager
 from database import db
 from routes import main
 import os
@@ -35,17 +36,28 @@ def create_app():
             # Fallback for dev mode
             data_dir = os.path.dirname(os.path.abspath(__file__))
             
+    # Ensure data_dir exists before setting up logging
+    os.makedirs(data_dir, exist_ok=True)
+            
+    # Ensure data_dir exists before setting up logging
+    os.makedirs(data_dir, exist_ok=True)
+    
     logger = setup_logging(data_dir)
-    logger.info("Application starting...")
+    logger.info(f"Application starting with data_dir: {data_dir}")
 
-    app = Flask(__name__)
+    if getattr(sys, 'frozen', False):
+        # When running as EXE, resources are in sys._MEIPASS
+        template_folder = os.path.join(sys._MEIPASS, 'templates')
+        static_folder = os.path.join(sys._MEIPASS, 'static')
+        app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+    else:
+        app = Flask(__name__)
 
     # DB Path
     db_path = os.path.join(data_dir, 'nexus.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     app.config['DATA_FOLDER'] = data_dir 
     app.config['DATABASE_PATH'] = db_path 
-        
     app.config['SECRET_KEY'] = 'dev-key-nexus-river-view'
     
     # Load Admin Config
@@ -73,7 +85,7 @@ def create_app():
                     config = json.load(f)
                     default_password = config.get('ADMIN_PASSWORD', '1234')
              except:
-                 pass
+                  pass
         
         try:
             import json
@@ -92,31 +104,87 @@ def create_app():
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
     db.init_app(app)
+    
+    # Initialize Flask-Login
+    login_manager = LoginManager()
+    login_manager.login_view = 'main.login'
+    login_manager.init_app(app)
+
+    from models import User
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db.session.get(User, int(user_id))
+        
     app.register_blueprint(main)
     
-    with app.app_context():
-        db.create_all()
-        # Startup Sync Check
-        from sync_manager import sync_manager
-        
-        if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
-            logger.info("Database missing. Attempting recovery from Google Sheets...")
-            success, msg = sync_manager.restore_db_from_sheets()
-            if success:
-                logger.info("Database restored from Google Sheets.")
-            else:
-                logger.error(f"Recovery failed: {msg}")
-        else:
-            status, details = sync_manager.check_for_mismatches()
-            if status == "mismatch":
-                app.config['SYNC_MISMATCH'] = details
-                logger.warning(f"Sync Mismatch Detected: {details}")
-            elif status == "empty_sheets":
-                logger.info("Google Sheets is empty. Initializing with local data...")
-                sync_manager.sync_to_sheets()
+    # Startup Sync & DB Check (Run in background thread to prevent GUI/Startup hang)
+    from sync_manager import sync_manager
+    
+    def run_startup_sync(app_to_sync, logger_to_use, db_path_to_use):
+        with app_to_sync.app_context():
+            # Ensure tables exist
+            try:
+                db.create_all()
+                logger_to_use.info("Database tables verified/created.")
                 
+                # Check for default admin
+                from models import User
+                if not User.query.filter_by(username='admin').first():
+                    admin = User(username='admin')
+                    # Get password from config
+                    pwd = app_to_sync.config.get('ADMIN_PASSWORD', '1234')
+                    admin.set_password(pwd)
+                    db.session.add(admin)
+                    db.session.commit()
+                    logger_to_use.info("Default admin user created.")
+            except Exception as e:
+                logger_to_use.error(f"Failed to initialize database tables or create admin: {e}")
+
+            if not os.path.exists(db_path_to_use) or os.path.getsize(db_path_to_use) == 0:
+                logger_to_use.info("Database missing. Attempting recovery from Google Sheets...")
+                try:
+                    success, msg = sync_manager.restore_db_from_sheets()
+                    if success:
+                        logger_to_use.info("Database restored from Google Sheets.")
+                    else:
+                        logger_to_use.error(f"Recovery failed: {msg}")
+                except Exception as e:
+                    logger_to_use.error(f"Recovery hang/error: {e}")
+            else:
+                try:
+                    logger_to_use.info("Verifying sync status with Google Sheets (Background)...")
+                    status, details = sync_manager.check_for_mismatches()
+                    if status == "mismatch":
+                        app_to_sync.config['SYNC_MISMATCH'] = details
+                        logger_to_use.warning(f"Sync Mismatch Detected: {details}")
+                    elif status == "empty_sheets":
+                        logger_to_use.info("Google Sheets is empty. Initializing with local data...")
+                        sync_manager.sync_to_sheets()
+                except Exception as e:
+                    logger_to_use.error(f"Sync verification skipped due to error: {e}")
+
+    @app.context_processor
+    def inject_company_settings():
+        company_name = "Company Name"
+        company_address = ""
+        settings_path = os.path.join(data_dir, 'company_settings.json')
+        if os.path.exists(settings_path):
+            try:
+                with open(settings_path, 'r') as f:
+                    settings_data = json.load(f)
+                    company_name = settings_data.get('company_name', company_name)
+                    company_address = settings_data.get('company_address', company_address)
+            except Exception:
+                pass
+        return dict(global_company_name=company_name, global_company_address=company_address)
+
+    import threading
+    sync_thread = threading.Thread(target=run_startup_sync, args=(app, logger, db_path))
+    sync_thread.daemon = True
+    sync_thread.start()
+    
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(host='127.0.0.1', port=5000, use_reloader=True)
+    app.run(host='127.0.0.1', port=5001, use_reloader=True)

@@ -58,9 +58,9 @@
                     </div>
                     
                     <div class="d-flex align-items-center gap-2 mt-auto">
-                        <button class="btn btn-view-details" type="button">
+                        <a href="{{ url_for('main.installment_details', id=inst.id) }}" class="btn btn-view-details">
                             <i class="far fa-eye"></i> View Details
-                        </button>
+                        </a>
                         <button class="action-btn" type="button" 
                             data-bs-toggle="modal" data-bs-target="#editInstallmentModal"
                             data-id="{{ inst.id }}" data-name="{{ inst.name }}" data-amount="{{ inst.amount_per_share }}"

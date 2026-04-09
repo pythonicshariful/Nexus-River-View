@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Cash Report - {{ date }}{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h3 class="fw-bold text-dark-blue mb-0">
+            <i class="fas fa-coins me-2 text-warning"></i>Daily Cash Report
+        </h3>
+        <p class="text-muted small mb-0">Cash movements for <strong>{{ date }}</strong></p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <form method="GET" class="d-inline-flex gap-2">
+            <input type="date" name="date" class="form-control form-control-sm rounded-pill px-3 border-0 shadow-sm" value="{{ date }}">
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">View</button>
+        </form>
+        <form method="POST" action="{{ url_for('main.daily_cash_report_export_excel') }}" class="d-inline-flex ms-2">
+            <input type="hidden" name="date" value="{{ date }}">
+            <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fas fa-file-excel me-1"></i> Export Excel
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Balance Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0 ps-4">
+                <h6 class="text-muted small text-uppercase fw-bold mb-0">Cash in Hand</h6>
+            </div>
+            <div class="card-body px-4 py-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Previous Day:</span>
+                    <span class="fw-bold">৳{{ "{:,.2f}".format(results.prev_cash) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                    <span class="text-dark fw-bold">Today's Closing:</span>
+                    <span class="fw-bold text-primary fs-5">৳{{ "{:,.2f}".format(results.today_cash) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0 ps-4">
+                <h6 class="text-muted small text-uppercase fw-bold mb-0">Bank Balance (Aggregate)</h6>
+            </div>
+            <div class="card-body px-4 py-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Previous Day:</span>
+                    <span class="fw-bold">৳{{ "{:,.2f}".format(results.prev_bank) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                    <span class="text-dark fw-bold">Today's Closing:</span>
+                    <span class="fw-bold text-success fs-5">৳{{ "{:,.2f}".format(results.today_bank) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4 py-3">Description</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th class="text-end pe-4">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set total_in = [0.0] %}
+                    {% set total_out = [0.0] %}
+                    {% for item in results.transactions %}
+                        {% if item.type == 'Income' %}
+                            {% if total_in.append(total_in.pop() + item.amount) %}{% endif %}
+                        {% else %}
+                            {% if total_out.append(total_out.pop() + item.amount) %}{% endif %}
+                        {% endif %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ item.description }}</div>
+                            {% if item.voucher %}
+                            <div class="small text-muted">Voucher: {{ item.voucher.voucher_no }}</div>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-light text-dark border px-2 py-1 rounded-pill small">{{ item.category }}</span></td>
+                        <td>
+                            {% if item.type == 'Income' %}
+                            <span class="text-success small fw-bold text-uppercase"><i class="fas fa-arrow-down me-1"></i> Received</span>
+                            {% else %}
+                            <span class="text-danger small fw-bold text-uppercase"><i class="fas fa-arrow-up me-1"></i> Payment</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4 fw-bold {% if item.type == 'Income' %}text-success{% else %}text-danger{% endif %}">
+                            ৳{{ "{:,.2f}".format(item.amount) }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">No cash transactions on this date.</td>
+                    </tr>
+                    {% endfor %}
+                    
+                    <!-- Summary Footer -->
+                    <tr class="bg-light fw-bold border-top-2">
+                        <td colspan="3" class="text-end ps-4 py-3">Cash In (Total Receive):</td>
+                        <td class="text-end pe-4 text-success">৳{{ "{:,.2f}".format(total_in[0]) }}</td>
+                    </tr>
+                    <tr class="bg-light fw-bold">
+                        <td colspan="3" class="text-end ps-4 py-3">Cash Out (Total Paid):</td>
+                        <td class="text-end pe-4 text-danger">৳{{ "{:,.2f}".format(total_out[0]) }}</td>
+                    </tr>
+                    <tr class="bg-dark text-white fw-bold">
+                        <td colspan="3" class="text-end ps-4 py-3">Net Cash Shift:</td>
+                        <td class="text-end pe-4">৳{{ "{:,.2f}".format(total_in[0] - total_out[0]) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

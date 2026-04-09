@@ -24,6 +24,28 @@
             </div>
         </div>
 
+        <!-- Company Print Settings -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold text-dark"><i class="fas fa-building me-2"></i>Company Print Settings</h5>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('main.save_company_settings') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Company Name</label>
+                        <input type="text" name="company_name" class="form-control" value="{{ company_name }}" required placeholder="e.g. Nexus River View">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Company Address</label>
+                        <textarea name="company_address" class="form-control" rows="2" required placeholder="e.g. 123 Main St, City">{{ company_address }}</textarea>
+                    </div>
+                    <div class="text-end">
+                        <button class="btn btn-primary fw-bold" type="submit">Save Print Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Restore from File -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0 pt-4 px-4 pb-0">

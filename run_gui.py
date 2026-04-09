@@ -3,30 +3,21 @@ import threading
 import time
 import os
 import subprocess
-import webbrowser
-import json
 import socket
+import json
 import tkinter as tk
 from tkinter import filedialog
-import pandas
-import openpyxl
 from app import create_app
 
-# Global flag to signal the server is ready
-server_ready = threading.Event()
-
 def get_app_data_path():
-    """Get the path to the application data directory in AppData."""
     app_data = os.getenv('APPDATA')
     if not app_data:
-        app_data = os.path.expanduser("~") # Fallback to home
-    
+        app_data = os.path.expanduser("~")
     path = os.path.join(app_data, 'NexusRiverView')
     os.makedirs(path, exist_ok=True)
     return path
 
 def get_launcher_config():
-    """Read the launcher config to find the user's selected data folder."""
     config_path = os.path.join(get_app_data_path(), 'launcher_config.json')
     if os.path.exists(config_path):
         try:
@@ -37,153 +28,124 @@ def get_launcher_config():
     return {}
 
 def save_launcher_config(config):
-    """Save the launcher config."""
     config_path = os.path.join(get_app_data_path(), 'launcher_config.json')
     with open(config_path, 'w') as f:
         json.dump(config, f)
 
 def select_data_folder():
-    """Open a dialog to select the data folder."""
     root = tk.Tk()
-    root.withdraw() # Hide the main window
-
-    # Make sure the dialog is top-most
+    root.withdraw()
     root.attributes('-topmost', True)
-    
     folder_selected = filedialog.askdirectory(title="Select Data Folder for Nexus River View")
     root.destroy()
     return folder_selected
 
-def start_server():
-    app = create_app()
-    try:
-        app.run(host='127.0.0.1', port=5000, use_reloader=False)
-    except Exception as e:
-        print(f"Server Startup Error: {e}")
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('127.0.0.1', port)) == 0
 
-def open_browser_fallback(url):
-    """
-    Try to open the browser in 'app mode' (no address bar) if possible.
-    Falls back to default browser.
-    """
-    # Common paths for Edge and Chrome on Windows
-    edge_paths = [
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    ]
-    chrome_paths = [
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-    ]
+def start_server():
+    if is_port_in_use(5001):
+        print("Server already running on port 5001.")
+        return
     
-    # Try Edge first
-    for path in edge_paths:
-        if os.path.exists(path):
-            try:
-                subprocess.Popen([path, f"--app={url}"])
-                return
-            except Exception:
-                pass
-                
-    # Try Chrome
-    for path in chrome_paths:
-        if os.path.exists(path):
-            try:
-                subprocess.Popen([path, f"--app={url}"])
-                return
-            except Exception:
-                pass
-                
-    # Fallback to default browser
-    webbrowser.open(url)
+    print("Starting Flask server...")
+    app = create_app()
+    app.run(host='127.0.0.1', port=5001, use_reloader=False)
+
+def launch_app_window(url):
+    """Launch the browser in 'App Mode' to make it look like standalone software."""
+    edge_path = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+    if not os.path.exists(edge_path):
+        edge_path = r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"
+    
+    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    if not os.path.exists(chrome_path):
+        chrome_path = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+
+    # Try Edge App Mode first (installed on all Windows)
+    if os.path.exists(edge_path):
+        print("Launching Edge in App Mode...")
+        subprocess.Popen([edge_path, f"--app={url}", "--window-size=1280,800"])
+    # Try Chrome App Mode
+    elif os.path.exists(chrome_path):
+        print("Launching Chrome in App Mode...")
+        subprocess.Popen([chrome_path, f"--app={url}"])
+    # Final Fallback
+    else:
+        print("No browser app mode found, opening in default browser.")
+        import webbrowser
+        webbrowser.open(url)
 
 if __name__ == '__main__':
-    # 1. Check Configuration
+    # 1. Setup Data Path
+    # PRIORITY 1: Check if C:\NRV exists (User's preferred stable location)
+    default_nrv_path = r"C:\NRV"
     config = get_launcher_config()
-    data_path = config.get('data_path')
-
-    if not data_path or not os.path.exists(data_path):
-        # First run or path moved/deleted
-        data_path = select_data_folder()
-        if not data_path:
-            # User cancelled
-            sys.exit()
+    
+    data_path = None
+    
+    if os.path.exists(default_nrv_path):
+        data_path = default_nrv_path
+    else:
+        # PRIORITY 2: Check saved launcher config
+        data_path = config.get('data_path')
         
-        # Save persistence
+    # PRIORITY 3: If still no path, or path is invalid, prompt user
+    if not data_path or not os.path.exists(data_path):
+        # Create C:\NRV if it doesn't exist to encourage its use
+        try:
+            os.makedirs(default_nrv_path, exist_ok=True)
+            data_path = default_nrv_path
+        except:
+            # Fallback to selection if C:\ drive is restricted
+            data_path = select_data_folder()
+            
+        if not data_path:
+            sys.exit()
+            
         config['data_path'] = data_path
         save_launcher_config(config)
 
-    # 2. Set Environment Variable for app.py to pick up
     os.environ['NEXUS_DATA_PATH'] = data_path
+    print(f"Using Data Path: {data_path}")
 
-    # 3. Start Server
-    # Start Flask in a separate thread
-    t = threading.Thread(target=start_server)
-    t.daemon = True
+    # 2. Start Server in Background
+    t = threading.Thread(target=start_server, daemon=True)
     t.start()
 
-    # Wait a brief moment for the server to initialize
+    # 3. Wait for Server to be actually ready
+    print("Waiting for server to initialize...")
+    url = "http://127.0.0.1:5001/"
+    timeout = 30
+    start_time = time.time()
+    
+    while not is_port_in_use(5001):
+        time.sleep(0.5)
+        if time.time() - start_time > timeout:
+            print("Timeout waiting for server.")
+            sys.exit(1)
+    
+    # Give it a tiny extra buffer for Flask to finish routing setup
     time.sleep(1)
-    
-    url = 'http://127.0.0.1:5000'
 
-    # 4. Launch GUI Immediately with Loading Page
-    # Determine loading page path
-    if getattr(sys, 'frozen', False):
-        base_dir = sys._MEIPASS
-    else:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    loading_html = os.path.join(base_dir, 'templates', 'loading_startup.html')
-    
-    # Determine icon path
-    icon_path = None
-    icon_name = 'nexus-river-view-600x866.ico'
-    if getattr(sys, 'frozen', False):
-         icon_path = os.path.join(sys._MEIPASS, icon_name)
-    elif os.path.exists(icon_name):
-         icon_path = os.path.abspath(icon_name)
-
+    # Start ngrok tunnel for remote access in background (hidden)
     try:
-        import webview
-        
-        # Fix for taskbar icon grouping
-        import ctypes
-        myappid = 'sharifulnrv.software.nexusriverview.1.0'
-        try:
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-        except:
-            pass
-
-        window = webview.create_window(
-            'Nexus River View - Starting...', 
-            loading_html, 
-            width=1280, 
-            height=800, 
-            resizable=True
-        )
-        
-        # Start the GUI loop
-        webview.start(icon=icon_path)
-        
-    except ImportError:
-        print("pywebview not found. Launching in browser app mode...")
-        # For browser fallback, we still want to show the loading page first
-        import urllib.parse
-        loading_url = 'file:///' + urllib.parse.quote(loading_html.replace('\\', '/'))
-        open_browser_fallback(loading_url)
-        
-        # Keep main thread alive
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            sys.exit()
+        CREATE_NO_WINDOW = 0x08000000
+        subprocess.Popen(['ngrok', 'http', '5001'], creationflags=CREATE_NO_WINDOW)
+        print("Ngrok tunnel started in background.")
     except Exception as e:
-        print(f"Error initializing pywebview: {e}")
-        open_browser_fallback(url)
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            sys.exit()
+        print(f"Could not start ngrok: {e}")
+
+    # 4. Launch the "Software Window"
+    launch_app_window(url)
+    
+    print("Software started. (Close this console window to stop the server if needed)")
+    
+    # Keep the main process alive so the server thread continues
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Shutting down...")
+        sys.exit(0)

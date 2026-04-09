@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="mb-4">
+        <i class="fas fa-exclamation-triangle text-danger fa-4x animate__animated animate__pulse animate__infinite"></i>
+    </div>
+    <h1 class="display-5 fw-bold text-dark mb-3">Something Went Wrong</h1>
+    <p class="lead text-muted mb-4">We encountered an unexpected error while processing your request.</p>
+    
+    <div class="card border-0 shadow-sm rounded-4 text-start mb-5 mx-auto" style="max-width: 600px;">
+        <div class="card-body p-4 bg-light">
+            <h6 class="fw-bold text-uppercase small text-muted mb-2 ls-1">Error Details</h6>
+            <div class="p-3 bg-white border rounded-3 font-monospace small mb-3">
+                {{ error }}
+            </div>
+            <p class="small text-muted mb-0">Occurred on: <code>{{ path }}</code></p>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-3 justify-content-center">
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm fw-bold">
+            <i class="fas fa-home me-2"></i>Return Home
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold">
+            <i class="fas fa-arrow-left me-2"></i>Go Back
+        </a>
+    </div>
+</div>
+{% endblock %}

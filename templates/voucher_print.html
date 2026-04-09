@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ v.type }} Voucher - {{ v.voucher_no }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .voucher-container { max-width: 800px; margin: 30px auto; background: white; padding: 40px; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 8px; position: relative; overflow: hidden; }
+        .voucher-header { border-bottom: 2px solid #eee; margin-bottom: 30px; padding-bottom: 20px; }
+        .company-name { font-size: 28px; font-weight: 800; color: #1a237e; letter-spacing: 1px; }
+        .voucher-title { display: inline-block; padding: 8px 25px; border-radius: 50px; font-weight: 700; text-transform: uppercase; font-size: 14px; margin-top: 10px; }
+        .title-debit { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .title-credit { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .info-label { font-size: 12px; text-transform: uppercase; color: #9e9e9e; font-weight: 700; margin-bottom: 2px; }
+        .info-value { font-weight: 600; color: #212121; }
+        .amount-section { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 5px solid #1a237e; }
+        .amount-big { font-size: 32px; font-weight: 800; color: #1a237e; }
+        .signature-box { border-top: 1px solid #eee; margin-top: 80px; padding-top: 10px; text-align: center; }
+        
+        @media print {
+            body { background: white; }
+            .voucher-container { margin: 0; box-shadow: none; width: 100%; max-width: 100%; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container no-print mt-4 text-center">
+    <button onclick="window.print()" class="btn btn-primary rounded-pill px-4"><i class="fas fa-print me-2"></i> Print Now</button>
+    <a href="{{ url_for('main.manage_vouchers') }}" class="btn btn-light rounded-pill px-4 ms-2"><i class="fas fa-arrow-left me-2"></i> Back to History</a>
+</div>
+
+<div class="voucher-container">
+    <div class="voucher-header d-flex justify-content-between align-items-start">
+        <div>
+            <div class="company-name">Nexus River View</div>
+            <div class="small text-muted fw-semibold">House No. 13 (Lift-5), Road No. 28, Khan Apartment, Dhanmondi</div>
+            <div class="voucher-title {% if v.type == 'Debit' %}title-debit{% else %}title-credit{% endif %}">
+                {{ v.type }} Voucher
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="info-label">Voucher No</div>
+            <div class="info-value fs-5">{{ v.voucher_no }}</div>
+            <div class="info-label mt-2">Date</div>
+            <div class="info-value">{{ v.date }}</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="info-label">Particulars / Party</div>
+            <div class="info-value fs-5 mb-0">
+                {% if v.customer_obj %}
+                    {{ v.customer_obj.name }} ({{ v.customer_obj.customer_id }})
+                    <div class="small fw-bold text-primary mt-1">Director: {{ v.customer_obj.director.name if v.customer_obj.director else 'N/A' }}</div>
+                {% elif v.party_obj %}
+                    {{ v.party_obj.name }}
+                {% else %}
+                    Open Party / Cash Transaction
+                {% endif %}
+            </div>
+            {% if v.party_obj %}
+            <div class="small text-muted">{{ v.party_obj.phone }} | {{ v.party_obj.address }}</div>
+            {% endif %}
+            {% if v.customer_obj %}
+            <div class="small text-muted">Customer Mobile: {{ v.customer_obj.mobile }}</div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Payment Method</div>
+            <div class="info-value">
+                {% if v.payment_method == 'Cash' %}
+                <i class="fas fa-wallet text-warning me-1"></i> Cash Payment
+                {% else %}
+                <i class="fas fa-university text-primary me-1"></i> {{ v.bank_obj.bank_name if v.bank_obj else 'Bank' }}
+                {% endif %}
+            </div>
+            <div class="info-label mt-3">Category</div>
+            <div class="info-value">{{ v.category or 'General' }}</div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <div class="info-label">Description</div>
+            <div class="info-value p-3 bg-light rounded" style="min-height: 80px;">{{ v.description }}</div>
+        </div>
+    </div>
+
+    <div class="amount-section row align-items-center">
+        <div class="col-md-7">
+            <div class="info-label">Detailed Breakdown</div>
+            <div class="d-flex justify-content-between border-bottom py-1">
+                <span>Total Bill Amount:</span>
+                <span class="fw-bold">৳{{ "{:,.2f}".format(v.total_amount) }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1 text-{% if v.type == 'Debit' %}danger{% else %}success{% endif %}">
+                <span>Amount Paid:</span>
+                <span class="fw-bold">৳{{ "{:,.2f}".format(v.amount_paid) }}</span>
+            </div>
+            {% if v.due_amount > 0 %}
+            <div class="d-flex justify-content-between border-top py-1 text-danger">
+                <span>Remaining Due:</span>
+                <span class="fw-bold">৳{{ "{:,.2f}".format(v.due_amount) }}</span>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md-5 text-end">
+            <div class="info-label">{% if v.type == 'Debit' %}Amount Paid{% else %}Amount Received{% endif %}</div>
+            <div class="amount-big">৳{{ "{:,.2f}".format(v.amount_paid) }}</div>
+        </div>
+    </div>
+    
+    {% if v.notes %}
+    <div class="mt-3">
+        <div class="info-label">Notes</div>
+        <div class="small text-muted italic">{{ v.notes }}</div>
+    </div>
+    {% endif %}
+
+    <div class="row mt-5 pt-3 text-center">
+        <div class="col-3">
+            <div class="signature-box">
+                <div class="small text-muted fw-bold">Accountant</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="signature-box">
+                <div class="small text-muted fw-bold">Receiver</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="signature-box">
+                <div class="small text-muted fw-bold">Project Director I</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="signature-box">
+                <div class="small text-muted fw-bold">Project Director II</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if v.attachment %}
+    <div class="mt-4 pt-3 border-top page-break-inside-avoid">
+        <label class="info-label mb-2"><i class="fas fa-paperclip me-1"></i> Attachment / Evidence</label>
+        <div class="text-center bg-light p-3 rounded border shadow-sm">
+            {% set ext = v.attachment.split('.')[-1].lower() %}
+            {% if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                <img src="{{ url_for('main.uploaded_file', filename=v.attachment) }}" class="img-fluid rounded shadow-sm" style="max-height: 500px; display: block; margin: 0 auto;">
+            {% else %}
+                <div class="py-4">
+                    <i class="fas fa-file-pdf text-danger display-4 mb-2"></i>
+                    <div class="fw-bold">{{ v.attachment }}</div>
+                    <div class="small text-muted mb-3">Document Attachment (PDF/DOC)</div>
+                    <a href="{{ url_for('main.uploaded_file', filename=v.attachment) }}" class="btn btn-sm btn-outline-primary rounded-pill px-4 no-print" target="_blank">
+                        <i class="fas fa-external-link-alt me-1"></i> Open Original File
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-5 pt-5 text-center text-muted small border-top">
+        This is a computer-generated voucher. Generated on {{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}
+    </div>
+</div>
+
+</body>
+</html>

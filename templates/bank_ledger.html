@@ -95,6 +95,7 @@
                                 <th class="ps-4">Date</th>
                                 <th>Cheque / Ref</th>
                                 <th>Narration</th>
+                                <th>Category</th>
                                 <th>Trans. Details</th>
                                 <th class="text-end text-success">Credit</th>
                                 <th class="text-end text-danger">Debit</th>
@@ -111,6 +112,7 @@
                                     {% if tx.ref_no %}<div class="small text-muted">Ref: {{ tx.ref_no }}</div>{% endif %}
                                 </td>
                                 <td>{{ tx.narration or '-' }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ tx.category or '-' }}</span></td>
                                 <td>{{ tx.transaction_details or '-' }}</td>
                                 <td class="text-end text-success">{{ "{:,.2f}".format(tx.credit) if tx.credit > 0 else '-' }}</td>
                                 <td class="text-end text-danger">{{ "{:,.2f}".format(tx.debit) if tx.debit > 0 else '-' }}</td>
@@ -164,6 +166,15 @@
                         <div class="col-12">
                             <label class="form-label small fw-bold text-muted">Narration</label>
                             <input type="text" name="narration" id="inputNarration" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted">Category</label>
+                            <select name="category" id="inputCategory" class="form-select">
+                                <option value="">Select Category</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.name }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                          <div class="col-12">
                             <label class="form-label small fw-bold text-muted">Transaction Details</label>
@@ -223,6 +234,7 @@
         // Reset Fields
         document.getElementById('txForm').reset();
         document.getElementById('inputDate').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('inputCategory').value = '';
         
         // Reset Type to Credit
         document.getElementById('typeCredit').checked = true;
@@ -241,6 +253,7 @@
         document.getElementById('inputCheque').value = tx.cheque_no || '';
         document.getElementById('inputRef').value = tx.ref_no || '';
         document.getElementById('inputNarration').value = tx.narration || '';
+        document.getElementById('inputCategory').value = tx.category || '';
         document.getElementById('inputDetails').value = tx.transaction_details || '';
         
         // Determine Type

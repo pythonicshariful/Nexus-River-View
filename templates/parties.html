@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-dark-blue mb-0"><i class="fas fa-address-book me-2"></i>Party Management</h4>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary rounded-pill shadow-sm px-4" onclick="openCategoryModal()">
+            <i class="fas fa-tags me-1"></i> Manage Categories
+        </button>
+        <a href="{{ url_for('main.add_party') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="fas fa-plus me-1"></i> Add New Party
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted small text-uppercase">
+                <tr>
+                    <th class="ps-4">Name</th>
+                    <th>Category</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Current Balance</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for party in parties %}
+                <tr>
+                    <td class="ps-4 fw-bold text-dark">{{ party.name }}</td>
+                    <td>
+                        <span class="badge {% if party.category == 'Supplier' %}bg-primary{% elif party.category == 'Contractor' %}bg-info{% else %}bg-secondary{% endif %} bg-opacity-10 {% if party.category == 'Supplier' %}text-primary{% elif party.category == 'Contractor' %}text-info{% else %}text-secondary{% endif %} border">
+                            {{ party.category }}
+                        </span>
+                    </td>
+                    <td>{{ party.phone or 'N/A' }}</td>
+                    <td><small class="text-muted">{{ party.address or 'N/A' }}</small></td>
+                    <td>
+                        {% set bal = party.current_balance %}
+                        <span class="fw-bold {% if bal > 0 %}text-danger{% elif bal < 0 %}text-success{% else %}text-muted{% endif %}">
+                            ৳{{ "{:,.2f}".format(bal|abs) }}
+                            {% if bal > 0 %}(Due){% elif bal < 0 %}(Advance){% endif %}
+                        </span>
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('main.view_party_ledger', id=party.id) }}" class="btn btn-outline-primary" title="View Ledger">
+                                <i class="fas fa-list-alt"></i> Ledger
+                            </a>
+                            <a href="{{ url_for('main.edit_party', id=party.id) }}" class="btn btn-outline-secondary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" title="Delete" onclick="confirmDelete(event, '{{ url_for('main.delete_party', id=party.id) }}')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="fas fa-users-slash display-4 mb-3 d-block"></i>
+                        No parties found. Add your first supplier or contractor to get started.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Category Management Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-tags me-2"></i>Manage Party Categories</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="POST" action="{{ url_for('main.add_party_category') }}" class="d-flex gap-2 mb-4">
+                    <input type="text" name="name" class="form-control" placeholder="New category name (e.g. Consultant)" required>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold text-nowrap">
+                        <i class="fas fa-plus me-1"></i> Add
+                    </button>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="bg-light text-uppercase text-muted">
+                            <tr>
+                                <th>#</th>
+                                <th>Category Name</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in party_categories %}
+                            <tr>
+                                <td class="text-muted">{{ loop.index }}</td>
+                                <td>
+                                    <span id="catName_{{ cat.id }}" class="fw-medium">{{ cat.name }}</span>
+                                    <input type="text" id="catInput_{{ cat.id }}" class="form-control form-control-sm d-none" value="{{ cat.name }}" style="max-width: 200px;">
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="toggleEditCat({{ cat.id }})" id="editBtn_{{ cat.id }}" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="POST" action="{{ url_for('main.edit_party_category', id=cat.id) }}" id="saveForm_{{ cat.id }}" class="d-inline">
+                                        <input type="hidden" name="name" id="saveInput_{{ cat.id }}">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-circle me-1 d-none" id="saveBtn_{{ cat.id }}" title="Save" onclick="prepSave({{ cat.id }})">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle me-1 d-none" id="cancelBtn_{{ cat.id }}" onclick="cancelEditCat({{ cat.id }})" title="Cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <form method="POST" action="{{ url_for('main.delete_party_category', id=cat.id) }}" class="d-inline" onsubmit="return confirm('Delete category \'{{ cat.name }}\'? This will not delete the parties.')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">No categories yet. Add one above.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var categoryModal;
+    document.addEventListener("DOMContentLoaded", function(){
+        categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+    });
+
+    function openCategoryModal() {
+        categoryModal.show();
+    }
+
+    function toggleEditCat(id) {
+        document.getElementById('catName_' + id).classList.add('d-none');
+        document.getElementById('catInput_' + id).classList.remove('d-none');
+        document.getElementById('editBtn_' + id).classList.add('d-none');
+        document.getElementById('saveBtn_' + id).classList.remove('d-none');
+        document.getElementById('cancelBtn_' + id).classList.remove('d-none');
+        document.getElementById('catInput_' + id).focus();
+    }
+
+    function cancelEditCat(id) {
+        document.getElementById('catName_' + id).classList.remove('d-none');
+        document.getElementById('catInput_' + id).classList.add('d-none');
+        document.getElementById('editBtn_' + id).classList.remove('d-none');
+        document.getElementById('saveBtn_' + id).classList.add('d-none');
+        document.getElementById('cancelBtn_' + id).classList.add('d-none');
+    }
+
+    function prepSave(id) {
+        const val = document.getElementById('catInput_' + id).value;
+        document.getElementById('saveInput_' + id).value = val;
+    }
+</script>
+{% endblock %}

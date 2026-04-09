@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold text-dark-blue mb-1"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Party Ledger</h4>
+        <p class="text-muted small mb-0">
+            <strong>Party:</strong> {{ party.name }} | 
+            <strong>Category:</strong> <span class="badge bg-light text-dark border">{{ party.category }}</span>
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('main.recalculate_ledger', id=party.id) }}" class="btn btn-outline-primary rounded-pill px-3 shadow-sm" title="Recalculate running balance">
+            <i class="fas fa-sync-alt me-1"></i> Recalculate
+        </a>
+        <a href="{{ url_for('main.export_party_ledger', id=party.id) }}" class="btn btn-outline-success rounded-pill px-3 shadow-sm">
+            <i class="fas fa-file-excel me-1"></i> Export Excel
+        </a>
+        <button class="btn btn-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addEntryModal">
+            <i class="fas fa-plus me-1"></i> Add Entry
+        </button>
+        <a href="{{ url_for('main.manage_parties') }}" class="btn btn-outline-secondary rounded-pill px-3">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+    </div>
+</div>
+
+<!-- Ledger Summary Card -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="row align-items-center">
+                <div class="col-md-4 border-end text-center">
+                    <span class="text-muted small text-uppercase fw-bold">Current Status</span>
+                    {% set bal = party.current_balance %}
+                    <div class="h3 fw-bold mb-0 {% if bal > 0 %}text-danger{% elif bal < 0 %}text-success{% else %}text-muted{% endif %}">
+                        ৳{{ "{:,.2f}".format(bal|abs) }}
+                        {% if bal > 0 %}(Due){% elif bal < 0 %}(Advance){% else %}Settled{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-8 p-0">
+                    <form class="row g-2 px-3 align-items-end" method="GET">
+                        <div class="col-md-4">
+                            <label class="small text-muted fw-bold">From Date</label>
+                            <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-muted fw-bold">To Date</label>
+                            <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill"><i class="fas fa-filter me-1"></i> Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted small text-uppercase">
+                <tr>
+                    <th class="ps-4">Date</th>
+                    <th>Description</th>
+                    <th class="text-end">Bill (Credit)</th>
+                    <th class="text-end">Paid (Debit)</th>
+                    <th class="text-end">Balance</th>
+                    <th class="ps-3">Ref/Memo</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr class="{% if loop.last %}table-light fw-bold{% endif %}">
+                    <td class="ps-4 text-muted">{{ entry.date }}</td>
+                    <td class="text-dark">{{ entry.description }}</td>
+                    <td class="text-end text-danger">{% if entry.bill_amount > 0 %}৳{{ "{:,.2f}".format(entry.bill_amount) }}{% else %}-{% endif %}</td>
+                    <td class="text-end text-success">{% if entry.paid_amount > 0 %}৳{{ "{:,.2f}".format(entry.paid_amount) }}{% else %}-{% endif %}</td>
+                    <td class="text-end fw-bold {% if entry.balance > 0 %}text-danger{% elif entry.balance < 0 %}text-success{% endif %}">
+                        ৳{{ "{:,.2f}".format(entry.balance|abs) }}
+                    </td>
+                    <td class="ps-3"><small class="badge bg-light text-muted border fw-normal">{{ entry.reference or 'N/A' }}</small></td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm shadow-sm rounded-pill overflow-hidden">
+                            <button class="btn btn-light border-end" 
+                                    onclick='openEditModal({{ {
+                                        "id": entry.id,
+                                        "date": entry.date,
+                                        "description": entry.description,
+                                        "bill_amount": entry.bill_amount,
+                                        "paid_amount": entry.paid_amount,
+                                        "reference": entry.reference or ""
+                                    }|tojson }})'
+                                    title="Edit Entry">
+                                <i class="fas fa-edit text-primary"></i>
+                            </button>
+                            <button class="btn btn-light" 
+                                    onclick="openDeleteModal({{ entry.id }}, '{{ entry.description|escape }}')"
+                                    title="Delete Entry">
+                                <i class="fas fa-trash-alt text-danger"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">No entries match your criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Entry Modal -->
+<div class="modal fade" id="addEntryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form action="{{ url_for('main.add_ledger_entry', party_id=party.id) }}" method="POST">
+                <div class="modal-header bg-success text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>New Ledger Entry</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Date</label>
+                        <input type="date" name="date" class="form-control rounded-pill" required value="{{ date_today }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Description / Particulars</label>
+                        <input type="text" name="description" class="form-control rounded-pill" required placeholder="e.g. 100 bags of cement">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-danger text-uppercase">Bill Amount (Credit)</label>
+                            <input type="number" step="0.01" name="bill_amount" class="form-control rounded-pill" value="0">
+                            <div class="form-text small">Amount we owe</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-success text-uppercase">Paid Amount (Debit)</label>
+                            <input type="number" step="0.01" name="paid_amount" class="form-control rounded-pill" value="0">
+                            <div class="form-text small">Amount we paid</div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Invoice / Memo Number</label>
+                        <input type="text" name="reference" class="form-control rounded-pill" placeholder="e.g. INV-123">
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-danger text-uppercase">Admin Password Required</label>
+                        <input type="password" name="admin_password" class="form-control rounded-pill border-danger" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 text-center d-block">
+                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm">Save Entry</button>
+                    <button type="button" class="btn btn-link text-muted small mt-2 d-inline-block" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Edit Entry Modal -->
+<div class="modal fade" id="editEntryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form id="editEntryForm" method="POST">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Edit Ledger Entry</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Date</label>
+                        <input type="date" name="date" id="edit_date" class="form-control rounded-pill" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Description / Particulars</label>
+                        <input type="text" name="description" id="edit_description" class="form-control rounded-pill" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-danger text-uppercase">Bill Amount (Credit)</label>
+                            <input type="number" step="0.01" name="bill_amount" id="edit_bill_amount" class="form-control rounded-pill">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-success text-uppercase">Paid Amount (Debit)</label>
+                            <input type="number" step="0.01" name="paid_amount" id="edit_paid_amount" class="form-control rounded-pill">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Invoice / Memo Number</label>
+                        <input type="text" name="reference" id="edit_reference" class="form-control rounded-pill">
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-danger text-uppercase">Admin Password Required</label>
+                        <input type="password" name="admin_password" class="form-control rounded-pill border-danger" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 text-center d-block">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm">Update Entry</button>
+                    <button type="button" class="btn btn-link text-muted small mt-2 d-inline-block" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteEntryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form id="deleteEntryForm" method="POST">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Delete Entry?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="mb-4">Are you sure you want to delete this entry?</p>
+                    <div class="p-3 bg-light rounded-3 mb-4">
+                        <strong id="delete_entry_desc" class="text-dark"></strong>
+                    </div>
+                    <div class="mb-2 text-start">
+                        <label class="form-label small fw-bold text-danger text-uppercase">Admin Password Required</label>
+                        <input type="password" name="admin_password" class="form-control rounded-pill border-danger" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 text-center d-block">
+                    <button type="submit" class="btn btn-danger btn-lg w-100 rounded-pill fw-bold shadow-sm">Delete Permanently</button>
+                    <button type="button" class="btn btn-light btn-lg w-100 rounded-pill mt-2" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openEditModal(entry) {
+        document.getElementById('editEntryForm').action = "/party/ledger/edit/" + entry.id;
+        document.getElementById('edit_date').value = entry.date;
+        document.getElementById('edit_description').value = entry.description;
+        document.getElementById('edit_bill_amount').value = entry.bill_amount;
+        document.getElementById('edit_paid_amount').value = entry.paid_amount;
+        document.getElementById('edit_reference').value = entry.reference;
+        
+        new bootstrap.Modal(document.getElementById('editEntryModal')).show();
+    }
+
+    function openDeleteModal(id, desc) {
+        document.getElementById('deleteEntryForm').action = "/party/ledger/delete/" + id;
+        document.getElementById('delete_entry_desc').textContent = desc;
+        new bootstrap.Modal(document.getElementById('deleteEntryModal')).show();
+    }
+
+    // Set default date to today for New Entry
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.querySelector('#addEntryModal input[name="date"]');
+        if (dateInput && !dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+    });
+</script>
+{% endblock %}

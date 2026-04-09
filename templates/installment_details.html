@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.manage_installments_page') }}" class="text-decoration-none text-muted">Installments</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ installment.name }}</li>
+                    </ol>
+                </nav>
+                <h1 class="fw-bold text-dark-blue mb-1">
+                    <i class="fas fa-receipt me-2 text-primary"></i>{{ installment.name }}
+                </h1>
+                <p class="text-muted mb-0">Milestone Rate: <strong>৳{{ "{:,.0f}".format(installment.amount_per_share) }}</strong> per share</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('main.manage_installments_page') }}" class="btn btn-light border rounded-pill px-4 d-flex align-items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white border-start border-4 border-primary">
+                    <div class="small text-muted fw-bold text-uppercase mb-1">Total Expected</div>
+                    <div class="h3 fw-bold mb-0">৳{{ "{:,.2f}".format(installment.total_expected) }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white border-start border-4 border-success">
+                    <div class="small text-muted fw-bold text-uppercase mb-1">Total Collected</div>
+                    <div class="h3 fw-bold mb-0 text-success">৳{{ "{:,.2f}".format(installment.total_collected) }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white border-start border-4 border-danger">
+                    <div class="small text-muted fw-bold text-uppercase mb-1">Total Due</div>
+                    <div class="h3 fw-bold mb-0 text-danger">৳{{ "{:,.2f}".format(installment.total_due) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers List -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-0 px-2">Customer Payment Status</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Customer ID</th>
+                            <th>Customer Name</th>
+                            <th class="text-center">Shares</th>
+                            <th class="text-end">Milestone Amt</th>
+                            <th class="text-end text-success">Paid</th>
+                            <th class="text-end text-danger">Due</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ci in customer_installments %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge bg-light text-dark border fw-medium">{{ ci.customer.customer_id }}</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">{{ ci.customer.name }}</div>
+                                <div class="small text-muted">{{ ci.customer.phone }}</div>
+                            </td>
+                            <td class="text-center">{{ ci.customer.shares }}</td>
+                            <td class="text-end fw-medium">৳{{ "{:,.2f}".format(ci.total_amount) }}</td>
+                            <td class="text-end text-success">৳{{ "{:,.2f}".format(ci.paid_amount) }}</td>
+                            <td class="text-end text-danger fw-bold">৳{{ "{:,.2f}".format(ci.due_amount) }}</td>
+                            <td class="text-center">
+                                {% if ci.due_amount <= 0 %}
+                                <span class="badge rounded-pill bg-success px-3">Fully Paid</span>
+                                {% elif ci.paid_amount > 0 %}
+                                <span class="badge rounded-pill bg-warning text-dark px-3">Partially Paid</span>
+                                {% else %}
+                                <span class="badge rounded-pill bg-danger px-3">Unpaid</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-dark-blue { color: #1a237e; }
+    .bg-light { background-color: #f8f9fa !important; }
+    .rounded-4 { border-radius: 1rem !important; }
+</style>
+{% endblock %}

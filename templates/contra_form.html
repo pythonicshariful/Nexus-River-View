@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white p-4 border-0">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    {% if contra %}Edit{% else %}New{% endif %} Contra Entry
+                </h4>
+                <p class="text-white-50 small mb-0 mt-1">Record transfers between Cash and Bank accounts.</p>
+            </div>
+            <div class="card-body p-4 p-lg-5">
+                <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase">Contra Number</label>
+                            <input type="text" name="contra_no" class="form-control rounded-pill px-3 bg-light border-0 shadow-none" 
+                                   value="{{ contra.contra_no if contra else suggested_no }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase">Date</label>
+                            <input type="date" name="date" class="form-control rounded-pill px-3 bg-light border-0 shadow-none" 
+                                   value="{{ contra.date if contra else today_str }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase">From Account</label>
+                            <select name="from_account" id="from_account" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" onchange="toggleBankSelect()" required>
+                                <option value="Cash" {% if contra and contra.from_account == 'Cash' %}selected{% endif %}>Cash Account</option>
+                                <option value="Bank" {% if contra and contra.from_account == 'Bank' %}selected{% endif %}>Bank Account</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase">To Account</label>
+                            <select name="to_account" id="to_account" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" onchange="toggleBankSelect()" required>
+                                <option value="Bank" {% if (not contra) or (contra and contra.to_account == 'Bank') %}selected{% endif %}>Bank Account</option>
+                                <option value="Cash" {% if contra and contra.to_account == 'Cash' %}selected{% endif %}>Cash Account</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="bank_div" class="mb-4" style="display: none;">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Select Bank Account</label>
+                        <select name="bank_id" class="form-select rounded-pill px-3 bg-light border-0 shadow-none">
+                            <option value="">-- Choose Bank --</option>
+                            {% for b in banks %}
+                            <option value="{{ b.id }}" {% if contra and contra.bank_id == b.id %}selected{% endif %}>
+                                {{ b.bank_name }} - {{ b.account_no }} ({{ b.branch }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-pill ps-3 text-muted">Tk.</span>
+                                <input type="number" name="amount" step="0.01" class="form-control rounded-end-pill px-3 bg-light border-0 shadow-none fw-bold" 
+                                       value="{{ contra.amount if contra else '' }}" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase">Cheque No (Optional)</label>
+                            <input type="text" name="cheque_no" class="form-control rounded-pill px-3 bg-light border-0 shadow-none" 
+                                   value="{{ contra.cheque_no if contra else '' }}" placeholder="Enter cheque number">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Description / Notes</label>
+                        <textarea name="description" rows="2" class="form-control rounded-4 px-3 py-3 bg-light border-0 shadow-none text-muted" 
+                                  placeholder="Details about this transfer...">{{ contra.description if contra else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Attachments (Optional)</label>
+                        <input type="file" name="attachments" class="form-control rounded-pill bg-light border-0 shadow-none" multiple>
+                        {% if contra and contra.attachments %}
+                        <div class="mt-2 small text-muted">
+                            Current: {{ contra.attachments }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-3 pt-2">
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">
+                            <i class="fas fa-save me-2"></i> {% if contra %}Update{% else %}Save{% endif %} Entry
+                        </button>
+                        <a href="{{ url_for('main.manage_contra_entries') }}" class="btn btn-light rounded-pill px-4 text-muted border shadow-sm">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleBankSelect() {
+        const fromVal = document.getElementById('from_account').value;
+        const toVal = document.getElementById('to_account').value;
+        const bankDiv = document.getElementById('bank_div');
+        
+        if (fromVal === 'Bank' || toVal === 'Bank') {
+            bankDiv.style.display = 'block';
+        } else {
+            bankDiv.style.display = 'none';
+        }
+    }
+    
+    // Initial State Check
+    window.onload = toggleBankSelect;
+</script>
+{% endblock %}

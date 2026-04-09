@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h3 class="fw-bold text-dark-blue mb-0">
+            <i class="fas fa-university me-2 text-primary"></i>Bank Statement: {{ bank.bank_name }}
+        </h3>
+        <p class="text-muted small mb-0">Account: <strong>{{ bank.account_no }}</strong> | Branch: {{ bank.branch_name }}</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{{ url_for('main.reports_dashboard') }}" class="btn btn-sm btn-light border rounded-pill px-3 me-2">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm bg-white" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print Statement
+        </button>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4 py-3">Date</th>
+                        <th>Narration / Voucher</th>
+                        <th>Category</th>
+                        <th class="text-end">Debit (Out)</th>
+                        <th class="text-end">Credit (In)</th>
+                        <th class="text-end pe-4">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td class="ps-4 small text-muted">{{ tx.date }}</td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ tx.narration }}</div>
+                            {% if tx.voucher %}
+                            <div class="small text-primary">Ref Voucher: {{ tx.voucher.voucher_no }}</div>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-light text-dark border px-2 py-1 rounded-pill small">{{ tx.category or 'General' }}</span></td>
+                        <td class="text-end text-danger fw-semibold">
+                            {% if tx.debit > 0 %}৳{{ "{:,.2f}".format(tx.debit) }}{% else %}-{% endif %}
+                        </td>
+                        <td class="text-end text-success fw-semibold">
+                            {% if tx.credit > 0 %}৳{{ "{:,.2f}".format(tx.credit) }}{% else %}-{% endif %}
+                        </td>
+                        <td class="text-end pe-4 fw-bold text-primary">
+                            ৳{{ "{:,.2f}".format(tx.balance) }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">No transactions found for this account.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .navbar, .btn, form, footer { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .main-content { margin-top: 0 !important; width: 100% !important; max-width: 100% !important; }
+    }
+</style>
+{% endblock %}

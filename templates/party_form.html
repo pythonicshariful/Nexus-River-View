@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-dark-gradient text-white p-4 border-0">
+                <h4 class="mb-0 fw-bold"><i class="fas {% if party %}fa-user-edit{% else %}fa-user-plus{% endif %} me-2"></i>{% if party %}Edit Party{% else %}Add New Party{% endif %}</h4>
+                <p class="small mb-0 text-white-50">Manage supplier, contractor, or individual records.</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Party Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control rounded-pill px-3" value="{{ party.name if party else '' }}" required placeholder="Enter full name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Category <span class="text-danger">*</span></label>
+                        <select name="category" class="form-select rounded-pill px-3" required>
+                            <option value="" disabled {% if not party %}selected{% endif %}>Select Category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if party and party.category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Phone Number</label>
+                        <input type="text" name="phone" class="form-control rounded-pill px-3" value="{{ party.phone if party else '' }}" placeholder="e.g. 01711223344">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small text-uppercase">Address</label>
+                        <textarea name="address" class="form-control rounded-4 px-3" rows="3" placeholder="Enter physical address">{{ party.address if party else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-danger small text-uppercase">Admin Password <span class="text-danger">*</span></label>
+                        <input type="password" name="admin_password" class="form-control rounded-pill px-3 border-danger" required placeholder="Required to save changes">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                            <i class="fas fa-save me-1"></i> {% if party %}Update Party{% else %}Save Party{% endif %}
+                        </button>
+                        <a href="{{ url_for('main.manage_parties') }}" class="btn btn-light btn-sm rounded-pill text-muted">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

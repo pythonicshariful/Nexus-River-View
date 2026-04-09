@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+            <div class="card-header border-0 py-4 px-4 {% if v_type == 'Debit' %}bg-danger{% else %}bg-success{% endif %} text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0">
+                            <i class="fas {% if v_type == 'Debit' %}fa-file-invoice-dollar{% else %}fa-hand-holding-usd{% endif %} me-2"></i>
+                            {% if v %}Edit{% else %}New{% endif %} {{ v_type }} Voucher
+                        </h4>
+                        <p class="small mb-0 opacity-75">{% if v_type == 'Debit' %}Record a payment made to a party or expense.{% else %}Record money received from a source or party.{% endif %}</p>
+                    </div>
+                    <a href="{{ url_for('main.manage_vouchers') }}" class="btn btn-sm btn-white bg-white bg-opacity-25 text-white border-0 px-3 rounded-pill h-auto" style="line-height: 1.5;">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" enctype="multipart/form-data" id="voucherForm">
+                    <div class="row g-4">
+                        <!-- Basic Info -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Voucher Number</label>
+                            <input type="text" name="voucher_no" class="form-control rounded-pill px-3 bg-light border-0 shadow-none fw-bold" 
+                                   value="{{ v.voucher_no if v else suggested_no }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Date</label>
+                            <input type="date" name="date" class="form-control rounded-pill px-3 bg-light border-0 shadow-none" 
+                                   value="{{ v.date if v else today_str }}" required>
+                        </div>
+
+                        <!-- Party & Category -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Party / Leader (Optional)</label>
+                            <select name="party_id" class="form-select rounded-pill px-3 bg-light border-0 shadow-none">
+                                <option value="">Select Party (Optional)</option>
+                                {% for party in parties %}
+                                <option value="{{ party.id }}" {% if v and v.party_id == party.id %}selected{% endif %}>{{ party.name }} ({{ party.category }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Customer (For Installments)</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-light border-0 rounded-pill-start ps-3 py-1"><i class="fas fa-search small text-muted"></i></span>
+                                <input type="text" id="customerSearch" class="form-control form-control-sm border-0 bg-light rounded-pill-end shadow-none" placeholder="Search customer...">
+                            </div>
+                            <select name="customer_id" id="customerSelect" class="form-select rounded-pill px-3 bg-light border-0 shadow-none">
+                                <option value="">Select Customer (Optional)</option>
+                                {% for cust in customers %}
+                                <option value="{{ cust.id }}" {% if v and v.customer_id == cust.id %}selected{% endif %}>{{ cust.name }} ({{ cust.customer_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Category</label>
+                            <select name="category" class="form-select rounded-pill px-3 bg-light border-0 shadow-none">
+                                <option value="">Select Category</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.name }}" {% if v and v.category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted">Payment Details / Description</label>
+                            <textarea name="description" class="form-control rounded-4 px-3 py-2 bg-light border-0 shadow-none" rows="3" placeholder="Enter details..." required>{{ v.description if v else '' }}</textarea>
+                        </div>
+
+                        <!-- Financials -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Total Amount (৳)</label>
+                            <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control rounded-pill px-3 bg-light border-0 shadow-none fw-bold" 
+                                   value="{{ v.total_amount if v else '0' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Amount {% if v_type == 'Debit' %}Paid{% else %}Received{% endif %} (৳)</label>
+                            <input type="number" step="0.01" name="amount_paid" id="amount_paid" class="form-control rounded-pill px-3 bg-light border-0 shadow-none fw-bold text-{% if v_type == 'Debit' %}danger{% else %}success{% endif %}" 
+                                   value="{{ v.amount_paid if v else '0' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Due Amount (৳)</label>
+                            <input type="number" step="0.01" id="due_amount" class="form-control rounded-pill px-3 bg-white border-0 shadow-none fw-bold text-muted" 
+                                   value="{{ v.due_amount if v else '0' }}" disabled>
+                        </div>
+
+                        <!-- Progress Bar for Payment -->
+                        <div class="col-12 mt-1">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small text-muted">Payment Progress</span>
+                                <span class="small fw-bold" id="percentage_text">{{ "{:.0f}".format(v.payment_percentage) if v else '0' }}%</span>
+                            </div>
+                            <div class="progress rounded-pill bg-light" style="height: 6px;">
+                                <div id="progress_bar" class="progress-bar {% if v_type == 'Debit' %}bg-danger{% else %}bg-success{% endif %}" 
+                                     role="progressbar"></div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Payment Method</label>
+                            <div class="row g-2 mt-0">
+                                <div class="col-6">
+                                    <input class="btn-check" type="radio" name="payment_method" id="methodCash" value="Cash" 
+                                           {% if not v or v.payment_method == 'Cash' %}checked{% endif %} autocomplete="off">
+                                    <label class="btn btn-outline-warning w-100 rounded-pill py-2 border-0 bg-light-subtle text-dark-emphasis shadow-sm" for="methodCash">
+                                        <i class="fas fa-wallet me-2"></i>Cash
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input class="btn-check" type="radio" name="payment_method" id="methodBank" value="Bank"
+                                           {% if v and v.payment_method == 'Bank' %}checked{% endif %} autocomplete="off">
+                                    <label class="btn btn-outline-primary w-100 rounded-pill py-2 border-0 bg-light-subtle text-dark-emphasis shadow-sm" for="methodBank">
+                                        <i class="fas fa-university me-2"></i>Bank
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6" id="bankSelection" style="display: none;">
+                            <label class="form-label small fw-bold text-muted">Select Bank Account</label>
+                            <select name="bank_id" class="form-select rounded-pill px-3 bg-light border-0 shadow-none">
+                                <option value="">Select Bank Account</option>
+                                {% for bank in banks %}
+                                <option value="{{ bank.id }}" {% if v and v.bank_id == bank.id %}selected{% endif %}>{{ bank.bank_name }} - {{ bank.account_no }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Payment Toggle -->
+                        <div class="col-12" id="paymentToggleSection">
+                            <div class="form-check form-switch p-3 rounded-4 border border-2 {% if v and v.is_payment %}border-primary bg-primary bg-opacity-10{% else %}border-light bg-light{% endif %}" id="paymentContainer">
+                                <input class="form-check-input ms-0 me-3" type="checkbox" name="is_payment" id="isPayment" style="width: 3em; height: 1.5em;"
+                                       {% if v and v.is_payment %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-dark fs-5" for="isPayment" style="vertical-align: middle;">
+                                    <i class="fas fa-history me-1 text-primary"></i> Payment for previous balance / dues
+                                </label>
+                                <p class="small text-muted mb-0 mt-2 ms-5">
+                                    <strong>Important:</strong> Check this if you are paying an old bill. 
+                                    <span class="text-primary fw-semibold">This will NOT add a new bill</span> to the ledger, only record the payment.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Notes & Attachment -->
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-muted">Notes / Internal Remarks (Optional)</label>
+                            <input type="text" name="notes" class="form-control rounded-pill px-3 bg-light border-0 shadow-none" 
+                                   value="{{ v.notes if v else '' }}" placeholder="For internal records...">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-muted">Attachment (Invoice Photo/PDF)</label>
+                            <div class="input-group">
+                                <input type="file" name="attachment" class="form-control rounded-pill-start bg-light border-0 shadow-none">
+                                {% if v and v.attachment %}
+                                <span class="input-group-text bg-white border-0 small text-muted">Current: {{ v.attachment }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn {% if v_type == 'Debit' %}btn-danger{% else %}btn-success{% endif %} btn-lg rounded-pill px-5 shadow-lg w-100">
+                                <i class="fas fa-save me-2"></i> Save {{ v_type }} Voucher
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rounded-pill-start { border-top-left-radius: 50rem !important; border-bottom-left-radius: 50rem !important; }
+    .custom-radio .form-check-input:checked { background-color: var(--bs-primary); border-color: var(--bs-primary); }
+    .btn-white:hover { background-color: rgba(255,255,255,0.4) !important; }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const totalInput = document.getElementById('total_amount');
+        const paidInput = document.getElementById('amount_paid');
+        const dueInput = document.getElementById('due_amount');
+        const percentageText = document.getElementById('percentage_text');
+        const progressBar = document.getElementById('progress_bar');
+        const methodBank = document.getElementById('methodBank');
+        const methodCash = document.getElementById('methodCash');
+        const bankSelection = document.getElementById('bankSelection');
+
+        function calculate() {
+            const total = parseFloat(totalInput.value) || 0;
+            const paid = parseFloat(paidInput.value) || 0;
+            const due = total - paid;
+            dueInput.value = due.toFixed(2);
+
+            const percentage = total > 0 ? (paid / total * 100) : 0;
+            percentageText.textContent = Math.round(percentage) + '%';
+            progressBar.style.width = Math.min(percentage, 100) + '%';
+            
+            // Color changing based on progress
+            if (percentage >= 100) {
+                progressBar.classList.remove('bg-danger', 'bg-warning');
+                progressBar.classList.add('bg-success');
+            } else if (percentage > 50) {
+                progressBar.classList.remove('bg-danger', 'bg-success');
+                progressBar.classList.add('bg-warning');
+            }
+        }
+
+        totalInput.addEventListener('input', calculate);
+        paidInput.addEventListener('input', calculate);
+
+        const isPayment = document.getElementById('isPayment');
+        const paymentContainer = document.getElementById('paymentContainer');
+        const descriptionField = document.querySelector('textarea[name="description"]');
+
+        function updatePaymentUI() {
+            if (isPayment.checked) {
+                paymentContainer.classList.remove('border-light', 'bg-light');
+                paymentContainer.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+            } else {
+                paymentContainer.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+                paymentContainer.classList.add('border-light', 'bg-light');
+            }
+        }
+
+        function checkKeywords() {
+            if (isPayment.dataset.userModified === 'true') return;
+            
+            const text = descriptionField.value.toLowerCase();
+            const keywords = ['previous', 'due', 'balance', 'old', 'arrear', 'pay for', 'paying for'];
+            const found = keywords.some(k => text.includes(k));
+            
+            if (found && !isPayment.checked) {
+                isPayment.checked = true;
+                updatePaymentUI();
+                // Flash the container to alert the user
+                paymentContainer.style.transition = 'all 0.3s ease';
+                paymentContainer.style.transform = 'scale(1.02)';
+                setTimeout(() => paymentContainer.style.transform = 'scale(1)', 300);
+            }
+        }
+
+        isPayment.addEventListener('change', () => {
+            isPayment.dataset.userModified = 'true';
+            updatePaymentUI();
+        });
+
+        descriptionField.addEventListener('input', checkKeywords);
+
+        // Customer Search Logic
+        const customerSearch = document.getElementById('customerSearch');
+        const customerSelect = document.getElementById('customerSelect');
+        const originalOptions = Array.from(customerSelect.options);
+
+        customerSearch.addEventListener('input', function() {
+            const term = this.value.toLowerCase();
+            
+            // Clear current options
+            customerSelect.innerHTML = '';
+            
+            // Filter and append
+            originalOptions.forEach(opt => {
+                if (opt.text.toLowerCase().includes(term) || opt.value === "") {
+                    customerSelect.appendChild(opt.cloneNode(true));
+                }
+            });
+            
+            // If the previously selected value is still in the list, keep it
+            // (Note: cloneNode doesn't keep the 'selected' property state well if we just appended)
+        });
+
+        // Initial Calc & Visibility
+        calculate();
+        updatePaymentUI();
+        if (methodBank.checked) bankSelection.style.display = 'block';
+        else bankSelection.style.display = 'none';
+    });
+</script>
+{% endblock %}

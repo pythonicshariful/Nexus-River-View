@@ -33,3 +33,9 @@ nexus_backup_*.db
 # OS
 .DS_Store
 Thumbs.db
+
+
+#pyinstallerfile
+dist
+build
+.spec

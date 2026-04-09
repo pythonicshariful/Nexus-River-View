@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Employee Management</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('main.add_employee') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Employee</a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="employeesTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th>Phone</th>
+                        <th>Net Salary</th>
+                        <th>Joining Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td><strong>{{ emp.employee_id }}</strong></td>
+                        <td>{{ emp.name }}</td>
+                        <td>{{ emp.designation }}</td>
+                        <td>{{ emp.department }}</td>
+                        <td>{{ emp.phone }}</td>
+                        <td>{{ "{:,.2f}".format(emp.net_salary) }}</td>
+                        <td>{{ emp.joining_date }}</td>
+                        <td>
+                            <a href="{{ url_for('main.edit_employee', id=emp.id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
+                            
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEmpModal{{ emp.id }}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteEmpModal{{ emp.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content text-start">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Employee: {{ emp.name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('main.delete_employee', id=emp.id) }}" method="POST">
+                                            <div class="modal-body">
+                                                <p class="text-danger fw-bold">Are you sure you want to delete this employee? ALL related attendance, leave, and salary records will be permanently deleted!</p>
+                                                
+                                                {% if not verify_password %}
+                                                <div class="mb-3">
+                                                    <label class="form-label text-danger">Admin Password *</label>
+                                                    <input type="password" name="admin_password" class="form-control" required placeholder="Enter Admin Password to confirm">
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-danger">Yes, Delete Employee</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not employees %}
+                    <tr><td colspan="8" class="text-center text-muted">No employees found.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

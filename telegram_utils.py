@@ -7,8 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
 
 def get_log_path():
     """Determines the log file path in the user's data directory."""
@@ -55,9 +54,15 @@ def get_cert_path():
 
 def send_telegram_message(text):
     """Sends a text message to the configured Telegram Chat ID."""
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not bot_token or not chat_id:
+        log_debug("Telegram config missing, skipping message.")
+        return False
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {
-        "chat_id": CHAT_ID,
+        "chat_id": chat_id,
         "text": text
     }
     try:
@@ -73,7 +78,13 @@ def send_telegram_message(text):
 
 def send_telegram_document(file_path, caption=None):
     """Sends a document (file) to the configured Telegram Chat ID."""
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument"
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not bot_token or not chat_id:
+        log_debug("Telegram config missing, skipping document upload.")
+        return False
+        
+    url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
     
     if not os.path.exists(file_path):
         log_debug(f"File not found for Telegram upload: {file_path}")
@@ -84,7 +95,7 @@ def send_telegram_document(file_path, caption=None):
         cert = get_cert_path()
         with open(file_path, 'rb') as f:
             files = {'document': f}
-            data = {'chat_id': CHAT_ID}
+            data = {'chat_id': chat_id}
             if caption:
                 data['caption'] = caption
             

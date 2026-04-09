@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow mt-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Apply Leave</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Employee(s) *</label>
+                            <select class="form-select" name="employee_ids" multiple size="6" required>
+                                {% for emp in employees %}
+                                <option value="{{ emp.id }}">{{ emp.name }} ({{ emp.employee_id }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Hold Ctrl (Windows) or Cmd (Mac) to select multiple employees.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Record Type *</label>
+                            <select class="form-select" name="leave_type" id="record_type" required>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                                <option value="CL">Casual Leave (CL)</option>
+                                <option value="ML">Medical Leave (ML)</option>
+                                <option value="FL">Festival Leave (FL)</option>
+                                <option value="EL">Earned Leave (EL)</option>
+                                <option value="Off Day">Off Day</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">From Date *</label>
+                            <input type="date" name="from_date" id="from_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">To Date *</label>
+                            <input type="date" name="to_date" id="to_date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Fields for Present Status -->
+                    <div id="present_fields" style="display: none;">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">In Time *</label>
+                                <input type="time" name="in_time" id="in_time" class="form-control" value="11:00">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Out Time *</label>
+                                <input type="time" name="out_time" id="out_time" class="form-control" value="19:00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Total Days *</label>
+                            <input type="number" name="total_days" id="total_days" class="form-control" readonly required>
+                            <div class="form-text">Auto-calculated based on dates.</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">Reason / Notes</label>
+                            <textarea name="reason" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4" id="status_container">
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="Approved" selected>Approved</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {% if not verify_password %}
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-danger">Admin Password *</label>
+                            <input type="password" name="admin_password" class="form-control" required placeholder="Enter Admin Password">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.view_leaves') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fromDateInput = document.getElementById('from_date');
+    const toDateInput = document.getElementById('to_date');
+    const totalDaysInput = document.getElementById('total_days');
+    const recordTypeSelect = document.getElementById('record_type');
+    const presentFields = document.getElementById('present_fields');
+    const statusContainer = document.getElementById('status_container');
+    const inTimeInput = document.getElementById('in_time');
+    const outTimeInput = document.getElementById('out_time');
+
+    function toggleFields() {
+        const val = recordTypeSelect.value;
+        if (val === 'Present') {
+            presentFields.style.display = 'block';
+            inTimeInput.required = true;
+            outTimeInput.required = true;
+            statusContainer.style.display = 'none'; // No need for Approved/Pending for explicit Present
+        } else if (val === 'Absent' || val === 'Off Day') {
+            presentFields.style.display = 'none';
+            inTimeInput.required = false;
+            outTimeInput.required = false;
+            statusContainer.style.display = 'none'; // No need for status for direct Absent/Off Day
+        } else {
+            presentFields.style.display = 'none';
+            inTimeInput.required = false;
+            outTimeInput.required = false;
+            statusContainer.style.display = 'block';
+        }
+    }
+
+    function calculateDays() {
+        const fromDate = new Date(fromDateInput.value);
+        const toDate = new Date(toDateInput.value);
+        
+        if (fromDate && toDate && toDate >= fromDate) {
+            const diffTime = Math.abs(toDate - fromDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+            totalDaysInput.value = diffDays;
+        } else {
+            totalDaysInput.value = '';
+        }
+    }
+
+    recordTypeSelect.addEventListener('change', toggleFields);
+    fromDateInput.addEventListener('change', calculateDays);
+    toDateInput.addEventListener('change', calculateDays);
+
+    // Run on load to set initial state
+    toggleFields();
+</script>
+{% endblock %}

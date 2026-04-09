@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 import threading
 from database import db
-from models import Director, Customer, Transaction, PettyCash, Bank, BankTransaction
+from models import Director, Customer, Transaction, PettyCash, Bank, BankTransaction, Party, PartyLedger, Voucher, PartyCategory, Employee, Attendance, Leave, Salary
 from telegram_utils import log_debug
 
 def resource_path(relative_path):
@@ -37,7 +37,7 @@ def get_credentials_path():
     return resource_path("credentials.json")
 
 # Configuration
-CREDENTIALS_FILE = get_credentials_path()
+
 SHEET_ID = "1Uapf1c4wDZ4hGfa1bqSbRjF45VodFv2-jtzgLL4VDq0"
 
 class SyncManager:
@@ -52,7 +52,8 @@ class SyncManager:
         if self._client is None:
             scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
             try:
-                creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+                creds_file = get_credentials_path()
+                creds = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
                 self._client = gspread.authorize(creds)
             except Exception as e:
                 log_debug(f"Failed to authorize Google Sheets: {e}")
@@ -79,7 +80,15 @@ class SyncManager:
             'bank': Bank,
             'bank_transaction': BankTransaction,
             'installment': Installment,
-            'customer_installment': CustomerInstallment
+            'customer_installment': CustomerInstallment,
+            'party': Party,
+            'party_ledger': PartyLedger,
+            'voucher': Voucher,
+            'party_category': PartyCategory,
+            'employee': Employee,
+            'attendance': Attendance,
+            'leave': Leave,
+            'salary': Salary
         }
         for name, model in models.items():
             if name == 'customer':

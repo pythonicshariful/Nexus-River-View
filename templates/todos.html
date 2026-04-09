@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold text-dark-blue"><i class="fas fa-tasks me-2"></i>Tasks & Reminders</h2>
+            <p class="text-muted">Stay organized and never miss a deadline.</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addTodoModal">
+                <i class="fas fa-plus me-2"></i>New Task
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Task List -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for todo in todos %}
+                        <div class="list-group-item p-4 border-0 border-bottom todo-item" id="todo-{{ todo.id }}">
+                            <div class="d-flex align-items-center">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input todo-checkbox" type="checkbox" 
+                                           data-id="{{ todo.id }}" {% if todo.is_completed %}checked{% endif %}
+                                           style="width: 24px; height: 24px; cursor: pointer;">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1 fw-bold {% if todo.is_completed %}text-decoration-line-through text-muted{% endif %}" id="task-text-{{ todo.id }}">
+                                        {{ todo.task }}
+                                    </h5>
+                                    <div class="d-flex align-items-center gap-3 small">
+                                        <span class="badge bg-light text-dark border"><i class="fas fa-tag me-1 text-primary"></i>{{ todo.category }}</span>
+                                        {% if todo.due_date %}
+                                        <span class="text-muted"><i class="far fa-calendar-alt me-1"></i>{{ todo.due_date }}</span>
+                                        {% endif %}
+                                        {% if todo.due_time %}
+                                        <span class="text-muted"><i class="far fa-clock me-1"></i>{{ todo.due_time }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="ms-auto text-end">
+                                    <form action="{{ url_for('main.delete_todo', id=todo.id) }}" method="POST" onsubmit="return confirm('Delete this task?')">
+                                        <button type="submit" class="btn btn-link text-danger p-0" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="p-5 text-center text-muted">
+                            <i class="fas fa-clipboard-list fa-3x mb-3 opacity-25"></i>
+                            <p>No tasks yet. Start by adding one!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar / Tips -->
+        <div class="col-lg-4">
+            <div class="card border-0 bg-primary text-white shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-lightbulb me-2"></i>Telegram Alerts</h5>
+                    <p class="small opacity-75">Tasks with a due date will trigger a Telegram notification on the day they are due.</p>
+                    <hr class="opacity-25">
+                    <div class="d-flex align-items-center">
+                        <div class="h1 mb-0 me-3"><i class="fab fa-telegram"></i></div>
+                        <div class="small">Notifications are sent automatically in the background.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3 text-dark">Stats</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Tasks</span>
+                        <span class="fw-bold">{{ todos|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Completed</span>
+                        <span class="fw-bold text-success">{{ todos|selectattr('is_completed')|list|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Todo Modal -->
+<div class="modal fade" id="addTodoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ url_for('main.manage_todos') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Task Description</label>
+                        <textarea name="task" class="form-control" rows="2" placeholder="What needs to be done?" required></textarea>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="General">General</option>
+                                <option value="Work">Work</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Reminder">Reminder</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Due Date</label>
+                            <input type="date" name="due_date" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Time (Optional)</label>
+                            <input type="time" name="due_time" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-3">Add Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .todo-item {
+        transition: background-color 0.2s;
+    }
+    .todo-item:hover {
+        background-color: #f8f9fa;
+    }
+    .todo-checkbox:checked + div h5 {
+        text-decoration: line-through;
+        color: #adb5bd;
+    }
+</style>
+
+<script>
+document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const todoId = this.getAttribute('data-id');
+        const h5 = document.getElementById('task-text-' + todoId);
+        
+        fetch(`/todos/toggle/${todoId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.new_status) {
+                    h5.classList.add('text-decoration-line-through', 'text-muted');
+                } else {
+                    h5.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

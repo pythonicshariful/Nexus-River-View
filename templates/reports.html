@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="fw-bold text-dark-blue">
+            <i class="fas fa-chart-line me-2 text-primary"></i>Financial Reports Dashboard
+        </h3>
+        <p class="text-muted small">Real-time insights into your business financials.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Summary Cards -->
+    <div class="col-md-3">
+        <div class="dashboard-card card-danger h-100 p-4 border-0 shadow-sm rounded-4">
+            <div class="text-center">
+                <div class="card-title-label text-danger small fw-bold text-uppercase mb-2">Total Payable (Vouchers)</div>
+                <div class="card-value h3 fw-bold">৳{{ "{:,.0f}".format(total_due_vouchers) }}</div>
+                <div class="small text-muted mt-2">Unpaid debit vouchers</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card card-success h-100 p-4 border-0 shadow-sm rounded-4">
+            <div class="text-center">
+                <div class="card-title-label text-success small fw-bold text-uppercase mb-2">Total Collection</div>
+                <div class="card-value h3 fw-bold">৳{{ "{:,.0f}".format(total_received_vouchers) }}</div>
+                <div class="small text-muted mt-2">Credit voucher receipts</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-muted small text-uppercase mb-3"><i class="fas fa-tools me-2"></i>Quick Reports</h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="{{ url_for('main.daily_cash_report') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
+                            <i class="fas fa-coins text-warning me-2"></i> Daily Cash Report
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ url_for('main.manage_vouchers', type='Debit') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
+                            <i class="fas fa-exclamation-circle text-danger me-2"></i> Due Payments Report
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ url_for('main.manage_parties') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
+                            <i class="fas fa-address-book text-primary me-2"></i> Party Statement
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ url_for('main.ai_assistant') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
+                            <i class="fas fa-robot text-info me-2"></i> AI Financial Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Bank Balances -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold text-dark-blue mb-0"><i class="fas fa-university me-2 text-primary"></i>Bank Balances</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="small text-muted text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-3">Bank Name</th>
+                                <th class="text-end pe-4">Current Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in bank_stats %}
+                            <tr>
+                                <td class="ps-4">
+                                    <a href="{{ url_for('main.bank_report', bank_id=1) }}" class="text-decoration-none text-dark fw-bold">{{ b.name }}</a>
+                                </td>
+                                <td class="text-end pe-4 fw-bold text-primary">৳{{ "{:,.2f}".format(b.balance) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Party Balances (Top 5 Due) -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold text-dark-blue mb-0"><i class="fas fa-user-friends me-2 text-danger"></i>Outstanding Party Dues</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="small text-muted text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-3">Party Name</th>
+                                <th class="text-end pe-4">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in party_stats[:5] %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">{{ p.name }}</td>
+                                <td class="text-end pe-4">
+                                    {% if p.balance > 0 %}
+                                    <span class="text-danger fw-bold">৳{{ "{:,.2f}".format(p.balance) }} (Due)</span>
+                                    {% else %}
+                                    <span class="text-success fw-bold">৳{{ "{:,.2f}".format(p.balance|abs) }} (Adv)</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 text-center border-top">
+                    <a href="{{ url_for('main.manage_parties') }}" class="small text-decoration-none">View All Party Ledgers <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

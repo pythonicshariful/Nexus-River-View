@@ -224,3 +224,29 @@ body {
     letter-spacing: -0.04em;
     color: #0f172a;
 }
+
+/* ===================== GLOBAL PRINT STYLES ===================== */
+@media print {
+    body {
+        background-color: #ffffff !important;
+    }
+
+    /* Remove the outer container padding/margin so content fills the page */
+    .main-content, .container, .container-fluid {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: none !important;
+    }
+
+    /* Remove card box visuals on print */
+    .card, .card.shadow, .print-area {
+        box-shadow: none !important;
+        border: none !important;
+        background-color: #ffffff !important;
+        border-radius: 0 !important;
+    }
+}
+

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Mark Attendance</h2>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row mb-4 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Date *</label>
+                    <input type="date" name="date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="col-md-9 text-end">
+                    <button type="button" class="btn btn-outline-success btn-sm mb-1" onclick="markAll('Present')">All Present</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm mb-1" onclick="markAll('Absent')">All Absent</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mb-1" onclick="markAll('Off Day')">All Off Day</button>
+                    <button type="button" class="btn btn-outline-info btn-sm mb-1 text-dark" onclick="markAll('FL')">All FL</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle" id="attendanceTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Status</th>
+                            <th>In Time</th>
+                            <th>Out Time</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emp in employees %}
+                        <tr>
+                            <td>
+                                <strong>{{ emp.name }}</strong><br>
+                                <small class="text-muted">{{ emp.employee_id }}</small>
+                                <input type="hidden" name="employee_id[]" value="{{ emp.id }}">
+                            </td>
+                            <td>
+                                <select class="form-select status-select" name="status_{{ emp.id }}">
+                                    <option value="Present" selected>Present</option>
+                                    <option value="Absent">Absent</option>
+                                    <option value="Leave">Leave</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Off Day">Off Day</option>
+                                    <option value="FL">Festival Leave (FL)</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="time" name="in_time_{{ emp.id }}" class="form-control" value="09:00">
+                            </td>
+                            <td>
+                                <input type="time" name="out_time_{{ emp.id }}" class="form-control" value="17:00">
+                            </td>
+                            <td>
+                                <input type="text" name="notes_{{ emp.id }}" class="form-control" placeholder="Optional notes">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not employees %}
+                        <tr><td colspan="5" class="text-center">No employees available.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if employees %}
+            <div class="row mt-4">
+                {% if not verify_password %}
+                <div class="col-md-4">
+                    <label class="form-label fw-bold text-danger">Admin Password *</label>
+                    <input type="password" name="admin_password" class="form-control" required placeholder="Enter Admin Password">
+                </div>
+                {% endif %}
+                <div class="col-12 text-end mt-3">
+                    <a href="{{ url_for('main.view_attendance') }}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-5">Save Attendance</button>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<script>
+function markAll(status) {
+    document.querySelectorAll('.status-select').forEach(function(select) {
+        select.value = status;
+        if (status === 'Absent' || status === 'Leave' || status === 'Off Day' || status === 'FL') {
+            // Clear times if absent/leave/off/FL
+            let row = select.closest('tr');
+            row.querySelector('input[type="time"]').value = "";
+            row.querySelectorAll('input[type="time"]')[1].value = "";
+        } else {
+            // Reset to defaults if present or late
+            let row = select.closest('tr');
+            row.querySelector('input[type="time"]').value = "09:00";
+            row.querySelectorAll('input[type="time"]')[1].value = "17:00";
+        }
+    });
+}
+// Add listener to clear times dynamically
+document.querySelectorAll('.status-select').forEach(function(select) {
+    select.addEventListener('change', function() {
+        if (this.value === 'Absent' || this.value === 'Leave' || this.value === 'Off Day' || this.value === 'FL') {
+            let row = this.closest('tr');
+            row.querySelector('input[type="time"]').value = "";
+            row.querySelectorAll('input[type="time"]')[1].value = "";
+        }
+    });
+});
+</script>
+{% endblock %}
