@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="glass-card p-5 border-0 shadow-lg">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold text-dark-blue">Balance Sheet</h1>
+            <h5 class="text-muted">{{ company_name or 'NEXUS RIVER VIEW' }}</h5>
+            <p class="mb-0">As of {{ as_of_date }}</p>
+        </div>
+
+        <div class="d-print-none mb-4 bg-light p-3 rounded-4">
+            <form method="GET" action="{{ url_for('main.report_balance_sheet') }}" class="row g-2 align-items-end justify-content-center">
+                <div class="col-md-4">
+                    <label class="small fw-bold text-muted">As of Date</label>
+                    <input type="date" name="as_of_date" class="form-control" value="{{ as_of_date }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fas fa-filter me-2"></i>Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="row">
+            <!-- ASSETS -->
+            <div class="col-md-6 border-end">
+                <h4 class="fw-bold text-primary border-bottom pb-2">ASSETS</h4>
+                <table class="table table-borderless">
+                    <tbody>
+                        {% set current_cat = '' %}
+                        {% for a in assets %}
+                            {% if a.account_category != current_cat %}
+                                <tr><td colspan="2" class="fw-bold small text-muted pt-3">{{ a.account_category.upper() }}</td></tr>
+                                {% set current_cat = a.account_category %}
+                            {% endif %}
+                            <tr>
+                                <td class="ps-3">{{ a.account_name }}</td>
+                                <td class="text-end">{{ "{:,.2f}".format(a.balance) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="border-top border-dark fw-bold">
+                        <tr>
+                            <td>TOTAL ASSETS</td>
+                            <td class="text-end">{{ "{:,.2f}".format(total_assets) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- LIABILITIES & EQUITY -->
+            <div class="col-md-6">
+                <h4 class="fw-bold text-danger border-bottom pb-2">LIABILITIES</h4>
+                <table class="table table-borderless">
+                    <tbody>
+                        {% set current_cat = '' %}
+                        {% for l in liabilities %}
+                            {% if l.account_category != current_cat %}
+                                <tr><td colspan="2" class="fw-bold small text-muted pt-3">{{ l.account_category.upper() }}</td></tr>
+                                {% set current_cat = l.account_category %}
+                            {% endif %}
+                            <tr>
+                                <td class="ps-3">{{ l.account_name }}</td>
+                                <td class="text-end">{{ "{:,.2f}".format(l.balance) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="border-top border-dark fw-bold">
+                        <tr>
+                            <td>TOTAL LIABILITIES</td>
+                            <td class="text-end">{{ "{:,.2f}".format(total_liabilities) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <h4 class="fw-bold text-success border-bottom pb-2 mt-5">EQUITY</h4>
+                <table class="table table-borderless">
+                    <tbody>
+                        {% for e in equity %}
+                        <tr>
+                            <td class="ps-3">{{ e.account_name }}</td>
+                            <td class="text-end">{{ "{:,.2f}".format(e.balance) }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="ps-3">Retained Earnings (Net Profit)</td>
+                            <td class="text-end">{{ "{:,.2f}".format(net_profit) }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="border-top border-dark fw-bold">
+                        <tr>
+                            <td>TOTAL EQUITY</td>
+                            <td class="text-end">{{ "{:,.2f}".format(total_equity) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="bg-dark text-white p-3 mt-4 rounded d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">TOTAL LIABILITIES & EQUITY</span>
+                    <span class="fs-4 fw-bold">{{ "{:,.2f}".format(total_liabilities + total_equity) }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if (total_assets - (total_liabilities + total_equity))|abs > 0.01 %}
+        <div class="alert alert-danger mt-5 rounded-pill text-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> Balance Sheet is not balanced! Difference: {{ "{:,.2f}".format(total_assets - (total_liabilities + total_equity)) }}
+        </div>
+        {% else %}
+        <div class="alert alert-success mt-5 rounded-pill text-center border-0 bg-success bg-opacity-10 text-success">
+            <i class="fas fa-check-circle me-2"></i>
+            Equation Balanced: Assets = Liabilities + Equity
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="text-center mt-4 d-print-none">
+        <button class="btn btn-outline-dark px-5 rounded-pill" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+</div>
+{% endblock %}

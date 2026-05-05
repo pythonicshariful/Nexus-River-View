@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
-from models import User, Todo, Director, Customer, Transaction, PettyCash, PettyCashCategory, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger, Voucher, PartyCategory, ContraEntry, Employee, Attendance, Leave, Salary
+from models import User, Todo, Director, Customer, Transaction, PettyCash, PettyCashCategory, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger, Voucher, PartyCategory, ContraEntry, Employee, Attendance, Leave, Salary, ChartOfAccounts, JournalEntry, JournalLine
 from database import db
 from logic import sync_to_excel, restore_from_excel, recalculate_party_ledger_balances, export_party_ledger_to_excel, generate_voucher_number, process_voucher_financials, get_daily_cash_report, get_due_payments_report, generate_contra_number, process_contra_financials
 import pandas as pd
@@ -57,18 +57,19 @@ def recalculate_customer_totals(customer):
     Recalculates a customer's total_price, total_paid and due_amount based on
     actual transactions and created installments.
     """
+    from decimal import Decimal
     # 1. Total Paid = Sum of all transactions
-    customer.total_paid = sum(t.amount for t in customer.transactions)
+    customer.total_paid = sum(Decimal(str(t.amount)) for t in customer.transactions)
     
     # 2. Sync installment milestones with current shares
     #    Iterate through all installments and update total_amount based on current shares
     for ci in customer.installments:
         if ci.installment:
-            ci.total_amount = customer.shares * ci.installment.amount_per_share
+            ci.total_amount = float(customer.shares) * ci.installment.amount_per_share
             ci.due_amount = ci.total_amount - ci.paid_amount
 
-    # 3. Total Expected = Sum of all CustomerInstallments
-    total_expected = sum(ci.total_amount for ci in customer.installments)
+    # 3. Total Expected = sum of all CustomerInstallments
+    total_expected = sum(Decimal(str(ci.total_amount)) for ci in customer.installments)
     
     # 4. Sync total_price to reflect true installment total
     if customer.installments:
@@ -84,7 +85,7 @@ def recalculate_customer_totals(customer):
         # Total expected for director = total_share × sum of all installment amount_per_share
         from models import Installment
         total_rate_per_share = sum(inst.amount_per_share for inst in Installment.query.all())
-        director_total_expected = director.total_share * total_rate_per_share
+        director_total_expected = Decimal(str(director.total_share)) * Decimal(str(total_rate_per_share))
         director.total_due = director_total_expected - director.total_paid
     
     return customer
@@ -186,15 +187,20 @@ def index():
     try:
         directors = Director.query.all()
         customers = Customer.query.all()
-        grand_total_payable = sum(c.total_price for c in customers)
+        from models import Installment
+        from decimal import Decimal
+        total_milestone_rate = sum(inst.amount_per_share for inst in Installment.query.all())
+        total_director_shares = sum(d.total_share for d in directors)
+        
+        grand_total_payable = Decimal(str(total_director_shares)) * Decimal(str(total_milestone_rate))
         grand_total_paid = sum(c.total_paid for c in customers)
-        grand_total_due = sum(c.due_amount for c in customers)
-        grand_total_outstanding = grand_total_payable - grand_total_paid
+        grand_total_due = grand_total_payable - grand_total_paid
+        grand_total_outstanding = grand_total_due
             
         total_bank_balance = sum(tx.credit - tx.debit for tx in BankTransaction.query.all())
         
-        cash_income = sum(pc.amount for pc in PettyCash.query.filter_by(type='Income').all())
-        cash_expense = sum(pc.amount for pc in PettyCash.query.filter_by(type='Expense').all())
+        cash_income = sum(Decimal(str(pc.amount)) for pc in PettyCash.query.filter_by(type='Income').all())
+        cash_expense = sum(Decimal(str(pc.amount)) for pc in PettyCash.query.filter_by(type='Expense').all())
         cash_in_hand = cash_income - cash_expense
 
         # Store today_todos safely
@@ -227,21 +233,21 @@ def index():
         # 1. Customer Transactions (Income)
         for tx in Transaction.query.all():
             m = get_month_key(tx.date)
-            if m: income_by_month[m] += tx.amount
+            if m: income_by_month[m] += float(tx.amount)
             
         # 2. Bank Transactions
         for tx in BankTransaction.query.all():
             m = get_month_key(tx.date)
             if m:
-                income_by_month[m] += tx.credit
-                expense_by_month[m] += tx.debit
+                income_by_month[m] += float(tx.credit)
+                expense_by_month[m] += float(tx.debit)
                 
         # 3. Petty Cash
         for pc in PettyCash.query.all():
             m = get_month_key(pc.date)
             if m:
-                if pc.type == 'Income': income_by_month[m] += pc.amount
-                else: expense_by_month[m] += pc.amount
+                if pc.type == 'Income': income_by_month[m] += float(pc.amount)
+                else: expense_by_month[m] += float(pc.amount)
 
         # Prepare labels and values for the last 6 months
         import calendar
@@ -330,6 +336,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
+            backup_to_telegram(f"User Login: {user.username}")
             return redirect(url_for('main.index'))
         else:
             flash('Invalid username or password', 'danger')
@@ -458,14 +465,28 @@ def verify_otp_page():
         if 'current_otp' in otp_store and otp_store['current_otp'] == user_otp:
             # Update Password
             # Use DATA_FOLDER to ensure persistence
-            data_folder = current_app.config.get('DATA_FOLDER', current_app.root_path)
-            config_path = os.path.join(data_folder, 'admin_config.json')
-            
+            # Update Password in .env file
             try:
-                with open(config_path, 'w') as f:
-                    json.dump({"ADMIN_PASSWORD": new_password}, f)
+                env_path = os.path.join(current_app.root_path, '.env')
+                if os.path.exists(env_path):
+                    with open(env_path, 'r') as f:
+                        lines = f.readlines()
+                    
+                    with open(env_path, 'w') as f:
+                        found = False
+                        for line in lines:
+                            if line.startswith('ADMIN_PASSWORD='):
+                                f.write(f'ADMIN_PASSWORD="{new_password}"\n')
+                                found = True
+                            else:
+                                f.write(line)
+                        if not found:
+                            f.write(f'ADMIN_PASSWORD="{new_password}"\n')
+                else:
+                    with open(env_path, 'w') as f:
+                        f.write(f'ADMIN_PASSWORD="{new_password}"\n')
             except Exception as e:
-                flash(f'Error saving password: {e}', 'danger')
+                flash(f'Error updating .env: {e}', 'danger')
                 return redirect(url_for('main.index'))
             
             # Update Runtime Config
@@ -681,18 +702,8 @@ def individual_report():
     emp = None
     
     # Global Print Headers
-    company_name = "Company Name"
-    company_address = ""
-    data_dir = current_app.config.get('DATA_FOLDER', '.')
-    settings_path = os.path.join(data_dir, 'company_settings.json')
-    if os.path.exists(settings_path):
-        try:
-            with open(settings_path, 'r') as f:
-                settings_data = json.load(f)
-                company_name = settings_data.get('company_name', company_name)
-                company_address = settings_data.get('company_address', company_address)
-        except Exception:
-            pass
+    company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
+    company_address = os.environ.get('COMPANY_ADDRESS', '')
             
     if request.method == 'POST':
         selected_emp_id = request.form.get('employee_id')
@@ -1365,15 +1376,8 @@ def view_salary_sheet():
     company_name = "Company Name"
     company_address = ""
     data_dir = current_app.config.get('DATA_FOLDER', '.')
-    settings_path = os.path.join(data_dir, 'company_settings.json')
-    if os.path.exists(settings_path):
-        try:
-            with open(settings_path, 'r') as f:
-                settings_data = json.load(f)
-                company_name = settings_data.get('company_name', company_name)
-                company_address = settings_data.get('company_address', company_address)
-        except Exception:
-            pass
+    company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
+    company_address = os.environ.get('COMPANY_ADDRESS', '')
             
     return render_template('salary_sheet.html', 
                            selected_month_year=selected_month_year, 
@@ -1409,15 +1413,8 @@ def export_salary_sheet_excel():
     company_name = "Nexus River View"
     company_address = ""
     data_dir = current_app.config.get('DATA_FOLDER', '.')
-    settings_path = os.path.join(data_dir, 'company_settings.json')
-    if os.path.exists(settings_path):
-        try:
-            with open(settings_path, 'r') as f:
-                settings_data = json.load(f)
-                company_name = settings_data.get('company_name', company_name)
-                company_address = settings_data.get('company_address', company_address)
-        except Exception:
-            pass
+    company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
+    company_address = os.environ.get('COMPANY_ADDRESS', '')
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -1549,15 +1546,8 @@ def generate_salary_sheet():
     company_name = "Company Name"
     company_address = "Company Address"
     data_dir = current_app.config.get('DATA_FOLDER', '.')
-    settings_path = os.path.join(data_dir, 'company_settings.json')
-    if os.path.exists(settings_path):
-        try:
-            with open(settings_path, 'r') as f:
-                settings_data = json.load(f)
-                company_name = settings_data.get('company_name', company_name)
-                company_address = settings_data.get('company_address', company_address)
-        except Exception:
-            pass
+    company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
+    company_address = os.environ.get('COMPANY_ADDRESS', '')
 
     if action == 'view':
         salaries = Salary.query.filter_by(year=year, month=monthstr).join(Employee).order_by(db.cast(Employee.employee_id, db.Integer)).all()
@@ -1683,6 +1673,17 @@ def generate_salary_sheet():
         count += 1
         
     db.session.commit()
+    
+    # --- Double-Entry Journal Posting (T-16) ---
+    from logic import journal_payroll
+    from decimal import Decimal
+    all_salaries = Salary.query.filter_by(year=year, month=monthstr).all()
+    if all_salaries:
+        gross_total = sum(Decimal(str(s.net_salary)) for s in all_salaries)
+        net_total = sum(Decimal(str(s.final_salary)) for s in all_salaries)
+        deductions_total = sum(Decimal(str(s.deduction)) for s in all_salaries)
+        journal_payroll(gross_total, net_total, deductions_total, monthstr, year)
+
     trigger_excel_sync()
     trigger_sync()
     backup_to_telegram(f"Generated Salary Sheet for {month_year} ({count} employees)")
@@ -1704,7 +1705,13 @@ def mark_salary_paid(id):
     # We will assume you perform this check if you want, else let admin just click it.
     salary = Salary.query.get_or_404(id)
     salary.status = 'Paid'
-    salary.payment_date = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    salary.payment_date = datetime.now()
+    
+    # --- Double-Entry Journal Posting (T-17) ---
+    from logic import journal_salary_payment
+    # Default to Cash (1010) if no bank specified
+    journal_salary_payment(salary.employee, '1010', salary.final_salary, f"SAL-{salary.id}")
+    
     db.session.commit()
     return redirect(url_for('main.generate_salary_sheet'))
 
@@ -2032,7 +2039,7 @@ def create_installment():
         # Generate for all customers
         customers = Customer.query.all()
         for c in customers:
-            total_amt = c.shares * amount_per_share
+            total_amt = float(c.shares) * amount_per_share
             if total_amt > 0:
                 cust_inst = CustomerInstallment(
                     customer_id=c.id,
@@ -2043,6 +2050,10 @@ def create_installment():
                 db.session.add(cust_inst)
             # Ensure totals are correct for this customer
             recalculate_customer_totals(c)
+            
+            # --- Double-Entry Journal Posting (T-02) ---
+            from logic import journal_installment_due
+            journal_installment_due(c, name, total_amt)
         
         db.session.commit()
         flash(f'Installment "{name}" created for all applicable customers.', 'success')
@@ -2070,7 +2081,7 @@ def edit_installment(id):
 
     # Recalculate all CustomerInstallment records for this installment
     for ci in inst.customer_installments:
-        ci.total_amount = ci.customer.shares * new_amount
+        ci.total_amount = float(ci.customer.shares) * new_amount
         ci.due_amount = ci.total_amount - ci.paid_amount
 
     db.session.flush()
@@ -2084,8 +2095,9 @@ def edit_installment(id):
     total_rate_per_share = sum(i.amount_per_share for i in Installment.query.all())
     from models import Director as Dir
     for d in Dir.query.all():
+        from decimal import Decimal
         d.total_paid = sum(c.total_paid for c in d.customers)
-        d.total_due = d.total_share * total_rate_per_share - d.total_paid
+        d.total_due = Decimal(str(d.total_share)) * Decimal(str(total_rate_per_share)) - d.total_paid
 
     db.session.commit()
     backup_to_telegram("Edited Installment")
@@ -2117,8 +2129,9 @@ def delete_installment(id):
     total_rate_per_share = sum(i.amount_per_share for i in Installment.query.all())
     from models import Director as Dir
     for d in Dir.query.all():
+        from decimal import Decimal
         d.total_paid = sum(c.total_paid for c in d.customers)
-        d.total_due = d.total_share * total_rate_per_share - d.total_paid
+        d.total_due = Decimal(str(d.total_share)) * Decimal(str(total_rate_per_share)) - d.total_paid
 
     db.session.commit()
     backup_to_telegram("Deleted Installment")
@@ -2253,6 +2266,12 @@ def view_party_ledger(id):
     
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        
     if start_date and end_date:
         entries = [e for e in entries if start_date <= e.date <= end_date]
         
@@ -2290,6 +2309,19 @@ def add_ledger_entry(party_id):
         reference=reference
     )
     db.session.add(new_entry)
+    
+    # --- Double-Entry Journal Posting ---
+    from logic import journal_supplier_bill, journal_supplier_payment_cash
+    from decimal import Decimal
+    party = Party.query.get(party_id)
+    coa_code = request.form.get('coa_code') or '6160' # Default to Misc Expense
+    
+    if bill_amount > 0:
+        journal_supplier_bill(party, coa_code, Decimal(str(bill_amount)), reference or "Bill", date)
+    
+    if paid_amount > 0:
+        journal_supplier_payment_cash(party, Decimal(str(paid_amount)), reference or "Payment", date)
+
     db.session.commit()
     
     # Recalculate to ensure all balances are correct (including future dates if any)
@@ -2336,6 +2368,11 @@ def delete_ledger_entry(id):
         flash('Invalid Admin Password!', 'danger')
         return redirect(url_for('main.view_party_ledger', id=party_id))
         
+    # --- Double-Entry Journal Deletion ---
+    from models import JournalEntry
+    JournalEntry.query.filter_by(reference_id=f"PL-{entry.id}-B").delete()
+    JournalEntry.query.filter_by(reference_id=f"PL-{entry.id}-P").delete()
+    
     db.session.delete(entry)
     db.session.commit()
     
@@ -2470,6 +2507,21 @@ def manage_transactions(customer_id):
             )
             db.session.add(pc_entry)
         
+        # --- Double-Entry Journal Posting ---
+        from logic import journal_customer_payment_cash, journal_customer_payment_bank, journal_customer_booking
+        
+        if installment_type == 'Booking':
+            journal_customer_booking(customer, amount, date)
+        else:
+            if payment_source == 'bank' and bank_id:
+                bank_acc = Bank.query.get(bank_id)
+                if bank_acc and bank_acc.coa_account_code:
+                    journal_customer_payment_bank(customer, bank_acc.coa_account_code, new_tx.installment_type, amount, transaction_id, date)
+                else:
+                    journal_customer_payment_cash(customer, new_tx.installment_type, amount, date)
+            else:
+                journal_customer_payment_cash(customer, new_tx.installment_type, amount, date)
+
         db.session.commit()
 
         # Recalculate everything
@@ -2522,6 +2574,10 @@ def delete_transaction(id):
         if ci:
             ci.paid_amount -= tx.amount
             ci.due_amount = ci.total_amount - ci.paid_amount
+    
+    # --- Double-Entry Journal Deletion ---
+    from models import JournalEntry
+    JournalEntry.query.filter_by(reference_id=f"TX-{tx.id}").delete()
     
     db.session.delete(tx)
     db.session.commit()
@@ -2624,6 +2680,15 @@ def manage_petty_cash():
         )
         db.session.add(new_entry)
         db.session.commit()
+
+        # --- Double-Entry Journal Posting ---
+        from logic import journal_general_expense, journal_general_income
+        from decimal import Decimal
+        if type == 'Income':
+            journal_general_income('4030', 'Cash', '1010', Decimal(str(amount)), f"PC-{new_entry.id}", category, date)
+        else:
+            journal_general_expense('6230', 'Cash', '1010', Decimal(str(amount)), f"PC-{new_entry.id}", category, date)
+        db.session.commit()
         trigger_excel_sync()
         trigger_sync()
         backup_to_telegram("Added Petty Cash: " + description)
@@ -2634,6 +2699,11 @@ def manage_petty_cash():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     filter_category = request.args.get('category')
+    
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
     
     query = PettyCash.query
     
@@ -2667,7 +2737,9 @@ def manage_petty_cash():
                          total_expense=total_expense, 
                          current_balance=current_balance,
                          available_categories=available_categories,
-                         pc_categories=pc_categories)
+                         pc_categories=pc_categories,
+                         start_date=start_date,
+                         end_date=end_date)
 
 # --- Petty Cash Category CRUD ---
 @main.route('/petty_cash/category/add', methods=['POST'])
@@ -2804,6 +2876,11 @@ def delete_petty_cash(id):
         return redirect(url_for('main.manage_petty_cash'))
 
     entry = PettyCash.query.get_or_404(id)
+    
+    # --- Double-Entry Journal Deletion ---
+    from models import JournalEntry
+    JournalEntry.query.filter_by(reference_id=f"PC-{entry.id}").delete()
+    
     db.session.delete(entry)
     db.session.commit()
     trigger_excel_sync()
@@ -3344,6 +3421,11 @@ def bank_ledger(id):
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
     
+    if not start_date_str:
+        start_date_str = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date_str:
+        end_date_str = datetime.now().strftime('%Y-%m-%d')
+        
     if start_date_str or end_date_str:
         filtered_transactions = []
         
@@ -3469,6 +3551,11 @@ def manage_vouchers():
     end_date = request.args.get('end_date')
     search = request.args.get('search')
     
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+    
     query = Voucher.query
     if v_type:
         query = query.filter_by(type=v_type)
@@ -3519,6 +3606,8 @@ def add_voucher(v_type):
             bank_id=bank_id if bank_id else None,
             category=category,
             notes=notes,
+            debit_account_code=request.form.get('debit_account_code'),
+            credit_account_code=request.form.get('credit_account_code'),
             is_payment=request.form.get('is_payment') == 'on'
         )
         
@@ -3545,9 +3634,11 @@ def add_voucher(v_type):
     banks = Bank.query.filter_by(status='Active').all()
     categories = PettyCashCategory.query.order_by(PettyCashCategory.name).all()
     customers = Customer.query.order_by(Customer.name).all()
+    coa_accounts = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
     today_str = datetime.now().strftime('%Y-%m-%d')
     return render_template('voucher_form.html', v_type=v_type, suggested_no=suggested_no, 
-                           parties=parties, banks=banks, categories=categories, customers=customers, today_str=today_str)
+                           parties=parties, banks=banks, categories=categories, customers=customers, 
+                           coa_accounts=coa_accounts, today_str=today_str)
 
 @main.route('/vouchers/edit/<int:id>', methods=['GET', 'POST'])
 def edit_voucher(id):
@@ -3706,6 +3797,11 @@ def edit_contra_entry(id):
     banks = Bank.query.filter_by(status='Active').all()
     return render_template('contra_form.html', contra=c, banks=banks)
 
+@main.route('/contra/print/<int:id>')
+def print_contra_entry(id):
+    c = ContraEntry.query.get_or_404(id)
+    return render_template('contra_print.html', contra=c)
+
 @main.route('/contra/delete/<int:id>', methods=['POST'])
 def delete_contra_entry(id):
     c = ContraEntry.query.get_or_404(id)
@@ -3728,6 +3824,95 @@ def delete_contra_entry(id):
     return redirect(url_for('main.manage_contra_entries'))
 
 # --- Reports Dashboard ---
+
+# --- Accounting Routes ---
+
+@main.route('/accounting/coa')
+def manage_coa():
+    accounts = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
+    return render_template('coa.html', accounts=accounts)
+
+@main.route('/accounting/journal')
+def view_journal():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        
+    query = JournalEntry.query
+    if start_date:
+        query = query.filter(JournalEntry.entry_date >= start_date)
+    if end_date:
+        query = query.filter(JournalEntry.entry_date <= end_date)
+        
+    entries = query.order_by(JournalEntry.entry_date.desc(), JournalEntry.posted_at.desc()).all()
+    return render_template('journal.html', entries=entries, start_date=start_date, end_date=end_date)
+
+@main.route('/accounting/reports/trial-balance')
+def report_trial_balance():
+    from logic import get_trial_balance
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        
+    data = get_trial_balance(start_date, end_date)
+    return render_template('reports/trial_balance.html', **data, start_date=start_date, end_date=end_date)
+
+@main.route('/accounting/reports/pnl')
+def report_pnl():
+    from logic import get_profit_loss
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        
+    data = get_profit_loss(start_date, end_date)
+    return render_template('reports/pnl.html', **data, start_date=start_date, end_date=end_date)
+
+@main.route('/accounting/reports/balance-sheet')
+def report_balance_sheet():
+    from logic import get_balance_sheet
+    as_of_date = request.args.get('as_of_date')
+    if not as_of_date:
+        as_of_date = datetime.now().strftime('%Y-%m-%d')
+        
+    data = get_balance_sheet(as_of_date)
+    return render_template('reports/balance_sheet.html', **data, as_of_date=as_of_date)
+
+@main.route('/accounting/coa/add', methods=['POST'])
+def add_coa_account():
+    if not verify_password():
+        flash('Invalid Admin Password!', 'danger')
+        return redirect(url_for('main.manage_coa'))
+        
+    code = request.form.get('account_code')
+    name = request.form.get('account_name')
+    a_type = request.form.get('account_type')
+    cat = request.form.get('account_category')
+    bal = request.form.get('normal_balance')
+    
+    new_acc = ChartOfAccounts(
+        account_code=code,
+        account_name=name,
+        account_type=a_type,
+        account_category=cat,
+        normal_balance=bal,
+        is_system=False
+    )
+    db.session.add(new_acc)
+    db.session.commit()
+    flash('Account added to COA.', 'success')
+    return redirect(url_for('main.manage_coa'))
 
 @main.route('/reports')
 def reports_dashboard():
@@ -4015,15 +4200,8 @@ def settings():
     company_name = "Company Name"
     company_address = ""
     data_dir = current_app.config.get('DATA_FOLDER', '.')
-    settings_path = os.path.join(data_dir, 'company_settings.json')
-    if os.path.exists(settings_path):
-        try:
-            with open(settings_path, 'r') as f:
-                settings_data = json.load(f)
-                company_name = settings_data.get('company_name', company_name)
-                company_address = settings_data.get('company_address', company_address)
-        except Exception:
-            pass
+    company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
+    company_address = os.environ.get('COMPANY_ADDRESS', '')
 
     # List available backups
     backups = []
@@ -4208,4 +4386,39 @@ def handle_exception(e):
     
     # Return error page instead of redirect loop
     return render_template('error.html', error=str(e), path=request.path), 500
+
+@main.route('/backup/manual')
+@login_required
+def manual_backup():
+    try:
+        from telegram_utils import send_telegram_document
+        from datetime import datetime
+        import threading
+        db_path = current_app.config.get('DATABASE_PATH')
+        if db_path and os.path.exists(db_path):
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            caption = f"Manual DB Backup triggered by: {current_user.username}\nTime: {timestamp}"
+            
+            # Send in background to avoid blocking the UI
+            thread = threading.Thread(target=send_telegram_document, args=(db_path, caption))
+            thread.daemon = True
+            thread.start()
+            
+            flash('Database backup triggered! Check your Telegram.', 'success')
+        else:
+            flash('Database file not found.', 'danger')
+    except Exception as e:
+        flash(f'Backup failed: {e}', 'danger')
+    return redirect(request.referrer or url_for('main.index'))
+
+@main.route('/admin/sync_accounting', methods=['POST'])
+def admin_sync_accounting():
+    if not verify_password():
+        flash('Invalid Admin Password!', 'danger')
+        return redirect(url_for('main.settings'))
+        
+    from logic import sync_to_double_entry
+    sync_to_double_entry()
+    flash('Database synchronized with Double-Entry Journals.', 'success')
+    return redirect(url_for('main.view_journal'))
 

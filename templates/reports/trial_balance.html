@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="glass-card p-5 border-0 shadow-lg">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold text-dark-blue">Trial Balance</h1>
+            <h5 class="text-muted">{{ company_name or 'NEXUS RIVER VIEW' }}</h5>
+            <p class="mb-0">From {{ start_date }} to {{ end_date }}</p>
+        </div>
+
+        <div class="d-print-none mb-4 bg-light p-3 rounded-4">
+            <form method="GET" action="{{ url_for('main.report_trial_balance') }}" class="row g-2 align-items-end justify-content-center">
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">From Date</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">To Date</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fas fa-filter me-2"></i>Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-premium">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th class="ps-4">Account Name</th>
+                        <th class="text-center">Account Code</th>
+                        <th class="text-end">Debit (DR)</th>
+                        <th class="text-end pe-4">Credit (CR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in accounts %}
+                    <tr class="{% if row.is_control %}fw-bold bg-light{% endif %}">
+                        <td class="ps-4">{{ row.name }}</td>
+                        <td class="text-center"><span class="account-code-badge">{{ row.code }}</span></td>
+                        <td class="text-end">{% if row.debit > 0 %}{{ "{:,.2f}".format(row.debit) }}{% else %}-{% endif %}</td>
+                        <td class="text-end pe-4">{% if row.credit > 0 %}{{ "{:,.2f}".format(row.credit) }}{% else %}-{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="bg-dark text-white fw-bold">
+                    <tr>
+                        <td colspan="2" class="ps-4">TOTAL</td>
+                        <td class="text-end">{{ "{:,.2f}".format(total_debit) }}</td>
+                        <td class="text-end pe-4">{{ "{:,.2f}".format(total_credit) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        {% if total_debit != total_credit %}
+        <div class="alert alert-danger mt-4 rounded-pill text-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> Trial Balance is out of sync by {{ "{:,.2f}".format(total_debit - total_credit) }}
+        </div>
+        {% else %}
+        <div class="alert alert-success mt-4 rounded-pill text-center border-0 bg-success bg-opacity-10 text-success">
+            <i class="fas fa-check-circle me-2"></i>
+            All accounts are balanced and mathematically correct.
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="text-center mt-4 d-print-none">
+        <button class="btn btn-outline-dark px-5 rounded-pill" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+</div>
+{% endblock %}

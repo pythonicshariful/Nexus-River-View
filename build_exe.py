@@ -30,6 +30,7 @@ print(f"Detected TK: {tk_lib}")
 # Define PyInstaller arguments
 cert_path =  os.path.join(os.path.dirname(certifi.__file__), 'cacert.pem')
 
+# Define base arguments
 args = [
     'run_gui.py',
     '--name=NexusRiverView',
@@ -37,9 +38,7 @@ args = [
     '--noconsole',
     '--add-data=templates;templates',
     '--add-data=static;static',
-    '--add-data=admin_config.json;.',
     '--add-data=.env;.',
-    '--add-data=credentials.json;.',
     '--add-data=nexus-river-view-600x866.ico;.', 
     f'--add-data={cert_path};certifi',
     # Add TCL/TK libraries explicitly
@@ -58,6 +57,15 @@ args = [
     '--icon=nexus-river-view-600x866.ico',
     '--clean',
 ]
+
+# Add optional files if they exist
+optional_files = ['admin_config.json', 'credentials.json']
+for f in optional_files:
+    if os.path.exists(f):
+        args.append(f'--add-data={f};.')
+        print(f"Including optional file: {f}")
+    else:
+        print(f"Skipping missing optional file: {f}")
 
 # Set environment variables for the build process to help Tkinter find its libs
 os.environ['TCL_LIBRARY'] = tcl_lib

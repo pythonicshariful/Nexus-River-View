@@ -66,6 +66,26 @@
                             </select>
                         </div>
 
+                        <!-- Double Entry Account Selectors -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Debit Account</label>
+                            <select name="debit_account_code" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" required>
+                                <option value="">Select Debit Account</option>
+                                {% for acc in coa_accounts %}
+                                <option value="{{ acc.account_code }}" {% if v and v.debit_account_code == acc.account_code %}selected{% endif %}>[{{ acc.account_code }}] {{ acc.account_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Credit Account</label>
+                            <select name="credit_account_code" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" required>
+                                <option value="">Select Credit Account</option>
+                                {% for acc in coa_accounts %}
+                                <option value="{{ acc.account_code }}" {% if v and v.credit_account_code == acc.account_code %}selected{% endif %}>[{{ acc.account_code }}] {{ acc.account_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
                         <!-- Description -->
                         <div class="col-12">
                             <label class="form-label small fw-bold text-muted">Payment Details / Description</label>
@@ -278,11 +298,18 @@
             // (Note: cloneNode doesn't keep the 'selected' property state well if we just appended)
         });
 
+        // Payment Method Toggling
+        function toggleBank() {
+            if (methodBank.checked) bankSelection.style.display = 'block';
+            else bankSelection.style.display = 'none';
+        }
+        methodBank.addEventListener('change', toggleBank);
+        methodCash.addEventListener('change', toggleBank);
+
         // Initial Calc & Visibility
         calculate();
         updatePaymentUI();
-        if (methodBank.checked) bankSelection.style.display = 'block';
-        else bankSelection.style.display = 'none';
+        toggleBank();
     });
 </script>
 {% endblock %}

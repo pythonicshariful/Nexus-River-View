@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="glass-card p-5 border-0 shadow-lg">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold text-dark-blue">Profit & Loss Statement</h1>
+            <h5 class="text-muted">{{ company_name or 'NEXUS RIVER VIEW' }}</h5>
+            <p class="mb-0">From {{ start_date }} to {{ end_date }}</p>
+        </div>
+
+        <div class="d-print-none mb-4 bg-light p-3 rounded-4">
+            <form method="GET" action="{{ url_for('main.report_pnl') }}" class="row g-2 align-items-end justify-content-center">
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">From Date</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">To Date</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fas fa-filter me-2"></i>Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-premium">
+                <tbody>
+                    <tr class="bg-dark text-white fw-bold">
+                        <td colspan="2">REVENUE</td>
+                    </tr>
+                    {% for r in revenues %}
+                    <tr>
+                        <td class="ps-4">{{ r.account_name }}</td>
+                        <td class="text-end">{{ "{:,.2f}".format(r.balance) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold border-top border-dark">
+                        <td>TOTAL REVENUE</td>
+                        <td class="text-end">{{ "{:,.2f}".format(total_revenue) }}</td>
+                    </tr>
+
+                    <tr><td colspan="2">&nbsp;</td></tr>
+
+                    <tr class="bg-secondary text-white fw-bold">
+                        <td colspan="2">COST OF GOODS SOLD (COGS)</td>
+                    </tr>
+                    {% for c in cogs %}
+                    <tr>
+                        <td class="ps-4">{{ c.account_name }}</td>
+                        <td class="text-end">({{ "{:,.2f}".format(c.balance) }})</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold border-top border-dark">
+                        <td>TOTAL COGS</td>
+                        <td class="text-end">({{ "{:,.2f}".format(total_cogs) }})</td>
+                    </tr>
+
+                    <tr><td colspan="2">&nbsp;</td></tr>
+
+                    <tr class="bg-light fw-bold">
+                        <td class="fs-5">GROSS PROFIT</td>
+                        <td class="text-end fs-5">{{ "{:,.2f}".format(gross_profit) }}</td>
+                    </tr>
+
+                    <tr><td colspan="2">&nbsp;</td></tr>
+
+                    <tr class="bg-dark text-white fw-bold">
+                        <td colspan="2">OPERATING EXPENSES</td>
+                    </tr>
+                    {% for e in expenses %}
+                    <tr>
+                        <td class="ps-4">{{ e.account_name }}</td>
+                        <td class="text-end">({{ "{:,.2f}".format(e.balance) }})</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold border-top border-dark">
+                        <td>TOTAL OPERATING EXPENSES</td>
+                        <td class="text-end">({{ "{:,.2f}".format(total_expenses) }})</td>
+                    </tr>
+
+                    <tr><td colspan="2">&nbsp;</td></tr>
+
+                    <tr class="bg-primary text-white fw-bold">
+                        <td class="fs-4">NET PROFIT / (LOSS)</td>
+                        <td class="text-end fs-4">{{ "{:,.2f}".format(net_profit) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center mt-4 d-print-none">
+        <button class="btn btn-outline-dark px-5 rounded-pill" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+</div>
+{% endblock %}

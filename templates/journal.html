@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-dark-blue mb-0">Journal Register</h2>
+            <p class="text-muted small mb-0">Daily chronological record of all financial events</p>
+        </div>
+        
+        <form method="GET" action="{{ url_for('main.view_journal') }}" class="d-flex align-items-center gap-2 bg-white p-2 rounded-pill shadow-sm border">
+            <div class="input-group input-group-sm border-0">
+                <span class="input-group-text bg-transparent border-0 text-muted small">From</span>
+                <input type="date" name="start_date" class="form-control border-0 bg-transparent" value="{{ start_date }}" style="width: 130px;">
+                <span class="input-group-text bg-transparent border-0 text-muted small">To</span>
+                <input type="date" name="end_date" class="form-control border-0 bg-transparent" value="{{ end_date }}" style="width: 130px;">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">Filter</button>
+            <a href="{{ url_for('main.view_journal') }}" class="btn btn-light btn-sm rounded-pill px-2 border-0 text-muted" title="Reset"><i class="fas fa-sync-alt"></i></a>
+        </form>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-premium px-3"><i class="fas fa-download me-2"></i>Export</button>
+        </div>
+    </div>
+
+    {% for entry in entries %}
+    <div class="glass-card mb-4 border-0">
+        <div class="card-header bg-transparent border-0 p-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-dark rounded-pill px-3">{{ entry.entry_number }}</span>
+                <span class="text-muted small"><i class="far fa-calendar-alt me-1"></i>{{ entry.entry_date }}</span>
+                <span class="badge bg-info bg-opacity-10 text-info border-info border px-2 py-1 small fw-bold">{{ entry.reference_type }}</span>
+            </div>
+            <div class="text-muted small">
+                Ref ID: <strong>{{ entry.reference_id }}</strong>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-premium mb-0 border-top">
+                <thead class="bg-light">
+                    <tr>
+                        <th style="width: 15%">Account</th>
+                        <th style="width: 45%">Description / Narration</th>
+                        <th style="width: 15%" class="text-end">Debit</th>
+                        <th style="width: 15%" class="text-end">Credit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in entry.lines %}
+                    <tr>
+                        <td><span class="account-code-badge">{{ line.account_code }}</span></td>
+                        <td>
+                            <div class="fw-bold">{{ line.account_name }}</div>
+                            <div class="text-muted x-small italic">{{ line.narration or entry.description }}</div>
+                            {% if line.party_type %}
+                            <div class="mt-1"><span class="badge bg-secondary bg-opacity-10 text-dark small">{{ line.party_type }}: {{ line.party_id }}</span></div>
+                            {% endif %}
+                        </td>
+                        <td class="text-end journal-debit">{% if line.debit_amount > 0 %}{{ "{:,.2f}".format(line.debit_amount) }}{% else %}-{% endif %}</td>
+                        <td class="text-end journal-credit">{% if line.credit_amount > 0 %}{{ "{:,.2f}".format(line.credit_amount) }}{% else %}-{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if entry.posted_by %}
+        <div class="card-footer bg-transparent border-0 p-2 text-end">
+            <span class="text-muted x-small">Posted by User ID {{ entry.posted_by }} at {{ entry.posted_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+        <h5>No journal entries found</h5>
+        <p class="text-muted">Once transactions are performed, they will appear here.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+</style>
+{% endblock %}

@@ -250,3 +250,105 @@ body {
     }
 }
 
+/* Premium Modern UI Extensions */
+:root {
+    --primary: #1d68ff;
+    --primary-glow: rgba(29, 104, 255, 0.3);
+    --secondary: #64748b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #0ea5e9;
+    --dark: #0f172a;
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.btn-premium {
+    background: linear-gradient(135deg, var(--primary) 0%, #0056e0 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--primary-glow);
+    color: white;
+}
+
+.btn-premium:active {
+    transform: translateY(0);
+}
+
+.nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: white;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 20px;
+}
+
+.coa-row {
+    transition: background 0.2s;
+}
+
+.coa-row:hover {
+    background: #f8fafc;
+}
+
+.account-code-badge {
+    font-family: 'JetBrains Mono', monospace;
+    background: #eef2ff;
+    color: #1d68ff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.journal-debit { color: #10b981; font-weight: 700; }
+.journal-credit { color: #ef4444; font-weight: 700; }
+
+.table-premium thead th {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-top: none;
+    padding: 15px;
+}
+
+.table-premium tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    border-color: #f1f5f9;
+}
+

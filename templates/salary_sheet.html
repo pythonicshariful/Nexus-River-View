@@ -36,7 +36,7 @@
             {% if not verify_password %}
             <div class="col-sm-4">
                 <label class="form-label fw-bold text-danger">Admin Password *</label>
-                <input type="password" name="admin_password" class="form-control" required placeholder="Required to Generate/Update">
+                <input type="password" name="admin_password" class="form-control" required placeholder="Required to Generate/Update" autocomplete="new-password">
             </div>
             {% endif %}
             <div class="col-auto">
@@ -134,7 +134,7 @@
                                                 {% if not verify_password %}
                                                 <div class="mb-3">
                                                     <label class="form-label text-danger">Admin Password *</label>
-                                                    <input type="password" name="admin_password" class="form-control" required>
+                                                    <input type="password" name="admin_password" class="form-control" required autocomplete="new-password">
                                                 </div>
                                                 {% endif %}
                                             </div>

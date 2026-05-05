@@ -3,7 +3,9 @@ import json
 from google import genai
 from google.genai import types
 from database import db
-from models import Director, Customer, Transaction, PettyCash, Bank, BankTransaction
+from models import (Director, Customer, Transaction, PettyCash, Bank, BankTransaction, 
+                    Party, PartyLedger, Voucher, ContraEntry, Employee, Attendance, Leave, 
+                    Salary, ChartOfAccounts, JournalEntry, JournalLine)
 from telegram_utils import log_debug
 import datetime
 
@@ -36,7 +38,18 @@ def query_database(model_name: str, limit: int = 10, offset: int = 0) -> str:
         'transaction': Transaction,
         'petty_cash': PettyCash,
         'bank': Bank,
-        'bank_transaction': BankTransaction
+        'bank_transaction': BankTransaction,
+        'party': Party,
+        'party_ledger': PartyLedger,
+        'voucher': Voucher,
+        'contra': ContraEntry,
+        'employee': Employee,
+        'attendance': Attendance,
+        'leave': Leave,
+        'salary': Salary,
+        'coa': ChartOfAccounts,
+        'journal_entry': JournalEntry,
+        'journal_line': JournalLine
     }
     
     model_name = model_name.lower()
@@ -61,27 +74,82 @@ def get_database_summary() -> str:
     Get a high-level summary of the database counts and totals across the entire company.
     """
     try:
-        director_count = db.session.query(Director).count()
-        customer_count = db.session.query(Customer).count()
-        
-        # Financial Totals (Matching dashboard routes.py logic)
-        total_payable = db.session.query(db.func.sum(Customer.total_price)).scalar() or 0
-        total_paid = db.session.query(db.func.sum(Customer.total_paid)).scalar() or 0
-        total_due = db.session.query(db.func.sum(Customer.due_amount)).scalar() or 0
-        
         summary = {
-            "director_count": director_count,
-            "customer_count": customer_count,
-            "total_project_value": total_payable,
-            "total_collection": total_paid,
-            "total_outstanding_to_collect": total_payable - total_paid,
-            "total_overdue_right_now": total_due,
+            "counts": {
+                "directors": db.session.query(Director).count(),
+                "customers": db.session.query(Customer).count(),
+                "parties": db.session.query(Party).count(),
+                "employees": db.session.query(Employee).count(),
+                "journal_entries": db.session.query(JournalEntry).count()
+            },
+            "financials": {
+                "total_project_value": db.session.query(db.func.sum(Customer.total_price)).scalar() or 0,
+                "total_collection": db.session.query(db.func.sum(Customer.total_paid)).scalar() or 0,
+                "total_due": db.session.query(db.func.sum(Customer.due_amount)).scalar() or 0,
+                "cash_in_hand": 0, # Calculated below
+                "bank_balance": 0 # Calculated below
+            },
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
+        
+        # Petty Cash
+        pc_in = db.session.query(db.func.sum(PettyCash.amount)).filter(PettyCash.type == 'Income').scalar() or 0
+        pc_out = db.session.query(db.func.sum(PettyCash.amount)).filter(PettyCash.type == 'Expense').scalar() or 0
+        summary["financials"]["cash_in_hand"] = pc_in - pc_out
+        
+        # Bank
+        bank_in = db.session.query(db.func.sum(BankTransaction.credit)).scalar() or 0
+        bank_out = db.session.query(db.func.sum(BankTransaction.debit)).scalar() or 0
+        summary["financials"]["bank_balance"] = bank_in - bank_out
+        
         return json.dumps(summary)
     except Exception as e:
          log_debug(f"AI DB Summary Error: {e}")
          return json.dumps({"error": str(e)})
+
+def search_parties(query: str) -> str:
+    """
+    Find specific suppliers, contractors, or individual parties.
+    """
+    try:
+        from sqlalchemy import or_
+        results = Party.query.filter(
+            or_(
+                Party.name.ilike(f"%{query}%"),
+                Party.phone.ilike(f"%{query}%"),
+                Party.category.ilike(f"%{query}%")
+            )
+        ).limit(10).all()
+        
+        data = []
+        for p in results:
+            data.append({
+                "name": p.name,
+                "category": p.category,
+                "balance": p.current_balance
+            })
+        return json.dumps(data)
+    except Exception as e:
+        log_debug(f"AI Party Search Error: {e}")
+        return json.dumps({"error": str(e)})
+
+def get_accounting_status() -> str:
+    """
+    Get the Trial Balance and Profit/Loss summary.
+    """
+    try:
+        from logic import get_trial_balance, get_profit_loss
+        tb = get_trial_balance()
+        pl = get_profit_loss()
+        return json.dumps({
+            "trial_balance_status": "Balanced" if tb['total_debit'] == tb['total_credit'] else "Unbalanced",
+            "net_profit": pl['net_profit'],
+            "total_revenue": pl['total_revenue'],
+            "total_expenses": pl['total_expenses']
+        })
+    except Exception as e:
+        log_debug(f"AI Accounting Error: {e}")
+        return json.dumps({"error": str(e)})
 
 def search_customers(query: str) -> str:
     """
@@ -234,7 +302,8 @@ def chat_with_db(prompt: str, chat_history: list = None) -> str:
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
             # Pass our python functions directly as tools
-            tools=[query_database, get_database_summary, search_customers, search_directors, get_bank_balances, get_petty_cash_summary],
+            tools=[query_database, get_database_summary, search_customers, search_directors, 
+                   search_parties, get_bank_balances, get_petty_cash_summary, get_accounting_status],
         )
 
         # Build contents from history securely

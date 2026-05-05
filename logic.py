@@ -1,5 +1,6 @@
 import pandas as pd
 import openpyxl
+from decimal import Decimal
 from models import Director, Customer, PettyCash, Transaction, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger
 import os
 import shutil
@@ -840,18 +841,7 @@ def export_party_ledger_to_excel(party_id):
 
     output.seek(0)
     # Get company info
-    import json
-    company_name = 'NEXUS RIVER VIEW'
-    data_dir = os.path.dirname(os.path.abspath(__file__)) # Default
-    # Attempt to get data_dir from environment if possible, or assume it's C:\NRV
-    data_dir = 'C:\\NRV' 
-    settings_path = os.path.join(data_dir, 'company_settings.json')
-    if os.path.exists(settings_path):
-        try:
-            with open(settings_path, 'r') as f:
-                s = json.load(f)
-                company_name = s.get('company_name', company_name)
-        except Exception: pass
+    company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
         
     safe_company_name = "".join(c for c in company_name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
     filename = f"{safe_company_name}_{party.name.replace(' ', '_')}_Ledger_{datetime.now().strftime('%Y%m%d')}.xlsx"
@@ -898,6 +888,8 @@ def process_voucher_financials(voucher_id, action='add'):
             PettyCash.query.filter_by(voucher_id=voucher.id).delete()
             BankTransaction.query.filter_by(voucher_id=voucher.id).delete()
             PartyLedger.query.filter_by(voucher_id=voucher.id).delete()
+            from models import JournalEntry
+            JournalEntry.query.filter_by(reference_id=f"V-{voucher.voucher_no}").delete()
             
             # If it was a customer voucher, we need to handle Transaction reverse?
             # Or just let process_voucher_financials re-create things.
@@ -919,6 +911,31 @@ def process_voucher_financials(voucher_id, action='add'):
 
         # 2. Add new side-effects (for Add/Edit)
         if action in ['add', 'edit']:
+            # --- Double-Entry Journal Posting ---
+            if voucher.debit_account_code and voucher.credit_account_code:
+                # Use T-09/T-10/T-11 style posting
+                if voucher.type == 'Debit':
+                    journal_general_expense(
+                        voucher.debit_account_code, 
+                        voucher.payment_method, 
+                        voucher.credit_account_code, 
+                        voucher.amount_paid, 
+                        voucher.voucher_no, 
+                        voucher.category, 
+                        voucher.date
+                    )
+                else:
+                    journal_general_income(
+                        voucher.credit_account_code, 
+                        voucher.payment_method, 
+                        voucher.debit_account_code, 
+                        voucher.amount_paid, 
+                        voucher.voucher_no, 
+                        voucher.category, 
+                        voucher.date
+                    )
+            
+            # --- Legacy Flat-Table Updates (Keep for compatibility) ---
             # A. Update Cash or Bank
             if voucher.payment_method == 'Cash':
                 pc = PettyCash(
@@ -1034,6 +1051,8 @@ def process_contra_financials(contra_id, action='add'):
         if action in ['edit', 'delete']:
             PettyCash.query.filter_by(contra_entry_id=contra.id).delete()
             BankTransaction.query.filter_by(contra_entry_id=contra.id).delete()
+            from models import JournalEntry
+            JournalEntry.query.filter_by(reference_id=f"CN-{contra.contra_no}").delete()
         
         if action in ['add', 'edit']:
             # From Account (Subtract)
@@ -1071,6 +1090,14 @@ def process_contra_financials(contra_id, action='add'):
                     cheque_no=contra.cheque_no
                 )
                 db.session.add(bt_in)
+            
+            # --- Double-Entry Journal Posting ---
+            if contra.debit_account_code and contra.credit_account_code:
+                lines = [
+                    {'account_code': contra.debit_account_code, 'debit': contra.amount, 'credit': 0},
+                    {'account_code': contra.credit_account_code, 'debit': 0, 'credit': contra.amount}
+                ]
+                post_journal_entry(contra.date, "BANK_TRANSFER", contra.contra_no, contra.description, lines)
 
         db.session.commit()
         return True, "Contra financials processed successfully"
@@ -1091,16 +1118,17 @@ def get_daily_cash_report(target_date):
     # 1. Day's Transactions
     transactions = PettyCash.query.filter_by(date=target_date).all()
     
+    from decimal import Decimal
     # 2. Cash Balances
     # Previous day's cash in hand: All Income - All Expense before target_date
     cash_in_before = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date < target_date, PettyCash.type == 'Income').scalar() or 0
     cash_out_before = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date < target_date, PettyCash.type == 'Expense').scalar() or 0
-    prev_cash = cash_in_before - cash_out_before
+    prev_cash = Decimal(str(cash_in_before)) - Decimal(str(cash_out_before))
     
     # Today's cash in hand: All Income - All Expense including target_date
     cash_in_today = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date <= target_date, PettyCash.type == 'Income').scalar() or 0
     cash_out_today = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date <= target_date, PettyCash.type == 'Expense').scalar() or 0
-    today_cash = cash_in_today - cash_out_today
+    today_cash = Decimal(str(cash_in_today)) - Decimal(str(cash_out_today))
     
     # 3. Bank Balances
     # We must sort using the same logic as recompute_bank_balances to handle mixed date formats
@@ -1112,25 +1140,26 @@ def get_daily_cash_report(target_date):
                 pass
         return datetime.min.date()
 
+    from decimal import Decimal
     target_date_obj = datetime.strptime(target_date, "%Y-%m-%d").date()
     banks = Bank.query.all()
-    prev_bank = 0.0
-    today_bank = 0.0
+    prev_bank = Decimal('0.00')
+    today_bank = Decimal('0.00')
     
     for b in banks:
         all_tx = BankTransaction.query.filter_by(bank_id=b.id).all()
         # Sort transactions: Date (asc), then ID (asc)
         sorted_tx = sorted(all_tx, key=lambda x: (parse_tx_date(x.date), x.id))
         
-        bank_prev = 0.0
-        bank_today = 0.0
+        bank_prev = Decimal('0.00')
+        bank_today = Decimal('0.00')
         
         for tx in sorted_tx:
             tx_date = parse_tx_date(tx.date)
             if tx_date < target_date_obj:
-                bank_prev = tx.balance
+                bank_prev = tx.balance or Decimal('0.00')
             if tx_date <= target_date_obj:
-                bank_today = tx.balance
+                bank_today = tx.balance or Decimal('0.00')
             else:
                 break
                 
@@ -1139,8 +1168,601 @@ def get_daily_cash_report(target_date):
             
     return {
         'transactions': transactions,
-        'prev_cash': prev_cash,
-        'today_cash': today_cash,
+        'prev_cash': Decimal(str(prev_cash)),
+        'today_cash': Decimal(str(today_cash)),
         'prev_bank': prev_bank,
         'today_bank': today_bank
     }
+
+def generate_je_number():
+    from models import JournalEntry
+    count = JournalEntry.query.count()
+    return f"JE-{count + 1:04d}"
+
+def post_journal_entry(entry_date, reference_type, reference_id, description, lines, is_posted=True):
+    """
+    Core Double-Entry Posting Engine.
+    lines: list of dicts {'account_code', 'debit', 'credit', 'narration', 'party_type', 'party_id'}
+    """
+    from models import JournalEntry, JournalLine, ChartOfAccounts
+    from decimal import Decimal
+    
+    total_debit = sum(Decimal(str(l.get('debit', 0) or 0)) for l in lines)
+    total_credit = sum(Decimal(str(l.get('credit', 0) or 0)) for l in lines)
+    
+    if total_debit != total_credit:
+        raise ValueError(f"Imbalanced Journal Entry: DR {total_debit} != CR {total_credit}")
+        
+    je = JournalEntry(
+        entry_number=generate_je_number(),
+        entry_date=datetime.strptime(entry_date, '%Y-%m-%d').date() if isinstance(entry_date, str) else entry_date,
+        reference_type=reference_type,
+        reference_id=str(reference_id),
+        description=description,
+        is_posted=is_posted
+    )
+    db.session.add(je)
+    db.session.flush() # Get JE ID
+    
+    for l in lines:
+        acc = ChartOfAccounts.query.get(l['account_code'])
+        line = JournalLine(
+            journal_entry_id=je.id,
+            account_code=l['account_code'],
+            account_name=acc.account_name if acc else "Unknown",
+            debit_amount=Decimal(str(l.get('debit', 0) or 0)),
+            credit_amount=Decimal(str(l.get('credit', 0) or 0)),
+            narration=l.get('narration', description),
+            party_type=l.get('party_type'),
+            party_id=str(l.get('party_id')) if l.get('party_id') else None
+        )
+        db.session.add(line)
+        
+    return je
+
+def seed_chart_of_accounts():
+    """Seeds the 70+ COA accounts from the Master Prompt."""
+    from models import ChartOfAccounts
+    
+    coa_data = [
+        # 1000 - ASSETS
+        ('1000', 'ASSETS', 'Asset', 'Header', 'Debit', False, None),
+        ('1010', 'Cash on Hand (Petty Cash)', 'Asset', 'Current Asset', 'Debit', False, '1000'),
+        ('1020', 'Cash at Bank — Control', 'Asset', 'Current Asset', 'Debit', True, '1000'),
+        ('1030', 'Accounts Receivable — Customers', 'Asset', 'Current Asset', 'Debit', True, '1000'),
+        ('1031', 'Installment Receivable — Plot Sales', 'Asset', 'Current Asset', 'Debit', False, '1030'),
+        ('1040', 'Advance to Suppliers & Contractors', 'Asset', 'Current Asset', 'Debit', False, '1000'),
+        ('1050', 'Prepaid Expenses', 'Asset', 'Current Asset', 'Debit', False, '1000'),
+        ('1060', 'Work In Progress — Construction', 'Asset', 'Current Asset', 'Debit', False, '1000'),
+        ('1070', 'Inventory — Building Materials', 'Asset', 'Current Asset', 'Debit', False, '1000'),
+        ('1100', 'FIXED ASSETS', 'Asset', 'Fixed Asset', 'Debit', False, '1000'),
+        ('1110', 'Land Holdings', 'Asset', 'Fixed Asset', 'Debit', False, '1100'),
+        ('1120', 'Buildings & Structures', 'Asset', 'Fixed Asset', 'Debit', False, '1100'),
+        ('1130', 'Office Equipment', 'Asset', 'Fixed Asset', 'Debit', False, '1100'),
+        ('1140', 'Furniture & Fixtures', 'Asset', 'Fixed Asset', 'Debit', False, '1100'),
+        ('1150', 'Vehicles', 'Asset', 'Fixed Asset', 'Debit', False, '1100'),
+        ('1160', 'Computer & IT Equipment', 'Asset', 'Fixed Asset', 'Debit', False, '1100'),
+        ('1170', 'Acc. Depreciation — Buildings', 'Asset', 'Fixed Asset', 'Credit', False, '1120'),
+        ('1180', 'Acc. Depreciation — Equipment', 'Asset', 'Fixed Asset', 'Credit', False, '1130'),
+        ('1190', 'Acc. Depreciation — Furniture', 'Asset', 'Fixed Asset', 'Credit', False, '1140'),
+        ('1200', 'Acc. Depreciation — Vehicles', 'Asset', 'Fixed Asset', 'Credit', False, '1150'),
+        ('1210', 'Acc. Depreciation — IT Equipment', 'Asset', 'Fixed Asset', 'Credit', False, '1160'),
+
+        # 2000 - LIABILITIES
+        ('2000', 'LIABILITIES', 'Liability', 'Header', 'Credit', False, None),
+        ('2010', 'Accounts Payable — Suppliers', 'Liability', 'Current Liability', 'Credit', True, '2000'),
+        ('2020', 'Accounts Payable — Contractors', 'Liability', 'Current Liability', 'Credit', True, '2000'),
+        ('2030', 'Advance from Customers (Booking)', 'Liability', 'Current Liability', 'Credit', False, '2000'),
+        ('2040', 'Salaries & Wages Payable', 'Liability', 'Current Liability', 'Credit', False, '2000'),
+        ('2050', 'Tax Deducted at Source (TDS) Payable', 'Liability', 'Current Liability', 'Credit', False, '2000'),
+        ('2060', 'Sales Tax / GST Payable', 'Liability', 'Current Liability', 'Credit', False, '2000'),
+        ('2070', 'Accrued Expenses', 'Liability', 'Current Liability', 'Credit', False, '2000'),
+        ('2080', 'Security Deposits Received', 'Liability', 'Current Liability', 'Credit', False, '2000'),
+        ('2100', 'Short-Term Loans Payable', 'Liability', 'Current Liability', 'Credit', False, '2000'),
+        ('2200', 'Long-Term Loans Payable', 'Liability', 'Long-term Liability', 'Credit', False, '2000'),
+        ('2210', 'Director Loans Payable', 'Liability', 'Long-term Liability', 'Credit', False, '2000'),
+
+        # 3000 - EQUITY
+        ('3000', 'EQUITY', 'Equity', 'Header', 'Credit', False, None),
+        ('3010', 'Director Capital — Control', 'Equity', "Owner's Equity", 'Credit', True, '3000'),
+        ('3020', 'Retained Earnings', 'Equity', "Owner's Equity", 'Credit', False, '3000'),
+        ('3030', 'Current Year Profit / (Loss)', 'Equity', "Owner's Equity", 'Credit', False, '3000'),
+        ('3040', 'Share Premium', 'Equity', "Owner's Equity", 'Credit', False, '3000'),
+        ('3050', 'Drawings — Directors', 'Equity', "Owner's Equity", 'Debit', False, '3000'),
+
+        # 4000 - REVENUE
+        ('4000', 'REVENUE', 'Revenue', 'Header', 'Credit', False, None),
+        ('4010', 'Plot Sales Revenue', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4020', 'Installment Income', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4030', 'Booking Fee Income', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4040', 'Development Charges Income', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4050', 'Rental Income', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4060', 'Penalty / Late Payment Income', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4070', 'Interest / Bank Profit Received', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4080', 'Commission Income', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+        ('4090', 'Other Operating Income', 'Revenue', 'Operating Revenue', 'Credit', False, '4000'),
+
+        # 5000 - COGS
+        ('5000', 'DIRECT COSTS', 'COGS', 'Header', 'Debit', False, None),
+        ('5010', 'Land Acquisition Cost', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5020', 'Civil & Construction Costs', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5030', 'Piling & Foundation Costs', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5040', 'Finishing & Fit-Out Costs', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5050', 'Electrical & Plumbing Works', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5060', 'Landscaping & External Works', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5070', 'Material Purchases — Direct', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5080', 'Sub-Contractor Payments', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5090', 'Site Supervision Wages', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+        ('5100', 'Transfer from WIP', 'COGS', 'Direct Cost', 'Debit', False, '5000'),
+
+        # 6000 - EXPENSES
+        ('6000', 'OPERATING EXPENSES', 'Expense', 'Header', 'Debit', False, None),
+        ('6010', 'Salaries & Wages — Admin', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6011', 'Salaries & Wages — Sales', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6020', 'Employee Benefits & Allowances', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6030', 'Office Rent & Lease', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6040', 'Electricity & Utilities', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6050', 'Telephone & Internet', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6060', 'Marketing & Advertising', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6070', 'Printing & Stationery', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6080', 'Travel & Transportation', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6090', 'Legal & Professional Fees', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6100', 'Repairs & Maintenance — Office', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6110', 'Security Services', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6120', 'Insurance Expense', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6130', 'Depreciation — Buildings', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6140', 'Depreciation — Equipment', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6150', 'Depreciation — Furniture', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6160', 'Depreciation — Vehicles', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6170', 'Depreciation — IT Equipment', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6180', 'Bank Charges & Commission', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6190', 'Interest Expense on Loans', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6200', 'Penalties & Fines', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6210', 'Employee Provident Fund / EOBI', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6220', 'Charity & Donations', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+        ('6230', 'Miscellaneous Expenses', 'Expense', 'Operating Expense', 'Debit', False, '6000'),
+    ]
+    
+    for code, name, type, cat, bal, ctrl, parent in coa_data:
+        if not ChartOfAccounts.query.get(code):
+            acc = ChartOfAccounts(
+                account_code=code,
+                account_name=name,
+                account_type=type,
+                account_category=cat,
+                normal_balance=bal,
+                is_control_account=ctrl,
+                parent_code=parent,
+                is_system=True
+            )
+            db.session.add(acc)
+    
+    db.session.commit()
+    print("Chart of Accounts seeded successfully.")
+
+def seed_database():
+    """Initial database seeding."""
+    seed_chart_of_accounts()
+    # Add other seeding logic here (Admin, Fiscal Year, etc.)
+
+# --- Automated Journal Templates (T-01 to T-21) ---
+
+def journal_customer_booking(customer, amount, entry_date=None, ref_id=None):
+    """T-01 — Customer Plot Booking"""
+    description = f"Booking received — Customer {customer.customer_id} — Plot {customer.plot_no}"
+    lines = [
+        {'account_code': '1030', 'debit': amount, 'credit': 0, 'party_type': 'Customer', 'party_id': customer.id},
+        {'account_code': '2030', 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "RECEIPT", ref_id or f"CUST-{customer.id}", description, lines)
+
+def journal_installment_due(customer, milestone_name, amount, entry_date=None, ref_id=None):
+    """T-02 — Installment Due (Milestone Created)"""
+    description = f"Installment milestone created: {milestone_name} — Customer {customer.customer_id}"
+    lines = [
+        {'account_code': '1031', 'debit': amount, 'credit': 0, 'party_type': 'Customer', 'party_id': customer.id},
+        {'account_code': '4020', 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "INVOICE", ref_id or f"MILE-{customer.id}", description, lines)
+
+def journal_customer_payment_cash(customer, milestone_name, amount, entry_date=None, ref_id=None):
+    """T-03 — Customer Installment Payment Received (Cash)"""
+    description = f"Cash receipt — Installment {milestone_name} — Customer {customer.customer_id}"
+    lines = [
+        {'account_code': '1010', 'debit': amount, 'credit': 0},
+        {'account_code': '1031', 'debit': 0, 'credit': amount, 'party_type': 'Customer', 'party_id': customer.id}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "RECEIPT", ref_id or f"CASH-{customer.id}", description, lines)
+
+def journal_customer_payment_bank(customer, bank_acc_code, milestone_name, amount, ref_no, entry_date=None, ref_id=None):
+    """T-04 — Customer Installment Payment Received (Bank)"""
+    description = f"Bank receipt — Installment {milestone_name} — Customer {customer.customer_id} — Ref {ref_no}"
+    lines = [
+        {'account_code': bank_acc_code, 'debit': amount, 'credit': 0},
+        {'account_code': '1031', 'debit': 0, 'credit': amount, 'party_type': 'Customer', 'party_id': customer.id}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "RECEIPT", ref_id or f"BANK-{customer.id}", description, lines)
+
+def journal_advance_applied(customer, amount, entry_date=None):
+    """T-05 — Advance from Customer Applied to Sale"""
+    description = f"Advance applied to plot sale — Customer {customer.customer_id} — Plot {customer.plot_no}"
+    lines = [
+        {'account_code': '2030', 'debit': amount, 'credit': 0},
+        {'account_code': '4010', 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "ADJUSTMENT", f"ADV-{customer.id}", description, lines)
+
+def journal_supplier_bill(party, coa_code, amount, bill_no, entry_date=None, ref_id=None):
+    """T-06 — Supplier / Contractor Bill Received"""
+    description = f"Bill posted — {party.name} — Bill No {bill_no}"
+    ap_code = '2010' if party.category == 'Supplier' else '2020'
+    lines = [
+        {'account_code': coa_code, 'debit': amount, 'credit': 0},
+        {'account_code': ap_code, 'debit': 0, 'credit': amount, 'party_type': party.category, 'party_id': party.id}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", ref_id or f"BILL-{party.id}", description, lines)
+
+def journal_supplier_payment_cash(party, amount, voucher_no, entry_date=None, ref_id=None):
+    """T-07 — Supplier / Contractor Payment (Cash)"""
+    description = f"Cash payment — {party.name} — Voucher {voucher_no}"
+    ap_code = '2010' if party.category == 'Supplier' else '2020'
+    lines = [
+        {'account_code': ap_code, 'debit': amount, 'credit': 0, 'party_type': party.category, 'party_id': party.id},
+        {'account_code': '1010', 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", ref_id or f"PAY-{party.id}", description, lines)
+
+def journal_supplier_payment_bank(party, bank_acc_code, amount, voucher_no, cheque_ref, entry_date=None):
+    """T-08 — Supplier / Contractor Payment (Bank)"""
+    description = f"Bank payment — {party.name} — Voucher {voucher_no} — Cheque {cheque_ref}"
+    ap_code = '2010' if party.category == 'Supplier' else '2020'
+    lines = [
+        {'account_code': ap_code, 'debit': amount, 'credit': 0, 'party_type': party.category, 'party_id': party.id},
+        {'account_code': bank_acc_code, 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", f"PAY-{party.id}", description, lines)
+
+def journal_general_expense(coa_code, payment_method, bank_acc_code, amount, voucher_no, category, entry_date=None):
+    """T-09 / T-10 — Debit Voucher (General Expense)"""
+    description = f"Expense — {category} — Voucher {voucher_no}"
+    cr_code = '1010' if payment_method == 'Cash' else bank_acc_code
+    lines = [
+        {'account_code': coa_code, 'debit': amount, 'credit': 0},
+        {'account_code': cr_code, 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", f"EXP-{voucher_no}", description, lines)
+
+def journal_general_income(coa_code, payment_method, bank_acc_code, amount, voucher_no, category, entry_date=None):
+    """T-11 — Credit Voucher (Income Receipt)"""
+    description = f"Income — {category} — Voucher {voucher_no}"
+    dr_code = '1010' if payment_method == 'Cash' else bank_acc_code
+    lines = [
+        {'account_code': dr_code, 'debit': amount, 'credit': 0},
+        {'account_code': coa_code, 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", f"INC-{voucher_no}", description, lines)
+
+def journal_contra_deposit(bank_acc_code, amount, voucher_no, entry_date=None):
+    """T-12 — Contra Entry: Cash Deposit to Bank"""
+    description = f"Contra — Cash deposited to bank — Voucher {voucher_no}"
+    lines = [
+        {'account_code': bank_acc_code, 'debit': amount, 'credit': 0},
+        {'account_code': '1010', 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "BANK_TRANSFER", f"CON-{voucher_no}", description, lines)
+
+def journal_contra_withdrawal(bank_acc_code, amount, voucher_no, entry_date=None):
+    """T-13 — Contra Entry: Bank Withdrawal to Cash"""
+    description = f"Contra — Cash withdrawn from bank — Voucher {voucher_no}"
+    lines = [
+        {'account_code': '1010', 'debit': amount, 'credit': 0},
+        {'account_code': bank_acc_code, 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "BANK_TRANSFER", f"CON-{voucher_no}", description, lines)
+
+def journal_payroll(gross_total, net_total, deductions_total, month, year, entry_date=None):
+    """T-16 — Monthly Payroll Generation"""
+    description = f"Payroll — {month} {year}"
+    # Force balance by calculating gross from components if they don't match
+    # Usually Gross = Net + Deductions
+    actual_gross = net_total + deductions_total
+    lines = [
+        {'account_code': '6010', 'debit': actual_gross, 'credit': 0}, # Admin salary by default
+        {'account_code': '2040', 'debit': 0, 'credit': net_total},   # Salaries Payable
+        {'account_code': '2050', 'debit': 0, 'credit': deductions_total} # Deductions/TDS Payable
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "PAYROLL", f"PAY-{month}-{year}", description, lines)
+
+def journal_salary_payment(employee, bank_acc_code, amount, voucher_no, entry_date=None):
+    """T-17 — Salary Payment"""
+    description = f"Salary disbursed — {employee.name} — Voucher {voucher_no}"
+    lines = [
+        {'account_code': '2040', 'debit': amount, 'credit': 0, 'party_type': 'Employee', 'party_id': employee.id},
+        {'account_code': bank_acc_code, 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", f"SAL-{voucher_no}", description, lines)
+
+def journal_director_capital(director, amount, coa_code, payment_method, bank_acc_code, entry_date=None):
+    """T-18 — Director Capital Injection"""
+    description = f"Capital injection — {director.name}"
+    dr_code = '1010' if payment_method == 'Cash' else bank_acc_code
+    lines = [
+        {'account_code': dr_code, 'debit': amount, 'credit': 0},
+        {'account_code': coa_code, 'debit': 0, 'credit': amount, 'party_type': 'Director', 'party_id': director.id}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "RECEIPT", f"CAP-{director.id}", description, lines)
+
+def journal_director_drawing(director, amount, coa_code, payment_method, bank_acc_code, entry_date=None):
+    """T-19 — Director Drawing / Withdrawal"""
+    description = f"Director drawing — {director.name}"
+    cr_code = '1010' if payment_method == 'Cash' else bank_acc_code
+    lines = [
+        {'account_code': '3050', 'debit': amount, 'credit': 0, 'party_type': 'Director', 'party_id': director.id},
+        {'account_code': cr_code, 'debit': 0, 'credit': amount}
+    ]
+    return post_journal_entry(entry_date or datetime.now().date(), "RECEIPT", f"DRW-{director.id}", description, lines)
+
+def journal_reversal(original_je_id):
+    """T-21 — Reversal of Any Voucher / Entry"""
+    from models import JournalEntry, JournalLine
+    original = JournalEntry.query.get(original_je_id)
+    if not original: return None
+    
+    description = f"REVERSAL of {original.entry_number} — {original.description}"
+    lines = []
+    for line in original.lines:
+        lines.append({
+            'account_code': line.account_code,
+            'debit': line.credit_amount,
+            'credit': line.debit_amount,
+            'narration': f"REVERSAL: {line.narration}",
+            'party_type': line.party_type,
+            'party_id': line.party_id
+        })
+    
+    je = post_journal_entry(datetime.now().date(), "ADJUSTMENT", original.entry_number, description, lines)
+    original.is_reversed = True
+    original.reversal_entry_id = je.id
+    db.session.commit()
+    return je
+
+# --- Reporting Logic ---
+
+def get_trial_balance(start_date=None, end_date=None):
+    from models import ChartOfAccounts, JournalLine, JournalEntry
+    from sqlalchemy import func
+    
+    # Get all accounts
+    accounts = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
+    
+    # Sum debits and credits for each account within range
+    query = db.session.query(
+        JournalLine.account_code,
+        func.sum(JournalLine.debit_amount).label('total_debit'),
+        func.sum(JournalLine.credit_amount).label('total_credit')
+    ).join(JournalEntry)
+    
+    if start_date:
+        query = query.filter(JournalEntry.entry_date >= start_date)
+    if end_date:
+        query = query.filter(JournalEntry.entry_date <= end_date)
+        
+    results = query.group_by(JournalLine.account_code).all()
+    
+    # Map results
+    balances = {r.account_code: (r.total_debit or Decimal('0.00'), r.total_credit or Decimal('0.00')) for r in results}
+    
+    report_data = []
+    total_dr = Decimal('0.00')
+    total_cr = Decimal('0.00')
+    
+    for acc in accounts:
+        dr_sum, cr_sum = balances.get(acc.account_code, (Decimal('0.00'), Decimal('0.00')))
+        
+        # Calculate net balance based on normal balance
+        net_dr = Decimal('0.00')
+        net_cr = Decimal('0.00')
+        
+        diff = dr_sum - cr_sum
+        if diff > 0:
+            net_dr = diff
+        elif diff < 0:
+            net_cr = -diff
+            
+        if net_dr > 0 or net_cr > 0 or acc.is_control_account:
+            report_data.append({
+                'code': acc.account_code,
+                'name': acc.account_name,
+                'debit': net_dr,
+                'credit': net_cr,
+                'is_control': acc.is_control_account
+            })
+            total_dr += net_dr
+            total_cr += net_cr
+            
+    return {
+        'accounts': report_data,
+        'total_debit': total_dr,
+        'total_credit': total_cr,
+        'today_date': datetime.now().strftime('%d %B, %Y')
+    }
+
+def get_profit_loss(start_date=None, end_date=None):
+    from models import ChartOfAccounts, JournalLine, JournalEntry
+    from sqlalchemy import func
+    
+    # Revenue (4000 series)
+    rev_q = db.session.query(
+        ChartOfAccounts.account_name,
+        func.sum(JournalLine.credit_amount - JournalLine.debit_amount).label('balance')
+    ).join(JournalLine).join(JournalEntry).filter(ChartOfAccounts.account_type == 'Revenue')
+    if start_date: rev_q = rev_q.filter(JournalEntry.entry_date >= start_date)
+    if end_date: rev_q = rev_q.filter(JournalEntry.entry_date <= end_date)
+    revenues = rev_q.group_by(ChartOfAccounts.account_code).all()
+    total_revenue = sum(r.balance or Decimal('0.00') for r in revenues) if revenues else Decimal('0.00')
+    
+    # COGS (5000 series)
+    cogs_q = db.session.query(
+        ChartOfAccounts.account_name,
+        func.sum(JournalLine.debit_amount - JournalLine.credit_amount).label('balance')
+    ).join(JournalLine).join(JournalEntry).filter(ChartOfAccounts.account_type == 'COGS')
+    if start_date: cogs_q = cogs_q.filter(JournalEntry.entry_date >= start_date)
+    if end_date: cogs_q = cogs_q.filter(JournalEntry.entry_date <= end_date)
+    cogs = cogs_q.group_by(ChartOfAccounts.account_code).all()
+    total_cogs = sum(c.balance or Decimal('0.00') for c in cogs) if cogs else Decimal('0.00')
+    
+    gross_profit = total_revenue - total_cogs
+    
+    # Expenses (6000 series)
+    exp_q = db.session.query(
+        ChartOfAccounts.account_name,
+        func.sum(JournalLine.debit_amount - JournalLine.credit_amount).label('balance')
+    ).join(JournalLine).join(JournalEntry).filter(ChartOfAccounts.account_type == 'Expense')
+    if start_date: exp_q = exp_q.filter(JournalEntry.entry_date >= start_date)
+    if end_date: exp_q = exp_q.filter(JournalEntry.entry_date <= end_date)
+    expenses = exp_q.group_by(ChartOfAccounts.account_code).all()
+    total_expenses = sum(e.balance or Decimal('0.00') for e in expenses) if expenses else Decimal('0.00')
+    
+    net_profit = gross_profit - total_expenses
+    
+    return {
+        'revenues': revenues,
+        'total_revenue': total_revenue,
+        'cogs': cogs,
+        'total_cogs': total_cogs,
+        'gross_profit': gross_profit,
+        'expenses': expenses,
+        'total_expenses': total_expenses,
+        'net_profit': net_profit,
+        'today_date': datetime.now().strftime('%d %B, %Y')
+    }
+
+def get_balance_sheet(as_of_date=None):
+    from models import ChartOfAccounts, JournalLine, JournalEntry
+    from sqlalchemy import func
+    
+    # Balance sheet is cumulative, so we only filter by end_date (as_of_date)
+    
+    # Assets
+    asset_q = db.session.query(
+        ChartOfAccounts.account_category,
+        ChartOfAccounts.account_name,
+        func.sum(JournalLine.debit_amount - JournalLine.credit_amount).label('balance')
+    ).join(JournalLine).join(JournalEntry).filter(ChartOfAccounts.account_type == 'Asset')
+    if as_of_date: asset_q = asset_q.filter(JournalEntry.entry_date <= as_of_date)
+    assets = asset_q.group_by(ChartOfAccounts.account_code).all()
+    total_assets = sum(a.balance or Decimal('0.00') for a in assets) if assets else Decimal('0.00')
+    
+    # Liabilities
+    liab_q = db.session.query(
+        ChartOfAccounts.account_category,
+        ChartOfAccounts.account_name,
+        func.sum(JournalLine.credit_amount - JournalLine.debit_amount).label('balance')
+    ).join(JournalLine).join(JournalEntry).filter(ChartOfAccounts.account_type == 'Liability')
+    if as_of_date: liab_q = liab_q.filter(JournalEntry.entry_date <= as_of_date)
+    liabilities = liab_q.group_by(ChartOfAccounts.account_code).all()
+    total_liabilities = sum(l.balance or Decimal('0.00') for l in liabilities) if liabilities else Decimal('0.00')
+    
+    # Equity
+    equity_q = db.session.query(
+        ChartOfAccounts.account_category,
+        ChartOfAccounts.account_name,
+        func.sum(JournalLine.credit_amount - JournalLine.debit_amount).label('balance')
+    ).join(JournalLine).join(JournalEntry).filter(ChartOfAccounts.account_type == 'Equity')
+    if as_of_date: equity_q = equity_q.filter(JournalEntry.entry_date <= as_of_date)
+    equity = equity_q.group_by(ChartOfAccounts.account_code).all()
+    
+    # Add Net Profit to Retained Earnings or as a separate line
+    pl = get_profit_loss(end_date=as_of_date)
+    net_profit = pl['net_profit']
+    
+    total_equity = sum(e.balance or Decimal('0.00') for e in equity) if equity else Decimal('0.00')
+    total_equity += net_profit
+    
+    return {
+        'assets': assets,
+        'total_assets': total_assets,
+        'liabilities': liabilities,
+        'total_liabilities': total_liabilities,
+        'equity': equity,
+        'net_profit': net_profit,
+        'total_equity': total_equity,
+        'today_date': datetime.now().strftime('%d %B, %Y')
+    }
+
+def sync_to_double_entry():
+    """Migrate all legacy data to balanced journal entries."""
+    from models import Voucher, ContraEntry, Transaction, PartyLedger, Salary, JournalEntry, JournalLine
+    
+    # 1. Clear existing journals to avoid duplicates during migration
+    # WARNING: Only do this if we are re-syncing everything
+    db.session.query(JournalLine).delete()
+    db.session.query(JournalEntry).delete()
+    db.session.commit()
+    
+    # 2. Sync Vouchers
+    vouchers = Voucher.query.all()
+    for v in vouchers:
+        if v.type == 'Debit':
+            journal_general_expense(
+                v.debit_account_code or '6230', 
+                v.payment_method, 
+                (v.bank_obj.coa_account_code if v.bank_obj else '1020') or '1020', 
+                v.amount_paid, v.voucher_no, v.category, v.date
+            )
+        else:
+            journal_general_income(
+                v.credit_account_code or '4030',
+                v.payment_method,
+                (v.bank_obj.coa_account_code if v.bank_obj else '1020') or '1020',
+                v.amount_paid, v.voucher_no, v.category, v.date
+            )
+            
+    # 3. Sync Contra Entries
+    contras = ContraEntry.query.all()
+    for c in contras:
+        if c.to_account == 'Bank':
+            journal_contra_deposit((c.bank_obj.coa_account_code if c.bank_obj else '1020') or '1020', c.amount, c.contra_no, c.date)
+        else:
+            journal_contra_withdrawal((c.bank_obj.coa_account_code if c.bank_obj else '1020') or '1020', c.amount, c.contra_no, c.date)
+            
+    # 4. Sync Customer Payments
+    txs = Transaction.query.all()
+    for t in txs:
+        if t.installment_type == 'Booking':
+            journal_customer_booking(t.customer, Decimal(str(t.amount)), t.date, ref_id=f"TX-{t.id}")
+        else:
+            if t.bank_name and t.bank_name != 'Petty Cash':
+                # Try to find bank coa
+                from models import Bank
+                bank = Bank.query.filter_by(bank_name=t.bank_name).first()
+                coa = (bank.coa_account_code if bank else '1020') or '1020'
+                journal_customer_payment_bank(t.customer, coa, t.installment_type, Decimal(str(t.amount)), t.transaction_id, t.date, ref_id=f"TX-{t.id}")
+            else:
+                journal_customer_payment_cash(t.customer, t.installment_type, Decimal(str(t.amount)), t.date, ref_id=f"TX-{t.id}")
+                
+    # 5. Sync Party Ledger
+    ledger = PartyLedger.query.all()
+    for l in ledger:
+        if l.bill_amount > 0:
+            journal_supplier_bill(l.party, '6160', Decimal(str(l.bill_amount)), l.reference or "Legacy Bill", l.date, ref_id=f"PL-{l.id}-B")
+        if l.paid_amount > 0:
+            journal_supplier_payment_cash(l.party, Decimal(str(l.paid_amount)), l.reference or "Legacy Payment", l.date, ref_id=f"PL-{l.id}-P")
+            
+    # 6. Sync Salary
+    # Accrual (per month/year)
+    payroll_groups = db.session.query(Salary.month, Salary.year).distinct().all()
+    for m, y in payroll_groups:
+        all_s = Salary.query.filter_by(month=m, year=y).all()
+        g_total = sum(Decimal(str(s.net_salary)) for s in all_s)
+        n_total = sum(Decimal(str(s.final_salary)) for s in all_s)
+        d_total = sum(Decimal(str(s.deduction)) for s in all_s)
+        journal_payroll(g_total, n_total, d_total, m, y)
+        
+        # Payments
+        for s in all_s:
+            if s.status == 'Paid':
+                journal_salary_payment(s.employee, '1010', s.final_salary, f"SAL-{s.id}", s.payment_date or datetime.now().date())
+
+    db.session.commit()
+    return True

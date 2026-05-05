@@ -138,7 +138,7 @@
                                                 {% if not verify_password %}
                                                 <div class="mb-3">
                                                     <label class="form-label text-danger">Admin Password *</label>
-                                                    <input type="password" name="admin_password" class="form-control" required>
+                                                    <input type="password" name="admin_password" class="form-control" required autocomplete="new-password">
                                                 </div>
                                                 {% endif %}
                                             </div>
@@ -172,7 +172,7 @@
             <form id="deleteLeaveForm" method="POST">
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-3">Enter password to delete this leave record.</p>
-                    <input type="password" name="admin_password" class="form-control text-center fw-bold" placeholder="****" required autofocus>
+                    <input type="password" name="admin_password" class="form-control text-center fw-bold" placeholder="****" required autofocus autocomplete="new-password">
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">
                     <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>

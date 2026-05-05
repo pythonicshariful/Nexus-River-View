@@ -2,6 +2,7 @@ from database import db
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import Numeric
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -16,6 +17,48 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+class ChartOfAccounts(db.Model):
+    account_code = db.Column(db.String(20), primary_key=True)
+    account_name = db.Column(db.String(100), nullable=False)
+    account_type = db.Column(db.String(50), nullable=False) # Asset, Liability, Equity, Revenue, COGS, Expense
+    account_category = db.Column(db.String(100), nullable=False) # Current Asset, Fixed Asset, etc.
+    normal_balance = db.Column(db.String(10), nullable=False) # Debit / Credit
+    is_control_account = db.Column(db.Boolean, default=False)
+    parent_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
+    is_system = db.Column(db.Boolean, default=False)
+    description = db.Column(db.Text)
+    
+    children = db.relationship('ChartOfAccounts', backref=db.backref('parent', remote_side=[account_code]))
+
+class JournalEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    entry_number = db.Column(db.String(50), unique=True, nullable=False) # e.g., JE-0001
+    entry_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    reference_type = db.Column(db.String(50)) # VOUCHER, INVOICE, RECEIPT, etc.
+    reference_id = db.Column(db.String(50))
+    description = db.Column(db.Text)
+    posted_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    posted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_posted = db.Column(db.Boolean, default=True)
+    is_reversed = db.Column(db.Boolean, default=False)
+    reversal_entry_id = db.Column(db.Integer, db.ForeignKey('journal_entry.id'), nullable=True)
+    
+    lines = db.relationship('JournalLine', backref='entry', lazy=True, cascade="all, delete-orphan")
+
+class JournalLine(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    journal_entry_id = db.Column(db.Integer, db.ForeignKey('journal_entry.id'), nullable=False)
+    account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=False)
+    account_name = db.Column(db.String(100)) # Denormalized for reporting
+    debit_amount = db.Column(Numeric(18, 2), default=0.0)
+    credit_amount = db.Column(Numeric(18, 2), default=0.0)
+    narration = db.Column(db.Text)
+    party_type = db.Column(db.String(50)) # Customer/Supplier/Contractor/Employee/Director/None
+    party_id = db.Column(db.String(50))
+    cost_center = db.Column(db.String(100))
+    
+    account = db.relationship('ChartOfAccounts', backref='journal_lines')
+
 class Director(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -27,17 +70,19 @@ class Director(db.Model):
     total_share = db.Column(db.Float, default=0.0)
     per_share_value = db.Column(db.Float, default=0.0)
     fair_cost = db.Column(db.Float, default=0.0)
-    land_value_extra_share = db.Column(db.Float, default=0.0)
+    land_value_extra_share = db.Column(Numeric(18, 2), default=0.0)
     
-    total_paid = db.Column(db.Float, default=0.0)
-    total_due = db.Column(db.Float, default=0.0)
+    total_paid = db.Column(Numeric(18, 2), default=0.0)
+    total_due = db.Column(Numeric(18, 2), default=0.0)
+    coa_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
     payment_history = db.Column(db.Text) # Date & Deposit text blob
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     @property
     def available_shares(self):
-        assigned_shares = sum(c.shares for c in self.customers)
-        return self.total_share - assigned_shares
+        from decimal import Decimal
+        assigned_shares = sum(Decimal(str(c.shares)) for c in self.customers)
+        return float(Decimal(str(self.total_share)) - assigned_shares)
 
 
 class Customer(db.Model):
@@ -46,12 +91,13 @@ class Customer(db.Model):
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
     plot_no = db.Column(db.String(50))
-    total_price = db.Column(db.Float, default=0.0)
-    down_payment = db.Column(db.Float, default=0.0)
-    monthly_installment = db.Column(db.Float, default=0.0)
-    total_paid = db.Column(db.Float, default=0.0)
-    due_amount = db.Column(db.Float, default=0.0)
-    shares = db.Column(db.Float, default=0.0)
+    total_price = db.Column(Numeric(18, 2), default=0.0)
+    down_payment = db.Column(Numeric(18, 2), default=0.0)
+    monthly_installment = db.Column(Numeric(18, 2), default=0.0)
+    total_paid = db.Column(Numeric(18, 2), default=0.0)
+    due_amount = db.Column(Numeric(18, 2), default=0.0)
+    shares = db.Column(Numeric(18, 2), default=0.0)
+    coa_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
     
     director_id = db.Column(db.Integer, db.ForeignKey('director.id'), nullable=False)
     
@@ -81,7 +127,9 @@ class Installment(db.Model):
 
     @property
     def total_expected(self):
-        return sum(ci.total_amount for ci in self.customer_installments)
+        from models import Director
+        total_shares = sum(d.total_share for d in Director.query.all())
+        return total_shares * self.amount_per_share
 
     @property
     def total_collected(self):
@@ -89,7 +137,7 @@ class Installment(db.Model):
 
     @property
     def total_due(self):
-        return sum(ci.due_amount for ci in self.customer_installments)
+        return self.total_expected - self.total_collected
 
 class CustomerInstallment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -156,6 +204,7 @@ class Bank(db.Model):
     account_type = db.Column(db.String(50)) # Savings, Current, etc.
     currency = db.Column(db.String(10))
     status = db.Column(db.String(20), default='Active') # Active/Inactive
+    coa_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     
@@ -187,9 +236,9 @@ class BankTransaction(db.Model):
     ref_no = db.Column(db.String(50))
     narration = db.Column(db.String(255))
     transaction_details = db.Column(db.String(255))
-    debit = db.Column(db.Float, default=0.0)
-    credit = db.Column(db.Float, default=0.0)
-    balance = db.Column(db.Float, default=0.0) # Running balance at time of tx
+    debit = db.Column(Numeric(18, 2), default=0.0)
+    credit = db.Column(Numeric(18, 2), default=0.0)
+    balance = db.Column(Numeric(18, 2), default=0.0) # Running balance at time of tx
     
     bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=False)
     
@@ -221,6 +270,7 @@ class Party(db.Model):
     category = db.Column(db.String(50), nullable=False) # Supplier, Contractor, Individual
     phone = db.Column(db.String(20))
     address = db.Column(db.String(255))
+    coa_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -236,8 +286,9 @@ class Party(db.Model):
             func.sum(PartyLedger.paid_amount)
         ).filter(PartyLedger.party_id == self.id).first()
         
-        bill_sum = results[0] or 0.0
-        paid_sum = results[1] or 0.0
+        from decimal import Decimal
+        bill_sum = results[0] or Decimal('0.00')
+        paid_sum = results[1] or Decimal('0.00')
         return bill_sum - paid_sum
 
 class PartyLedger(db.Model):
@@ -245,9 +296,9 @@ class PartyLedger(db.Model):
     party_id = db.Column(db.Integer, db.ForeignKey('party.id'), nullable=False)
     date = db.Column(db.String(20), nullable=False)
     description = db.Column(db.String(255))
-    bill_amount = db.Column(db.Float, default=0.0) # Credit
-    paid_amount = db.Column(db.Float, default=0.0) # Debit
-    balance = db.Column(db.Float, default=0.0) # Running balance
+    bill_amount = db.Column(Numeric(18, 2), default=0.0) # Credit
+    paid_amount = db.Column(Numeric(18, 2), default=0.0) # Debit
+    balance = db.Column(Numeric(18, 2), default=0.0) # Running balance
     reference = db.Column(db.String(100)) # Invoice/Memo No
     
     # Financial Integration
@@ -266,10 +317,13 @@ class Voucher(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True)
     description = db.Column(db.Text)
     
-    total_amount = db.Column(db.Float, default=0.0)
-    amount_paid = db.Column(db.Float, default=0.0)
-    due_amount = db.Column(db.Float, default=0.0)
-    payment_percentage = db.Column(db.Float, default=0.0)
+    total_amount = db.Column(Numeric(18, 2), default=0.0)
+    amount_paid = db.Column(Numeric(18, 2), default=0.0)
+    due_amount = db.Column(Numeric(18, 2), default=0.0)
+    payment_percentage = db.Column(Numeric(18, 2), default=0.0)
+    
+    debit_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
+    credit_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
     
     payment_method = db.Column(db.String(20), nullable=False) # 'Cash' or 'Bank'
     bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=True)
@@ -298,10 +352,14 @@ class ContraEntry(db.Model):
     from_account = db.Column(db.String(20), nullable=False) # 'Cash' or 'Bank'
     to_account = db.Column(db.String(20), nullable=False)   # 'Cash' or 'Bank'
     bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=True) # Linked bank if from/to involves Bank
-    amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(Numeric(18, 2), nullable=False)
     description = db.Column(db.Text)
     cheque_no = db.Column(db.String(50))
     attachments = db.Column(db.Text) # Comma-separated filenames
+    
+    debit_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
+    credit_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -333,7 +391,8 @@ class Employee(db.Model):
     designation = db.Column(db.String(100))
     department = db.Column(db.String(100))
     joining_date = db.Column(db.String(20))
-    net_salary = db.Column(db.Float, default=0.0)
+    net_salary = db.Column(Numeric(18, 2), default=0.0)
+    coa_account_code = db.Column(db.String(20), db.ForeignKey('chart_of_accounts.account_code'), nullable=True)
     phone = db.Column(db.String(20))
     
     # Leave Allocations (Yearly)
@@ -388,11 +447,11 @@ class Salary(db.Model):
     late_days = db.Column(db.Integer, default=0)
     off_days = db.Column(db.Integer, default=0)
     
-    per_day_salary = db.Column(db.Float, default=0.0)
-    deduction = db.Column(db.Float, default=0.0)
-    mobile_bill = db.Column(db.Float, default=0.0)
-    bonus = db.Column(db.Float, default=0.0)
-    final_salary = db.Column(db.Float, default=0.0)
+    per_day_salary = db.Column(Numeric(18, 2), default=0.0)
+    deduction = db.Column(Numeric(18, 2), default=0.0)
+    mobile_bill = db.Column(Numeric(18, 2), default=0.0)
+    bonus = db.Column(Numeric(18, 2), default=0.0)
+    final_salary = db.Column(Numeric(18, 2), default=0.0)
     
     status = db.Column(db.String(20), default='Unpaid') # 'Unpaid', 'Paid'
     payment_date = db.Column(db.String(20))

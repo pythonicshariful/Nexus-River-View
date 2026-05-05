@@ -25,10 +25,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <!-- Search Bar in Navbar -->
-                <div class="ms-auto me-auto px-lg-4 pb-2 pb-lg-0 w-100" style="max-width: 450px;">
-                    <div class="input-group input-group-sm rounded-pill overflow-hidden border">
+                <div class="flex-grow-1 px-lg-4 pb-2 pb-lg-0" style="max-width: 400px; min-width: 150px;">
+                    <div class="input-group input-group-sm rounded-pill overflow-hidden border bg-white">
                         <span class="input-group-text bg-white border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" class="form-control border-0" id="searchBar" placeholder="Search customers...">
+                        <input type="text" class="form-control border-0" id="searchBar" placeholder="Search..." autocomplete="off">
                     </div>
                 </div>
 
@@ -99,6 +99,22 @@
                         <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.notifications') }}" title="Logs"><i class="fas fa-bell mb-1"></i><span style="font-size: 0.7rem;">Logs</span></a>
                     </li>
                     
+                    <!-- Accounting -->
+                    <li class="nav-item dropdown border-start border-secondary ms-1 ps-1 d-flex flex-column align-items-center justify-content-center">
+                        <a class="nav-link dropdown-toggle d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="#" id="accDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Accounting">
+                            <i class="fas fa-calculator mb-1 text-info"></i>
+                            <span style="font-size: 0.7rem;">Accounting</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="accDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('main.manage_coa') }}"><i class="fas fa-list-ol fa-fw me-2"></i>Chart of Accounts</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.view_journal') }}"><i class="fas fa-book fa-fw me-2"></i>Journal Register</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.report_trial_balance') }}"><i class="fas fa-balance-scale fa-fw me-2"></i>Trial Balance</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.report_pnl') }}"><i class="fas fa-file-invoice fa-fw me-2"></i>Profit & Loss</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.report_balance_sheet') }}"><i class="fas fa-university fa-fw me-2"></i>Balance Sheet</a></li>
+                        </ul>
+                    </li>
+                    
                     <li class="nav-item ms-2 d-flex align-items-center border-start border-secondary ps-2">
                         <a href="{{ url_for('main.download_all_customers_report') }}" class="btn btn-sm btn-success text-white px-3 rounded-pill shadow-sm text-nowrap d-flex align-items-center gap-1" title="Export All Data">
                             <i class="fas fa-file-excel"></i> Export
@@ -107,6 +123,11 @@
                     <li class="nav-item ms-2">
                         <a href="{{ url_for('main.change_password_request') }}" class="nav-link p-0" title="Change Password">
                             <i class="fas fa-key text-warning"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.manual_backup') }}" class="nav-link p-0" title="Backup Database to Telegram">
+                            <i class="fas fa-cloud-upload-alt text-info"></i>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -156,7 +177,7 @@
                 </div>
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-3">Please enter the master password to perform this action.</p>
-                    <input type="password" id="adminPasswordInput" class="form-control text-center fw-bold letter-spacing-2" placeholder="****" autofocus>
+                    <input type="password" id="adminPasswordInput" class="form-control text-center fw-bold letter-spacing-2" placeholder="****" autofocus autocomplete="new-password">
                     <div class="invalid-feedback" id="authErrorMsg">Password required.</div>
                 </div>
                 <div class="modal-footer border-0 p-3 pt-0">

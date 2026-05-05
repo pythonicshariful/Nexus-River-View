@@ -78,35 +78,38 @@ def launch_app_window(url):
         webbrowser.open(url)
 
 if __name__ == '__main__':
+    # 0. Load .env first to respect any pre-configured paths
+    from dotenv import load_dotenv
+    load_dotenv()
+    
     # 1. Setup Data Path
-    # PRIORITY 1: Check if C:\NRV exists (User's preferred stable location)
-    default_nrv_path = r"C:\NRV"
     config = get_launcher_config()
+    data_path = config.get('data_path')
     
-    data_path = None
+    # Priority 1: Check environment variable override (must be absolute path)
+    env_path = os.environ.get('NEXUS_DATA_PATH')
+    if env_path and os.path.isabs(env_path):
+        data_path = env_path
     
-    if os.path.exists(default_nrv_path):
-        data_path = default_nrv_path
-    else:
-        # PRIORITY 2: Check saved launcher config
-        data_path = config.get('data_path')
-        
-    # PRIORITY 3: If still no path, or path is invalid, prompt user
+    # Priority 2: If no data_path found, it's the first run or config lost
     if not data_path or not os.path.exists(data_path):
-        # Create C:\NRV if it doesn't exist to encourage its use
-        try:
-            os.makedirs(default_nrv_path, exist_ok=True)
+        # Clean fallback: Check if C:\NRV exists as a default legacy option
+        default_nrv_path = r"C:\NRV"
+        if os.path.exists(default_nrv_path):
             data_path = default_nrv_path
-        except:
-            # Fallback to selection if C:\ drive is restricted
+        else:
+            # Ask the user to select a folder
+            print("First run detected. Prompting for data folder selection...")
             data_path = select_data_folder()
             
         if not data_path:
+            print("No data folder selected. Exiting.")
             sys.exit()
             
-        config['data_path'] = data_path
-        save_launcher_config(config)
-
+    # Save the selected/found path for next time
+    config['data_path'] = data_path
+    save_launcher_config(config)
+            
     os.environ['NEXUS_DATA_PATH'] = data_path
     print(f"Using Data Path: {data_path}")
 
