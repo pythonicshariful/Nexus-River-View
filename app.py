@@ -28,14 +28,14 @@ def setup_logging(data_dir):
 def create_app():
     # precise determination of data_dir path
     data_dir = os.environ.get('NEXUS_DATA_PATH')
-    if not data_dir: # Corrected the variable name
-         data_dir = os.getenv('NEXUS_DATA_PATH', '.')
     
     if getattr(sys, 'frozen', False):
         if not data_dir or data_dir == '.':
             base_path = os.path.dirname(sys.executable)
             data_dir = base_path
     else:
+        if not data_dir or data_dir == '.':
+            data_dir = os.path.dirname(os.path.abspath(__file__))
         # Resolve any relative paths to absolute
         data_dir = os.path.abspath(data_dir)
             
