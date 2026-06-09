@@ -1,13 +1,19 @@
 import pandas as pd
 import openpyxl
 from decimal import Decimal
-from models import Director, Customer, PettyCash, Transaction, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger
+from models import (
+    Director, Customer, PettyCash, Transaction, Bank, BankTransaction, 
+    Installment, CustomerInstallment, Party, PartyLedger, JournalEntry, 
+    JournalLine, ChartOfAccounts, ContraEntry, PettyCashCategory, 
+    PartyCategory, Voucher, Employee, Salary, Attendance, Leave
+)
 import os
 import shutil
 import io
 from datetime import datetime
 from database import db
 from telegram_utils import send_telegram_document, log_debug
+from sqlalchemy import func
 
 EXCEL_FILE = 'nexus_river_view_master.xlsx' if __name__ != '__main__' else 'test_nexus_river_view.xlsx'
 
@@ -18,217 +24,196 @@ def sync_to_excel():
     and writes to the Master Excel file.
     """
     try:
-        # ... logic to create dataframes ...
-        # Since I am replacing a large chunk, I must be careful not to delete the data preparation logic.
-        # However, the user instruction said "logic.py" at "sync_to_excel".
-        # The previous view showed the function is long.
-        # I should use multi_replace or targeted replace.
-        # But I need to wrap the whole function in try...except for logging?
-        # The function already has a try...except block starting at line 187.
-        # I will just update the imports and the existing try...except block.
-        pass
-    except:
-        pass
-
-# Wait, I cannot use ReplacementContent with "..." placeholder logic.
-# I need to be precise.
-# Let's use 2 replacements. 
-# 1. Imports
-# 2. The try-except block at the end.
-
-    directors = Director.query.all()
-    # Create a mapping of Director ID to Name for easy lookup, although we can join in query
-    # But let's fetch all customers joined with directors
+        # Fetch all data
+        directors = Director.query.all()
+        customers = Customer.query.join(Director).add_columns(
+            Director.name.label('director_name'),
+            Customer.customer_id,
+            Customer.name,
+            Customer.phone,
+            Customer.plot_no,
+            Customer.total_price,
+            Customer.down_payment,
+            Customer.monthly_installment,
+            Customer.total_paid,
+            Customer.due_amount
+        ).all()
     
-    customers = Customer.query.join(Director).add_columns(
-        Director.name.label('director_name'),
-        Customer.customer_id,
-        Customer.name,
-        Customer.phone,
-        Customer.plot_no,
-        Customer.total_price,
-        Customer.down_payment,
-        Customer.monthly_installment,
-        Customer.total_paid,
-        Customer.due_amount
-    ).all()
-    
-    # Prepare data for DataFrame
-    data = []
-    for row in customers:
-        # row is a tuple: (CustomerObj, director_name, ...) if we didn't refine add_columns carefully
-        # With add_columns, it returns a Result object (named tuple like)
+        # Prepare data for DataFrame
+        data = []
+        for row in customers:
+            # row is a tuple: (CustomerObj, director_name, ...) if we didn't refine add_columns carefully
+            # With add_columns, it returns a Result object (named tuple like)
         
-        # Let's simplify: Query customers and access relationship
-        pass
+            # Let's simplify: Query customers and access relationship
+            pass
 
-    # Refined Query
-    all_customers = Customer.query.outerjoin(Director).order_by(Director.name, Customer.customer_id).all()
+        # Refined Query
+        all_customers = Customer.query.outerjoin(Director).order_by(Director.name, Customer.customer_id).all()
     
-    export_list = []
-    for c in all_customers:
-        export_list.append({
-            'Director Name': c.director.name,
-            'Customer ID': c.customer_id,
-            'Customer Name': c.name,
-            'Phone': c.phone,
-            'Plot No': c.plot_no,
-            'Total Price': c.total_price,
-            'Down Payment': c.down_payment,
-            'Monthly Installment': c.monthly_installment,
-            'Total Paid': c.total_paid,
-            'Due Amount': c.due_amount
-        })
+        export_list = []
+        for c in all_customers:
+            export_list.append({
+                'Director Name': c.director.name,
+                'Customer ID': c.customer_id,
+                'Customer Name': c.name,
+                'Phone': c.phone,
+                'Plot No': c.plot_no,
+                'Total Price': c.total_price,
+                'Down Payment': c.down_payment,
+                'Monthly Installment': c.monthly_installment,
+                'Total Paid': c.total_paid,
+                'Due Amount': c.due_amount
+            })
     
-    if not export_list:
-        # Create empty dataframe with columns if no data
-        df = pd.DataFrame(columns=[
-            'Director Name', 'Customer ID', 'Customer Name', 'Phone', 'Plot No',
-            'Total Price', 'Down Payment', 'Monthly Installment', 'Total Paid', 'Due Amount'
-        ])
-    else:
-        df = pd.DataFrame(export_list)
-        # Smart Sorting: Sort by Director Name, then Customer ID
-        df = df.sort_values(by=['Director Name', 'Customer ID'])
-
-    # --- Director Summary Data ---
-    all_directors = Director.query.all()
-    director_list = []
-    
-    # Image Columns:
-    # 1. SL NO. | 2. Share name | 3. Total share | 4. Per share value | 5. Fair Cost 
-    # 6. Total share value | 7. Land value of Extra share | 8. Total share+ Extra share Value
-    # 9. Total Paid Until date | 10. Date & Deposit | 11. B.Name | 12. DUE
-    
-    for i, d in enumerate(all_directors, start=1):
-        director_list.append({
-            'SL NO.': i,
-            'Share name': d.name,
-            'Total share': d.total_share,
-            'Total Paid': d.total_paid,
-            'Total Due': d.total_due,
-            'Bank Name': d.bank_name or '',
-            'History': d.payment_history or ''
-        })
-        
-    df_directors = pd.DataFrame(director_list)
-    
-    # Petty Cash Sheet
-    all_entries = PettyCash.query.order_by(PettyCash.date).all()
-    petty_list = []
-    
-    running_balance = 0
-    for e in all_entries:
-        if e.type == 'Income':
-            running_balance += e.amount
+        if not export_list:
+            # Create empty dataframe with columns if no data
+            df = pd.DataFrame(columns=[
+                'Director Name', 'Customer ID', 'Customer Name', 'Phone', 'Plot No',
+                'Total Price', 'Down Payment', 'Monthly Installment', 'Total Paid', 'Due Amount'
+            ])
         else:
-            running_balance -= e.amount
-            
-        petty_list.append({
-            'Date': e.date,
-            'Description': e.description,
-            'Category': e.category,
-            'Type': e.type,
-            'Income': e.amount if e.type == 'Income' else 0,
-            'Expense': e.amount if e.type == 'Expense' else 0,
-            'Balance': running_balance,
-            'Images': e.images
-        })
-        
-    df_petty = pd.DataFrame(petty_list)
+            df = pd.DataFrame(export_list)
+            # Smart Sorting: Sort by Director Name, then Customer ID
+            df = df.sort_values(by=['Director Name', 'Customer ID'])
+
+        # --- Director Summary Data ---
+        all_directors = Director.query.all()
+        director_list = []
     
-    # Transactions Sheet
-    all_transactions = Transaction.query.order_by(Transaction.date).all()
-    tx_list = []
-    for tx in all_transactions:
-        tx_list.append({
-            'ID': tx.id,
-            'Date': tx.date,
-            'Customer ID': tx.customer.customer_id,
-            'Customer Name': tx.customer.name,
-            'Amount': tx.amount,
-            'Installment Type': tx.installment_type,
-            'Bank Name': tx.bank_name,
-            'Transaction ID': tx.transaction_id,
-            'Remarks': tx.remarks,
-            'Images': tx.images
-        })
-    df_transactions = pd.DataFrame(tx_list)
+        # Image Columns:
+        # 1. SL NO. | 2. Share name | 3. Total share | 4. Per share value | 5. Fair Cost 
+        # 6. Total share value | 7. Land value of Extra share | 8. Total share+ Extra share Value
+        # 9. Total Paid Until date | 10. Date & Deposit | 11. B.Name | 12. DUE
+    
+        for i, d in enumerate(all_directors, start=1):
+            director_list.append({
+                'SL NO.': i,
+                'Share name': d.name,
+                'Total share': d.total_share,
+                'Total Paid': d.total_paid,
+                'Total Due': d.total_due,
+                'Bank Name': d.bank_name or '',
+                'History': d.payment_history or ''
+            })
+        
+        df_directors = pd.DataFrame(director_list)
+    
+        # Petty Cash Sheet
+        all_entries = PettyCash.query.order_by(PettyCash.date).all()
+        petty_list = []
+    
+        running_balance = 0
+        for e in all_entries:
+            if e.type == 'Income':
+                running_balance += e.amount
+            else:
+                running_balance -= e.amount
+            
+            petty_list.append({
+                'Date': e.date,
+                'Description': e.description,
+                'Category': e.category,
+                'Type': e.type,
+                'Income': e.amount if e.type == 'Income' else 0,
+                'Expense': e.amount if e.type == 'Expense' else 0,
+                'Balance': running_balance,
+                'Images': e.images
+            })
+        
+        df_petty = pd.DataFrame(petty_list)
+    
+        # Transactions Sheet
+        all_transactions = Transaction.query.order_by(Transaction.date).all()
+        tx_list = []
+        for tx in all_transactions:
+            tx_list.append({
+                'ID': tx.id,
+                'Date': tx.date,
+                'Customer ID': tx.customer.customer_id,
+                'Customer Name': tx.customer.name,
+                'Amount': tx.amount,
+                'Installment Type': tx.installment_type,
+                'Bank Name': tx.bank_name,
+                'Transaction ID': tx.transaction_id,
+                'Remarks': tx.remarks,
+                'Images': tx.images
+            })
+        df_transactions = pd.DataFrame(tx_list)
 
-    # Bank Sheets
-    all_banks = Bank.query.all()
-    bank_list = []
-    for b in all_banks:
-        bank_list.append({
-            'Bank Name': b.bank_name,
-            'Branch': b.branch,
-            'Account Holder': b.account_holder_name,
-            'Joint Name': b.joint_name,
-            'FHP': b.fhp,
-            'Address': b.address,
-            'City': b.city,
-            'Phone': b.phone,
-            'Customer ID': b.customer_id,
-            'Account No': b.account_no,
-            'Prev Account No': b.prev_account_no,
-            'Account Type': b.account_type,
-            'Currency': b.currency,
-            'Status': b.status
-        })
-    df_banks = pd.DataFrame(bank_list)
-    # Bank Transactions Sheet
-    all_bank_tx = BankTransaction.query.order_by(BankTransaction.date).all()
-    bank_tx_data = []
-    for btx in all_bank_tx:
-        bank_tx_data.append({
-            'Date': btx.date,
-            'Bank ID': btx.bank_id,
-            'Bank Name': btx.bank.bank_name if btx.bank else "N/A",
-            'Narration': btx.narration,
-            'Debit': btx.debit,
-            'Credit': btx.credit,
-            'Balance': btx.balance
-        })
-    df_bank_tx = pd.DataFrame(bank_tx_data)
+        # Bank Sheets
+        all_banks = Bank.query.all()
+        bank_list = []
+        for b in all_banks:
+            bank_list.append({
+                'Bank Name': b.bank_name,
+                'Branch': b.branch,
+                'Account Holder': b.account_holder_name,
+                'Joint Name': b.joint_name,
+                'FHP': b.fhp,
+                'Address': b.address,
+                'City': b.city,
+                'Phone': b.phone,
+                'Customer ID': b.customer_id,
+                'Account No': b.account_no,
+                'Prev Account No': b.prev_account_no,
+                'Account Type': b.account_type,
+                'Currency': b.currency,
+                'Status': b.status
+            })
+        df_banks = pd.DataFrame(bank_list)
+        # Bank Transactions Sheet
+        all_bank_tx = BankTransaction.query.order_by(BankTransaction.date).all()
+        bank_tx_data = []
+        for btx in all_bank_tx:
+            bank_tx_data.append({
+                'Date': btx.date,
+                'Bank ID': btx.bank_id,
+                'Bank Name': btx.bank.bank_name if btx.bank else "N/A",
+                'Narration': btx.narration,
+                'Debit': btx.debit,
+                'Credit': btx.credit,
+                'Balance': btx.balance
+            })
+        df_bank_tx = pd.DataFrame(bank_tx_data)
 
-    # Installments Sheet
-    all_installments = Installment.query.all()
-    inst_list = []
-    for inst in all_installments:
-        inst_list.append({
-            'ID': inst.id,
-            'Name': inst.name,
-            'Amount Per Share': inst.amount_per_share
-        })
-    df_inst = pd.DataFrame(inst_list)
+        # Installments Sheet
+        all_installments = Installment.query.all()
+        inst_list = []
+        for inst in all_installments:
+            inst_list.append({
+                'ID': inst.id,
+                'Name': inst.name,
+                'Amount Per Share': inst.amount_per_share
+            })
+        df_inst = pd.DataFrame(inst_list)
 
-    # Customer Installments Sheet
-    all_cust_inst = CustomerInstallment.query.all()
-    ci_list = []
-    for ci in all_cust_inst:
-        ci_list.append({
-            'Customer ID': ci.customer.customer_id,
-            'Customer Name': ci.customer.name,
-            'Installment Name': ci.installment.name,
-            'Total Amount': ci.total_amount,
-            'Paid Amount': ci.paid_amount,
-            'Due Amount': ci.due_amount
-        })
-    df_ci = pd.DataFrame(ci_list)
+        # Customer Installments Sheet
+        all_cust_inst = CustomerInstallment.query.all()
+        ci_list = []
+        for ci in all_cust_inst:
+            ci_list.append({
+                'Customer ID': ci.customer.customer_id,
+                'Customer Name': ci.customer.name,
+                'Installment Name': ci.installment.name,
+                'Total Amount': ci.total_amount,
+                'Paid Amount': ci.paid_amount,
+                'Due Amount': ci.due_amount
+            })
+        df_ci = pd.DataFrame(ci_list)
 
-    # Write to Excel
-    # We use engine='openpyxl' for xlsx
-    try:
+        # Write to Excel
+        # We use engine='openpyxl' for xlsx
         # Determine Excel Path based on DATA_FOLDER
         from flask import current_app
         data_folder = current_app.config.get('DATA_FOLDER', '.')
-        
+    
         # Use simple filename if in dev mode main, else DATA_FOLDER
         if __name__ == '__main__':
              target_excel_path = EXCEL_FILE 
         else:
              target_excel_path = os.path.join(data_folder, 'nexus_river_view_master.xlsx')
-             
+         
         with pd.ExcelWriter(target_excel_path, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name='Master_Data', index=False)
             df_directors.to_excel(writer, sheet_name='Directors_Summary', index=False)
@@ -238,10 +223,10 @@ def sync_to_excel():
             df_bank_tx.to_excel(writer, sheet_name='Bank_Transactions', index=False)
             df_inst.to_excel(writer, sheet_name='Installments', index=False)
             df_ci.to_excel(writer, sheet_name='Customer_Installments', index=False)
-            
+        
             # Formatter function
             workbook = writer.book
-            
+        
             for sheet_name in ['Master_Data', 'Directors_Summary', 'Petty_Cash', 'Transactions', 'Banks', 'Bank_Transactions', 'Installments', 'Customer_Installments']:
                 if sheet_name in writer.sheets:
                     worksheet = writer.sheets[sheet_name]
@@ -256,16 +241,16 @@ def sync_to_excel():
                                 pass
                         adjusted_width = (max_length + 2)
                         worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
-                
+            
+        print(f"Successfully synced to {target_excel_path}")
+        log_debug(f"Synced Excel to: {target_excel_path}")
+    
         print(f"Successfully synced to {target_excel_path}")
         log_debug(f"Synced Excel to: {target_excel_path}")
         
-        print(f"Successfully synced to {target_excel_path}")
-        log_debug(f"Synced Excel to: {target_excel_path}")
-            
             # REMOVED: Excel upload to Telegram as it is too slow for real-time saving
             # Redundant since we send the DB file which contains everything.
-            
+        
     except Exception as e:
         print(f"Error syncing to Excel: {e}")
         log_debug(f"CRITICAL ERROR in sync_to_excel: {e}")
@@ -783,29 +768,121 @@ def restore_from_data_dict(data_dict):
         print(f"Restore from dict failed: {e}")
         return False, str(e)
 
+def get_party_balance(party_id):
+    """Calculates current net balance for a party: Sum(Bill) - Sum(Paid)."""
+    from models import PartyLedger
+    from database import db
+    from sqlalchemy import func
+    res = db.session.query(func.sum(PartyLedger.bill_amount) - func.sum(PartyLedger.paid_amount)).filter(PartyLedger.party_id == party_id).scalar()
+    return float(res) if res is not None else 0.0
+
+def cleanup_journal_entries(voucher_id=None, reference_id=None, reference_ids=None):
+    """
+    Safely deletes JournalEntry and associated JournalLine records.
+    Filters can be voucher_id, a single reference_id, or a list of reference_ids.
+    """
+    from models import JournalEntry, JournalLine
+    
+    query = JournalEntry.query
+    filters = []
+    if voucher_id:
+        filters.append(JournalEntry.voucher_id == voucher_id)
+    if reference_id:
+        filters.append(JournalEntry.reference_id == reference_id)
+    if reference_ids:
+        filters.append(JournalEntry.reference_id.in_(reference_ids))
+        
+    if not filters:
+        return
+        
+    jes = query.filter(db.or_(*filters)).all()
+    if jes:
+        je_ids = [je.id for je in jes]
+        # Bulk delete lines first to avoid FK constraints
+        JournalLine.query.filter(JournalLine.journal_entry_id.in_(je_ids)).delete(synchronize_session=False)
+        JournalEntry.query.filter(JournalEntry.id.in_(je_ids)).delete(synchronize_session=False)
+        db.session.flush()
+
 def recalculate_party_ledger_balances(party_id):
     """
     Recalculates the running balance for all entries of a specific party.
     Ensures consistency if entries are added out of order or deleted.
     """
     try:
+        from decimal import Decimal
         entries = PartyLedger.query.filter_by(party_id=party_id).order_by(PartyLedger.date.asc(), PartyLedger.id.asc()).all()
-        running_balance = 0.0
+        running_balance = Decimal('0.0')
         for entry in entries:
-            running_balance += (entry.bill_amount - entry.paid_amount)
+            running_balance += (Decimal(str(entry.bill_amount)) - Decimal(str(entry.paid_amount)))
             entry.balance = running_balance
         db.session.commit()
-        return True
     except Exception as e:
         db.session.rollback()
+        from telegram_utils import log_debug
         log_debug(f"Error recalculating party balances: {e}")
-        return False
+
+def recalculate_customer_totals(customer):
+    """
+    Recalculates a customer's total_price, total_paid and due_amount based on
+    actual transactions and created installments.
+    """
+    from decimal import Decimal
+    from models import Installment, CustomerInstallment
+    from database import db
+    
+    # 0. Ensure all global installments are assigned to this customer
+    all_installments = Installment.query.all()
+    existing_installment_ids = {ci.installment_id for ci in customer.installments if ci.installment_id}
+    
+    for inst in all_installments:
+        if inst.id not in existing_installment_ids:
+            total_amt = float(customer.shares or 0) * float(inst.amount_per_share or 0)
+            if total_amt > 0:
+                cust_inst = CustomerInstallment(
+                    customer_id=customer.id,
+                    installment_id=inst.id,
+                    total_amount=total_amt,
+                    due_amount=total_amt
+                )
+                db.session.add(cust_inst)
+    
+    db.session.flush()
+
+    # 1. Total Paid = Sum of all transactions
+    customer.total_paid = sum(Decimal(str(t.amount)) for t in customer.transactions)
+    
+    # 2. Sync installment milestones with current shares
+    for ci in customer.installments:
+        if ci.installment:
+            ci.total_amount = Decimal(str(customer.shares or 0)) * Decimal(str(ci.installment.amount_per_share or 0))
+            ci.due_amount = ci.total_amount - ci.paid_amount
+
+    # 3. Total Expected = sum of all CustomerInstallments
+    total_expected = sum(Decimal(str(ci.total_amount)) for ci in customer.installments)
+    
+    # 4. Sync total_price to reflect true installment total
+    if customer.installments:
+        customer.total_price = total_expected
+    
+    # 5. Due = Expected - Paid
+    customer.due_amount = total_expected - customer.total_paid
+    
+    # 6. Sync Director Totals
+    director = customer.director
+    if director:
+        director.total_paid = sum(Decimal(str(c.total_paid or 0)) for c in director.customers)
+        from models import Installment
+        total_rate_per_share = sum(Decimal(str(inst.amount_per_share or 0)) for inst in Installment.query.all())
+        director_total_expected = Decimal(str(director.total_share or 0)) * Decimal(str(total_rate_per_share))
+        director.total_due = director_total_expected - director.total_paid
+    
+    db.session.commit()
+    return customer
 
 def export_party_ledger_to_excel(party_id):
     """
     Generates an Excel file for a specific party's ledger.
     """
-    from models import Party
     party = Party.query.get(party_id)
     if not party:
         return None, "Party not found"
@@ -877,140 +954,179 @@ def process_voucher_financials(voucher_id, action='add'):
     - Debit: Payment MADE (Money OUT)
     - Credit: Money RECEIVED (Money IN)
     """
-    from models import Voucher, PettyCash, BankTransaction, PartyLedger, Party
-    voucher = Voucher.query.get(voucher_id)
-    if not voucher:
-        return False, "Voucher not found"
-
     try:
+        voucher = Voucher.query.get(voucher_id)
+        if not voucher:
+            log_debug(f"process_voucher_financials: Voucher {voucher_id} not found.")
+            return False, "Voucher not found"
+            
+        v_no = voucher.voucher_no
+        log_debug(f"process_voucher_financials: Processing {action} for {v_no} (ID: {voucher.id})")
+
         # 1. Clear existing side-effects (for Edit/Delete)
         if action in ['edit', 'delete']:
             PettyCash.query.filter_by(voucher_id=voucher.id).delete()
             BankTransaction.query.filter_by(voucher_id=voucher.id).delete()
             PartyLedger.query.filter_by(voucher_id=voucher.id).delete()
-            from models import JournalEntry
-            JournalEntry.query.filter_by(reference_id=f"V-{voucher.voucher_no}").delete()
+            # Also cleanup Transaction (for customers)
+            Transaction.query.filter_by(voucher_id=voucher.id).delete()
+            
+            cleanup_journal_entries(
+                voucher_id=voucher.id,
+                reference_id=f"V-{voucher.id}",
+                reference_ids=[f"EXP-{v_no}", f"INC-{v_no}", f"PAY-{v_no}", f"V-{v_no}", f"SAL-{v_no}"]
+            )
             
             # If it was a customer voucher, we need to handle Transaction reverse?
             # Or just let process_voucher_financials re-create things.
             # Usually Customer transactions are updated via recalculate_customer_totals
-            from models import Transaction
             Transaction.query.filter_by(remarks=f"Voucher {voucher.voucher_no}").delete()
             
             if action == 'delete':
+                bank_id = voucher.bank_id
                 db.session.commit()
+                
+                if bank_id:
+                    recompute_bank_balances(bank_id)
+                
                 # If it was a party voucher, recalculate balances
                 if voucher.party_id:
                     recalculate_party_ledger_balances(voucher.party_id)
                 
                 if voucher.customer_id:
-                    from models import Customer
                     cust = Customer.query.get(voucher.customer_id)
                     recalculate_customer_totals(cust)
-                return True, "Voucher side-effects removed"
+                log_debug(f"process_voucher_financials: Cleanup done for {voucher.voucher_no}")
+                if action == 'delete':
+                    db.session.commit()
+                    return True, "Voucher side-effects removed"
 
         # 2. Add new side-effects (for Add/Edit)
         if action in ['add', 'edit']:
             # --- Double-Entry Journal Posting ---
             if voucher.debit_account_code and voucher.credit_account_code:
-                # Use T-09/T-10/T-11 style posting
+                log_debug(f"process_voucher_financials: Attempting double-entry for {voucher.voucher_no}")
+                party = Party.query.get(voucher.party_id) if voucher.party_id else None
+                
                 if voucher.type == 'Debit':
                     journal_general_expense(
                         voucher.debit_account_code, 
                         voucher.payment_method, 
                         voucher.credit_account_code, 
+                        voucher.total_amount,
                         voucher.amount_paid, 
                         voucher.voucher_no, 
                         voucher.category, 
-                        voucher.date
+                        party=party,
+                        entry_date=voucher.date,
+                        ref_id=f"V-{voucher.id}",
+                        voucher_id=voucher.id
                     )
                 else:
                     journal_general_income(
                         voucher.credit_account_code, 
                         voucher.payment_method, 
                         voucher.debit_account_code, 
+                        voucher.total_amount,
                         voucher.amount_paid, 
                         voucher.voucher_no, 
                         voucher.category, 
-                        voucher.date
+                        party=party,
+                        entry_date=voucher.date,
+                        ref_id=f"V-{voucher.id}",
+                        voucher_id=voucher.id
                     )
+                log_debug(f"process_voucher_financials: Double-entry posted for {voucher.voucher_no}")
             
             # --- Legacy Flat-Table Updates (Keep for compatibility) ---
-            # A. Update Cash or Bank
-            if voucher.payment_method == 'Cash':
-                pc = PettyCash(
-                    date=voucher.date,
-                    description=f"Voucher {voucher.voucher_no}: {voucher.description}",
-                    category=voucher.category or "General",
-                    type="Expense" if voucher.type == "Debit" else "Income",
-                    amount=voucher.amount_paid,
-                    voucher_id=voucher.id
-                )
-                db.session.add(pc)
             
-            elif voucher.payment_method == 'Bank' and voucher.bank_id:
-                bt = BankTransaction(
-                    date=voucher.date,
-                    narration=f"Voucher {voucher.voucher_no}: {voucher.description}",
-                    debit=voucher.amount_paid if voucher.type == "Debit" else 0,
-                    credit=voucher.amount_paid if voucher.type == "Credit" else 0,
-                    bank_id=voucher.bank_id,
-                    voucher_id=voucher.id,
-                    category=voucher.category or "General",
-                    transaction_details=f"{voucher.type} Voucher"
-                )
-                db.session.add(bt)
-                # Note: Bank running balances are usually updated on view or periodically
+            # Determine if this is an "Advance Adjustment" (Using existing credit)
+            is_advance_adjustment = False
+            if voucher.party_id and voucher.type == "Debit" and voucher.is_payment:
+                current_bal = get_party_balance(voucher.party_id)
+                if current_bal < 0: # Party has an advance
+                    is_advance_adjustment = True
+                    log_debug(f"process_voucher_financials: Detected advance adjustment for party {voucher.party_id}. Balance: {current_bal}")
+
+            # A. Update Cash or Bank (SKIP if it's an adjustment using previous balance)
+            if not is_advance_adjustment:
+                if voucher.payment_method == 'Cash':
+                    log_debug(f"process_voucher_financials: Adding PettyCash for {voucher.voucher_no}")
+                    pc = PettyCash(
+                        date=voucher.date,
+                        description=f"Voucher {voucher.voucher_no}: {voucher.description}",
+                        category=voucher.category or "General",
+                        type="Expense" if voucher.type == "Debit" else "Income",
+                        amount=voucher.amount_paid,
+                        voucher_id=voucher.id
+                    )
+                    db.session.add(pc)
+                
+                elif voucher.payment_method == 'Bank' and voucher.bank_id:
+                    bt = BankTransaction(
+                        date=voucher.date,
+                        narration=f"Voucher {voucher.voucher_no}: {voucher.description}",
+                        debit=voucher.amount_paid if voucher.type == "Debit" else 0,
+                        credit=voucher.amount_paid if voucher.type == "Credit" else 0,
+                        bank_id=voucher.bank_id,
+                        voucher_id=voucher.id,
+                        category=voucher.category or "General",
+                        transaction_details=f"{voucher.type} Voucher"
+                    )
+                    db.session.add(bt)
+                    db.session.flush()
+                    recompute_bank_balances(voucher.bank_id)
 
             # B. Update Party Ledger (if linked)
             if voucher.party_id:
+                # Default logic
+                pl_bill = 0
+                pl_paid = voucher.amount_paid
+                
+                if voucher.type == "Debit":
+                    if is_advance_adjustment:
+                        # User is "paying from previous balance" -> record as a Bill to consume advance
+                        pl_bill = voucher.amount_paid
+                        pl_paid = 0
+                    elif not voucher.is_payment:
+                        # New Bill + Payment
+                        pl_bill = voucher.total_amount
+                        pl_paid = voucher.amount_paid
+                    else:
+                        # Standard payment for a due
+                        pl_bill = 0
+                        pl_paid = voucher.amount_paid
+                else: # Credit Voucher (Refund from Supplier)
+                    pl_paid = -voucher.amount_paid
+                
                 pl = PartyLedger(
                     party_id=voucher.party_id,
                     date=voucher.date,
-                    description=f"Voucher {voucher.voucher_no}: {voucher.description}",
-                    bill_amount=voucher.total_amount if (voucher.type == "Debit" and not voucher.is_payment) else 0,
-                    paid_amount=voucher.amount_paid, # Amount actually paid/received
+                    description=f"Voucher {voucher.voucher_no}: {voucher.description} (Adjustment)" if is_advance_adjustment else f"Voucher {voucher.voucher_no}: {voucher.description}",
+                    bill_amount=pl_bill,
+                    paid_amount=pl_paid,
                     reference=voucher.voucher_no,
                     voucher_id=voucher.id
                 )
-                # If Credit Voucher linked to party, bill_amount might be 0, and paid_amount is credit to party?
-                # Usually Credit Voucher to party means THEY paid US.
-                if voucher.type == "Credit":
-                    pl.bill_amount = 0
-                    pl.paid_amount = -voucher.amount_paid # Negative paid_amount in our ledger logic means receiving? 
-                    # Wait, our PartyLedger logic: balance = sum(bill) - sum(paid).
-                    # If we pay them: paid_amount increases, balance decreases. (Correct: we owe less)
-                    # If they pay us: paid_amount should be negative? OR bill_amount should be negative?
-                    # Let's check existing logic: bill_amount (Credit), paid_amount (Debit).
-                    # If they pay us, it's a Credit to THEM? No, Debit is what we pay. 
-                    # Actually, standard: Credit (THEM giving us goods), Debit (US paying THEM).
-                    # If THEY pay US, it's a "Negative Bill" or "Positive Payment" in a different sense.
-                    # Let's simplify: 
-                    # Debit Voucher (We Pay): Bill = Total Amount, Paid = Amount Paid. Balance = Total - Paid.
-                    # Credit Voucher (They Pay): Bill = 0, Paid = -Amount Paid (Received). Balance = 0 - (-Paid) = +Paid.
-                    # Actually, if we just want to track their balance:
-                    # Bill = Amount they owe us (Credit), Paid = Amount we paid them (Debit).
-                    # So if they pay us, it's a SUBTRACTION from Bill or ADDITION to Paid.
-                    # Let's use:
-                    # Debit Voucher: Bill += total, Paid += paid.
-                    # Credit Voucher: Bill += 0, Paid -= amount_received.
-                    pass
-                
                 db.session.add(pl)
-                db.session.flush() # Ensure PL has an ID
+                db.session.flush()
                 recalculate_party_ledger_balances(voucher.party_id)
 
             # C. Update Customer (if linked)
             if voucher.customer_id:
-                from models import Transaction, Customer, CustomerInstallment
+                # Credit Voucher = Money In (Payment from Customer) -> Positive Amount
+                # Debit Voucher = Money Out (Refund to Customer) -> Negative Amount
+                tx_amount = voucher.amount_paid if voucher.type == "Credit" else -voucher.amount_paid
+                
                 # Create a Transaction for the customer
                 tx = Transaction(
                     date=voucher.date,
-                    amount=voucher.amount_paid,
+                    amount=tx_amount,
                     installment_type="Installment",
                     remarks=f"Voucher {voucher.voucher_no}: {voucher.description}",
                     payment_method=voucher.payment_method,
-                    customer_id=voucher.customer_id
+                    customer_id=voucher.customer_id,
+                    voucher_id=voucher.id
                 )
                 db.session.add(tx)
                 
@@ -1018,22 +1134,21 @@ def process_voucher_financials(voucher_id, action='add'):
                 cust = Customer.query.get(voucher.customer_id)
                 if cust:
                     recalculate_customer_totals(cust)
-                    # Allocation logic (simplistic: oldest due first)
-                    # Wait, usually Transaction is linked to CustomerInstallment
-                    pending_installments = CustomerInstallment.query.filter(
-                        CustomerInstallment.customer_id == voucher.customer_id,
-                        CustomerInstallment.due_amount > 0
-                    ).all() # Sorting would be better
                     
-                    remaining = voucher.amount_paid
-                    for ci in pending_installments:
-                        if remaining <= 0: break
-                        pay = min(remaining, ci.due_amount)
-                        ci.paid_amount += pay
-                        ci.due_amount -= pay
-                        remaining -= pay
-                        # Link tx to the first one it covers or logic to split? 
-                        # Simplifying: just update balances.
+                    # Only allocate positive payments to installments
+                    if tx_amount > 0:
+                        pending_installments = CustomerInstallment.query.filter(
+                            CustomerInstallment.customer_id == voucher.customer_id,
+                            CustomerInstallment.due_amount > 0
+                        ).all() # Sorting would be better
+                        
+                        remaining = tx_amount
+                        for ci in pending_installments:
+                            if remaining <= 0: break
+                            pay = min(remaining, ci.due_amount)
+                            ci.paid_amount += pay
+                            ci.due_amount -= pay
+                            remaining -= pay
 
         db.session.commit()
         return True, "Voucher financials processed successfully"
@@ -1042,8 +1157,92 @@ def process_voucher_financials(voucher_id, action='add'):
         log_debug(f"Error processing voucher financials: {e}")
         return False, str(e)
 
+def process_transaction_financials(transaction_id, action='add', payment_source=None, bank_id=None):
+    """
+    Handles financial side-effects for Customer Transactions.
+    Ensures PettyCash, BankTransaction, and JournalEntries stay in sync.
+    """
+    tx = Transaction.query.get(transaction_id)
+    if not tx: return False, "Transaction not found"
+    
+    try:
+        # 1. Cleanup existing side-effects
+        if action in ['edit', 'delete']:
+            PettyCash.query.filter_by(transaction_id=tx.id).delete()
+            BankTransaction.query.filter_by(transaction_id=tx.id).delete()
+            cleanup_journal_entries(reference_id=f"TX-{tx.id}")
+            db.session.flush()
+
+        if action == 'delete':
+            db.session.commit()
+            return True, "Transaction financials cleaned up successfully"
+
+        # 2. Add new side-effects
+        if action in ['add', 'edit']:
+            customer = tx.customer
+            amount = tx.amount
+            
+            # Determine payment source if not provided
+            if not payment_source:
+                payment_source = 'bank' if tx.payment_method == 'Bank' else 'petty_cash'
+            
+            if payment_source == 'bank' and bank_id:
+                # Add Bank Transaction
+                bt = BankTransaction(
+                    date=tx.date,
+                    cheque_no=tx.transaction_id, # Re-using transaction_id field for cheque/ref
+                    narration=f"Customer Payment - {customer.name} ({customer.customer_id})",
+                    transaction_details=tx.installment_type or 'Customer Payment',
+                    credit=amount,
+                    debit=0,
+                    bank_id=bank_id,
+                    transaction_id=tx.id
+                )
+                db.session.add(bt)
+                db.session.flush()
+                recompute_bank_balances(bank_id)
+            else:
+                # Add Petty Cash
+                pc = PettyCash(
+                    date=tx.date,
+                    description=f"Customer Payment - {customer.name} ({customer.customer_id})",
+                    category='Customer Payment',
+                    type='Income',
+                    amount=amount,
+                    transaction_id=tx.id
+                )
+                db.session.add(pc)
+            
+            # 3. Double-Entry Journal Posting (T-03/T-04)
+            from logic import post_journal_entry
+            lines = []
+            if payment_source == 'bank' and bank_id:
+                bank = Bank.query.get(bank_id)
+                bank_acc = bank.coa_account_code if bank else '1020'
+                lines = [
+                    {'account_code': bank_acc, 'debit': amount, 'credit': 0},
+                    {'account_code': '1031', 'debit': 0, 'credit': amount, 'party_type': 'Customer', 'party_id': customer.id}
+                ]
+            else:
+                lines = [
+                    {'account_code': '1010', 'debit': amount, 'credit': 0},
+                    {'account_code': '1031', 'debit': 0, 'credit': amount, 'party_type': 'Customer', 'party_id': customer.id}
+                ]
+            
+            post_journal_entry(
+                tx.date, "RECEIPT", f"TX-{tx.id}", 
+                f"Customer payment - {customer.name} - {tx.installment_type}", 
+                lines
+            )
+
+        db.session.commit()
+        return True, "Transaction financials processed successfully"
+    except Exception as e:
+        db.session.rollback()
+        log_debug(f"Error processing transaction financials: {e}")
+        return False, str(e)
+
 def process_contra_financials(contra_id, action='add'):
-    from models import ContraEntry, PettyCash, BankTransaction
     contra = ContraEntry.query.get(contra_id)
     if not contra: return False, "Contra Entry not found"
     
@@ -1051,8 +1250,11 @@ def process_contra_financials(contra_id, action='add'):
         if action in ['edit', 'delete']:
             PettyCash.query.filter_by(contra_entry_id=contra.id).delete()
             BankTransaction.query.filter_by(contra_entry_id=contra.id).delete()
-            from models import JournalEntry
-            JournalEntry.query.filter_by(reference_id=f"CN-{contra.contra_no}").delete()
+            # Cleanup old Journal Entries and Lines
+            cleanup_journal_entries(
+                reference_id=f"C-{contra.id}",
+                reference_ids=[f"CN-{contra.contra_no}"]
+            )
         
         if action in ['add', 'edit']:
             # From Account (Subtract)
@@ -1097,13 +1299,41 @@ def process_contra_financials(contra_id, action='add'):
                     {'account_code': contra.debit_account_code, 'debit': contra.amount, 'credit': 0},
                     {'account_code': contra.credit_account_code, 'debit': 0, 'credit': contra.amount}
                 ]
-                post_journal_entry(contra.date, "BANK_TRANSFER", contra.contra_no, contra.description, lines)
+                post_journal_entry(contra.date, "BANK_TRANSFER", f"C-{contra.id}", contra.description, lines)
 
         db.session.commit()
         return True, "Contra financials processed successfully"
     except Exception as e:
         db.session.rollback()
         return False, str(e)
+
+def recompute_bank_balances(bank_id):
+    """
+    Recalculates the running balance for all transactions of a specific bank.
+    Sorts by Date (asc) and then ID (asc).
+    Handles mixed date formats (DD-MM-YYYY vs YYYY-MM-DD).
+    """
+    from models import BankTransaction
+    transactions = BankTransaction.query.filter_by(bank_id=bank_id).all()
+    
+    def parse_date(date_str):
+        # Prioritize DD-MM-YYYY
+        for fmt in ('%d-%m-%Y', '%Y-%m-%d'):
+            try:
+                return datetime.strptime(date_str, fmt)
+            except ValueError:
+                pass
+        return datetime.min
+
+    # Sort transactions (Oldest First for Calculation)
+    transactions.sort(key=lambda x: (parse_date(x.date), x.id))
+    
+    running_balance = Decimal('0.0')
+    for tx in transactions:
+        running_balance += (Decimal(str(tx.credit or 0)) - Decimal(str(tx.debit or 0)))
+        tx.balance = running_balance
+        
+    db.session.commit()
 
 def get_due_payments_report():
     """Returns vouchers that have a remaining due amount."""
@@ -1176,16 +1406,15 @@ def get_daily_cash_report(target_date):
 
 def generate_je_number():
     from models import JournalEntry
-    count = JournalEntry.query.count()
-    return f"JE-{count + 1:04d}"
+    from sqlalchemy import func
+    max_id = db.session.query(func.max(JournalEntry.id)).scalar() or 0
+    return f"JE-{max_id + 1:04d}"
 
-def post_journal_entry(entry_date, reference_type, reference_id, description, lines, is_posted=True):
+def post_journal_entry(entry_date, reference_type, reference_id, description, lines, is_posted=True, voucher_id=None):
     """
     Core Double-Entry Posting Engine.
     lines: list of dicts {'account_code', 'debit', 'credit', 'narration', 'party_type', 'party_id'}
     """
-    from models import JournalEntry, JournalLine, ChartOfAccounts
-    from decimal import Decimal
     
     total_debit = sum(Decimal(str(l.get('debit', 0) or 0)) for l in lines)
     total_credit = sum(Decimal(str(l.get('credit', 0) or 0)) for l in lines)
@@ -1199,7 +1428,8 @@ def post_journal_entry(entry_date, reference_type, reference_id, description, li
         reference_type=reference_type,
         reference_id=str(reference_id),
         description=description,
-        is_posted=is_posted
+        is_posted=is_posted,
+        voucher_id=voucher_id
     )
     db.session.add(je)
     db.session.flush() # Get JE ID
@@ -1422,25 +1652,57 @@ def journal_supplier_payment_bank(party, bank_acc_code, amount, voucher_no, cheq
     ]
     return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", f"PAY-{party.id}", description, lines)
 
-def journal_general_expense(coa_code, payment_method, bank_acc_code, amount, voucher_no, category, entry_date=None):
-    """T-09 / T-10 — Debit Voucher (General Expense)"""
+def journal_general_expense(coa_code, payment_method, bank_acc_code, total_amount, paid_amount, voucher_no, category, party=None, entry_date=None, ref_id=None, voucher_id=None):
+    """T-09 / T-10 — Debit Voucher (General Expense) - Supports Split Payments"""
+    from decimal import Decimal
     description = f"Expense — {category} — Voucher {voucher_no}"
     cr_code = '1010' if payment_method == 'Cash' else bank_acc_code
+    
     lines = [
-        {'account_code': coa_code, 'debit': amount, 'credit': 0},
-        {'account_code': cr_code, 'debit': 0, 'credit': amount}
+        {'account_code': coa_code, 'debit': Decimal(str(total_amount)), 'credit': 0}
     ]
-    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", f"EXP-{voucher_no}", description, lines)
+    
+    if paid_amount > 0:
+        lines.append({'account_code': cr_code, 'debit': 0, 'credit': Decimal(str(paid_amount))})
+    
+    due = Decimal(str(total_amount)) - Decimal(str(paid_amount))
+    if due > 0:
+        # Credit Accounts Payable (Party Account or Default)
+        ap_code = (party.coa_account_code if party else '2010') or '2010'
+        lines.append({
+            'account_code': ap_code, 'debit': 0, 'credit': due, 
+            'party_type': party.category if party else None, 
+            'party_id': party.id if party else None,
+            'narration': f"Payable to {party.name if party else 'Supplier'} - Voucher {voucher_no}"
+        })
+        
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", ref_id or f"EXP-{voucher_no}", description, lines, voucher_id=voucher_id)
 
-def journal_general_income(coa_code, payment_method, bank_acc_code, amount, voucher_no, category, entry_date=None):
-    """T-11 — Credit Voucher (Income Receipt)"""
+def journal_general_income(coa_code, payment_method, bank_acc_code, total_amount, received_amount, voucher_no, category, party=None, entry_date=None, ref_id=None, voucher_id=None):
+    """T-11 — Credit Voucher (Income Receipt) - Supports Split/Receivables"""
+    from decimal import Decimal
     description = f"Income — {category} — Voucher {voucher_no}"
     dr_code = '1010' if payment_method == 'Cash' else bank_acc_code
+    
     lines = [
-        {'account_code': dr_code, 'debit': amount, 'credit': 0},
-        {'account_code': coa_code, 'debit': 0, 'credit': amount}
+        {'account_code': coa_code, 'debit': 0, 'credit': Decimal(str(total_amount))}
     ]
-    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", f"INC-{voucher_no}", description, lines)
+    
+    if received_amount > 0:
+        lines.append({'account_code': dr_code, 'debit': Decimal(str(received_amount)), 'credit': 0})
+        
+    due = Decimal(str(total_amount)) - Decimal(str(received_amount))
+    if due > 0:
+        # Debit Accounts Receivable (Party Account or Default)
+        ar_code = (party.coa_account_code if party else '1030') or '1030'
+        lines.append({
+            'account_code': ar_code, 'debit': due, 'credit': 0,
+            'party_type': party.category if party else None, 
+            'party_id': party.id if party else None,
+            'narration': f"Receivable from {party.name if party else 'Customer'} - Voucher {voucher_no}"
+        })
+        
+    return post_journal_entry(entry_date or datetime.now().date(), "VOUCHER", ref_id or f"INC-{voucher_no}", description, lines, voucher_id=voucher_id)
 
 def journal_contra_deposit(bank_acc_code, amount, voucher_no, entry_date=None):
     """T-12 — Contra Entry: Cash Deposit to Bank"""
@@ -1708,14 +1970,28 @@ def sync_to_double_entry():
                 v.debit_account_code or '6230', 
                 v.payment_method, 
                 (v.bank_obj.coa_account_code if v.bank_obj else '1020') or '1020', 
-                v.amount_paid, v.voucher_no, v.category, v.date
+                v.total_amount,
+                v.amount_paid,
+                v.voucher_no, 
+                v.category, 
+                party=v.party_obj,
+                entry_date=v.date,
+                ref_id=f"V-{v.id}",
+                voucher_id=v.id
             )
         else:
             journal_general_income(
                 v.credit_account_code or '4030',
                 v.payment_method,
                 (v.bank_obj.coa_account_code if v.bank_obj else '1020') or '1020',
-                v.amount_paid, v.voucher_no, v.category, v.date
+                v.total_amount,
+                v.amount_paid,
+                v.voucher_no, 
+                v.category, 
+                party=v.party_obj,
+                entry_date=v.date,
+                ref_id=f"V-{v.id}",
+                voucher_id=v.id
             )
             
     # 3. Sync Contra Entries

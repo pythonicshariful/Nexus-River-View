@@ -18,6 +18,9 @@ def save_as_webp(file, upload_folder):
     # Generate a unique base name to avoid collisions
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     base_name = os.path.splitext(original_filename)[0]
+    if not base_name:
+        return None
+        
     new_filename = f"{base_name}_{timestamp}.webp"
     file_path = os.path.join(upload_folder, new_filename)
     

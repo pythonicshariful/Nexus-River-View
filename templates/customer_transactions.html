@@ -250,7 +250,8 @@
                                                 data-date="{{ tx.date }}"
                                                 data-amount="{{ tx.amount }}"
                                                 data-type="{{ tx.installment_type }}"
-                                                data-bank="{{ tx.bank_name or '' }}"
+                                                data-source="{{ tx.payment_method|lower if tx.payment_method else 'cash' }}"
+                                                data-bankid="{{ tx.bank_id or '' }}"
                                                 data-txid="{{ tx.transaction_id or '' }}"
                                                 data-remarks="{{ tx.remarks or '' }}"
                                                 onclick="editTx(this)">
@@ -309,6 +310,25 @@
         form.querySelector('input[name="amount"]').value = amount;
         form.querySelector('select[name="installment_type"]').value = type;
         form.querySelector('textarea[name="remarks"]').value = remarks;
+        
+        // Populate Payment Source
+        const source = btn.getAttribute('data-source');
+        const sourceRadio = form.querySelector(`input[name="payment_source"][value="${source}"]`);
+        if (sourceRadio) {
+            sourceRadio.checked = true;
+            togglePaymentSource();
+        }
+        
+        const bankId = btn.getAttribute('data-bankid');
+        if (bankId) {
+            const bankSelect = form.querySelector('select[name="bank_id"]');
+            if (bankSelect) bankSelect.value = bankId;
+        }
+        
+        const transactionId = btn.getAttribute('data-txid');
+        if (transactionId) {
+            form.querySelector('input[name="transaction_id"]').value = transactionId;
+        }
         
         // Update Button
         const submitBtn = form.querySelector('button[type="submit"]');

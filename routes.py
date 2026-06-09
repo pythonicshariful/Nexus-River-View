@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_from_directory
+from decimal import Decimal
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 from models import User, Todo, Director, Customer, Transaction, PettyCash, PettyCashCategory, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger, Voucher, PartyCategory, ContraEntry, Employee, Attendance, Leave, Salary, ChartOfAccounts, JournalEntry, JournalLine
 from database import db
-from logic import sync_to_excel, restore_from_excel, recalculate_party_ledger_balances, export_party_ledger_to_excel, generate_voucher_number, process_voucher_financials, get_daily_cash_report, get_due_payments_report, generate_contra_number, process_contra_financials
+from logic import sync_to_excel, restore_from_excel, recalculate_party_ledger_balances, export_party_ledger_to_excel, generate_voucher_number, process_voucher_financials, get_daily_cash_report, get_due_payments_report, generate_contra_number, process_contra_financials, recompute_bank_balances, recalculate_customer_totals, cleanup_journal_entries, process_transaction_financials
 import pandas as pd
 import io
 from datetime import datetime
@@ -52,43 +53,6 @@ def generate_next_customer_id(director_id):
     count = Customer.query.filter_by(director_id=director_id).count()
     return f"{initials}-{count + 1:02d}"
 
-def recalculate_customer_totals(customer):
-    """
-    Recalculates a customer's total_price, total_paid and due_amount based on
-    actual transactions and created installments.
-    """
-    from decimal import Decimal
-    # 1. Total Paid = Sum of all transactions
-    customer.total_paid = sum(Decimal(str(t.amount)) for t in customer.transactions)
-    
-    # 2. Sync installment milestones with current shares
-    #    Iterate through all installments and update total_amount based on current shares
-    for ci in customer.installments:
-        if ci.installment:
-            ci.total_amount = float(customer.shares) * ci.installment.amount_per_share
-            ci.due_amount = ci.total_amount - ci.paid_amount
-
-    # 3. Total Expected = sum of all CustomerInstallments
-    total_expected = sum(Decimal(str(ci.total_amount)) for ci in customer.installments)
-    
-    # 4. Sync total_price to reflect true installment total
-    if customer.installments:
-        customer.total_price = total_expected
-    
-    # 5. Due = Expected - Paid
-    customer.due_amount = total_expected - customer.total_paid
-    
-    # 5. Sync Director Totals: use total_share (not assigned shares) × installment rates
-    director = customer.director
-    if director:
-        director.total_paid = sum(c.total_paid for c in director.customers)
-        # Total expected for director = total_share × sum of all installment amount_per_share
-        from models import Installment
-        total_rate_per_share = sum(inst.amount_per_share for inst in Installment.query.all())
-        director_total_expected = Decimal(str(director.total_share)) * Decimal(str(total_rate_per_share))
-        director.total_due = director_total_expected - director.total_paid
-    
-    return customer
 
 def background_sync_all(action_name="Data Update"):
     """
@@ -106,6 +70,7 @@ def background_sync_all(action_name="Data Update"):
         try:
             from sync_manager import sync_manager
             from telegram_utils import log_debug
+            from datetime import datetime, timedelta
             log_debug(f"Starting Background Tasks due to: {action_name}")
             
             sync_manager.sync_to_sheets()
@@ -134,7 +99,6 @@ def background_sync_all(action_name="Data Update"):
             # 4. Task Reminders
             try:
                 from models import Todo
-                from datetime import datetime, timedelta
                 now = datetime.now()
                 # Check for todos due today that haven't been reminded yet
                 today_str = now.strftime('%Y-%m-%d')
@@ -189,18 +153,18 @@ def index():
         customers = Customer.query.all()
         from models import Installment
         from decimal import Decimal
-        total_milestone_rate = sum(inst.amount_per_share for inst in Installment.query.all())
-        total_director_shares = sum(d.total_share for d in directors)
+        total_milestone_rate = sum(Decimal(str(inst.amount_per_share or 0)) for inst in Installment.query.all())
+        total_director_shares = sum(Decimal(str(d.total_share or 0)) for d in directors)
         
         grand_total_payable = Decimal(str(total_director_shares)) * Decimal(str(total_milestone_rate))
-        grand_total_paid = sum(c.total_paid for c in customers)
-        grand_total_due = grand_total_payable - grand_total_paid
+        grand_total_paid = sum(Decimal(str(c.total_paid or 0)) for c in customers)
+        grand_total_due = Decimal(str(grand_total_payable)) - Decimal(str(grand_total_paid))
         grand_total_outstanding = grand_total_due
             
-        total_bank_balance = sum(tx.credit - tx.debit for tx in BankTransaction.query.all())
+        total_bank_balance = sum(Decimal(str(tx.credit or 0)) - Decimal(str(tx.debit or 0)) for tx in BankTransaction.query.all())
         
-        cash_income = sum(Decimal(str(pc.amount)) for pc in PettyCash.query.filter_by(type='Income').all())
-        cash_expense = sum(Decimal(str(pc.amount)) for pc in PettyCash.query.filter_by(type='Expense').all())
+        cash_income = sum(Decimal(str(pc.amount or 0)) for pc in PettyCash.query.filter_by(type='Income').all())
+        cash_expense = sum(Decimal(str(pc.amount or 0)) for pc in PettyCash.query.filter_by(type='Expense').all())
         cash_in_hand = cash_income - cash_expense
 
         # Store today_todos safely
@@ -269,8 +233,8 @@ def index():
                 current_date = current_date.replace(month=current_date.month - 1)
 
         parties = Party.query.all()
-        total_party_due = sum(p.current_balance for p in parties if p.current_balance > 0)
-        total_party_advance = abs(sum(p.current_balance for p in parties if p.current_balance < 0))
+        total_party_due = sum(Decimal(str(p.current_balance or 0)) for p in parties if p.current_balance > 0)
+        total_party_advance = abs(sum(Decimal(str(p.current_balance or 0)) for p in parties if p.current_balance < 0))
 
         return render_template('index.html', directors=directors, 
                              grand_total_payable=grand_total_payable, 
@@ -293,6 +257,9 @@ def index():
 
 def verify_password():
     password = request.form.get('admin_password')
+    if not password:
+        return False
+        
     if current_user.is_authenticated and current_user.check_password(password):
         return True
     # Fallback to old config password for now (transition period)
@@ -1103,8 +1070,7 @@ def individual_report_export_excel():
             cell.border = thin_border
             status = row['status']
             if status in STATUS_COLORS:
-                cell.fill = PatternFill(start_color=STATUS_COLORS[status],
-                                        end_color=STATUS_COLORS[status], fill_type='solid')
+                cell.fill = PatternFill(start_color=STATUS_COLORS[status], end_color=STATUS_COLORS[status], fill_type='solid')
 
     # Column widths
     ws.column_dimensions['A'].width = 15
@@ -1708,7 +1674,10 @@ def mark_salary_paid(id):
     salary.payment_date = datetime.now()
     
     # --- Double-Entry Journal Posting (T-17) ---
-    from logic import journal_salary_payment
+    from logic import journal_salary_payment, cleanup_journal_entries
+    # Cleanup any existing entry for this salary to avoid duplicates
+    cleanup_journal_entries(reference_id=f"SAL-SAL-{salary.id}")
+    
     # Default to Cash (1010) if no bank specified
     journal_salary_payment(salary.employee, '1010', salary.final_salary, f"SAL-{salary.id}")
     
@@ -1724,6 +1693,10 @@ def mark_salary_unpaid(id):
     salary = Salary.query.get_or_404(id)
     salary.status = 'Unpaid'
     salary.payment_date = None
+    
+    # Cleanup Journal Entry
+    cleanup_journal_entries(reference_id=f"SAL-SAL-{salary.id}")
+    
     db.session.commit()
     flash('Salary record reverted to Unpaid.', 'info')
     return redirect(url_for('main.view_salary_sheet'))
@@ -1791,7 +1764,7 @@ def add_director():
                 name=name, 
                 phone=phone,
                 bank_name=request.form.get('bank_name'),
-                total_share=float(request.form.get('total_share') or 0),
+                total_share=Decimal(str(request.form.get('total_share') or 0)),
                 per_share_value=0,
                 fair_cost=0,
                 land_value_extra_share=0,
@@ -1820,15 +1793,15 @@ def edit_director(id):
         director.name = request.form.get('name')
         director.phone = request.form.get('phone')
         director.bank_name = request.form.get('bank_name')
-        director.total_share = float(request.form.get('total_share') or 0)
-        director.per_share_value = float(request.form.get('per_share_value') or 0)
-        director.fair_cost = float(request.form.get('fair_cost') or 0)
-        director.land_value_extra_share = float(request.form.get('land_value_extra_share') or 0)
+        director.total_share = Decimal(str(request.form.get('total_share') or 0))
+        director.per_share_value = Decimal(str(request.form.get('per_share_value') or 0))
+        director.fair_cost = Decimal(str(request.form.get('fair_cost') or 0))
+        director.land_value_extra_share = Decimal(str(request.form.get('land_value_extra_share') or 0))
         # total_paid and total_due are handled by background sync or manual recalculation
         
         # Recalculate Totals from Customers
-        director.total_paid = sum(c.total_paid for c in director.customers)
-        director.total_due = sum(c.due_amount for c in director.customers)
+        director.total_paid = sum(Decimal(str(c.total_paid or 0)) for c in director.customers)
+        director.total_due = sum(Decimal(str(c.due_amount or 0)) for c in director.customers)
 
         db.session.commit()
         trigger_excel_sync()
@@ -1884,11 +1857,11 @@ def add_customer():
         present_address = request.form.get('present_address')
         permanent_address = request.form.get('permanent_address')
         plot_no = request.form.get('plot_no')
-        total_price = float(request.form.get('total_price') or 0)
-        down_payment = float(request.form.get('down_payment') or 0)
-        monthly_installment = float(request.form.get('monthly_installment') or 0)
-        total_paid = float(request.form.get('total_paid') or 0)
-        shares = float(request.form.get('shares') or 0)
+        total_price = Decimal(str(request.form.get('total_price') or 0))
+        down_payment = Decimal(str(request.form.get('down_payment') or 0))
+        monthly_installment = Decimal(str(request.form.get('monthly_installment') or 0))
+        total_paid = Decimal(str(request.form.get('total_paid') or 0))
+        shares = Decimal(str(request.form.get('shares') or 0))
         
         # Validation: Check Director Shares
         director = Director.query.get(director_id)
@@ -1899,39 +1872,43 @@ def add_customer():
         if not customer_id:
             customer_id = generate_next_customer_id(director_id)
 
-        # Calculation
-        new_customer = Customer(
-            director_id=director_id,
-            customer_id=customer_id,
-            name=name,
-            phone=phone,
-            father_name=father_name,
-            mother_name=mother_name,
-            dob=dob,
-            religion=religion,
-            profession=profession,
-            nid_no=nid_no,
-            present_address=present_address,
-            permanent_address=permanent_address,
-            plot_no=plot_no,
-            total_price=total_price,
-            down_payment=down_payment,
-            monthly_installment=monthly_installment,
-            total_paid=total_paid,
-            due_amount=0, # Will be recalculated
-            shares=shares
-        )
-        db.session.add(new_customer)
-        db.session.flush() # Get ID
-        
-        # Initial recalculation
-        recalculate_customer_totals(new_customer)
-        
-        db.session.commit()
-        trigger_excel_sync()
-        trigger_sync()
-        backup_to_telegram("Added Customer: " + name)
-        flash('Customer added successfully!', 'success')
+        try:
+            # Calculation
+            new_customer = Customer(
+                director_id=director_id,
+                customer_id=customer_id,
+                name=name,
+                phone=phone,
+                father_name=father_name,
+                mother_name=mother_name,
+                dob=dob,
+                religion=religion,
+                profession=profession,
+                nid_no=nid_no,
+                present_address=present_address,
+                permanent_address=permanent_address,
+                plot_no=plot_no,
+                total_price=total_price,
+                down_payment=down_payment,
+                monthly_installment=monthly_installment,
+                total_paid=total_paid,
+                due_amount=0, # Will be recalculated
+                shares=shares
+            )
+            db.session.add(new_customer)
+            db.session.flush() # Get ID
+            
+            # Initial recalculation
+            recalculate_customer_totals(new_customer)
+            
+            db.session.commit()
+            trigger_excel_sync()
+            trigger_sync()
+            backup_to_telegram("Added Customer: " + name)
+            flash('Customer added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding customer: {str(e)}', 'danger')
         return redirect(url_for('main.index'))
         
     return render_template('customer_form.html', directors=directors)
@@ -1949,16 +1926,16 @@ def edit_customer(id):
         old_director = Director.query.get(customer.director_id)
         new_director_id = request.form.get('director_id')
         new_director = Director.query.get(new_director_id)
-        new_shares = float(request.form.get('shares') or 0)
+        new_shares = Decimal(str(request.form.get('shares') or 0))
 
         # Validation: Check Available Shares (adjusting for current shares)
-        available = new_director.available_shares + (customer.shares if old_director.id == new_director.id else 0)
+        available = Decimal(str(new_director.available_shares)) + (Decimal(str(customer.shares)) if old_director.id == new_director.id else 0)
         if new_shares > available:
             flash(f'Error: Director only has {available} shares available.', 'danger')
             return redirect(url_for('main.edit_customer', id=id))
 
         # Revert old values for Director
-        old_director.total_paid -= customer.total_paid
+        old_director.total_paid -= Decimal(str(customer.total_paid))
         
         customer.director_id = new_director_id
         customer.customer_id = request.form.get('customer_id')
@@ -1973,10 +1950,10 @@ def edit_customer(id):
         customer.present_address = request.form.get('present_address')
         customer.permanent_address = request.form.get('permanent_address')
         customer.plot_no = request.form.get('plot_no')
-        customer.total_price = float(request.form.get('total_price') or 0)
-        customer.down_payment = float(request.form.get('down_payment') or 0)
-        customer.monthly_installment = float(request.form.get('monthly_installment') or 0)
-        customer.total_paid = float(request.form.get('total_paid') or 0)
+        customer.total_price = Decimal(str(request.form.get('total_price') or 0))
+        customer.down_payment = Decimal(str(request.form.get('down_payment') or 0))
+        customer.monthly_installment = Decimal(str(request.form.get('monthly_installment') or 0))
+        customer.total_paid = Decimal(str(request.form.get('total_paid') or 0))
         customer.shares = new_shares
         
         # Calc Due
@@ -2401,6 +2378,8 @@ def export_party_ledger(id):
 @main.route('/manage_transactions/<int:customer_id>', methods=['GET', 'POST'])
 def manage_transactions(customer_id):
     customer = Customer.query.get_or_404(customer_id)
+    from logic import recalculate_customer_totals
+    customer = recalculate_customer_totals(customer)
     
     if request.method == 'POST':
         if not verify_password():
@@ -2408,7 +2387,7 @@ def manage_transactions(customer_id):
             return redirect(url_for('main.manage_transactions', customer_id=customer_id))
 
         date = request.form.get('date')
-        amount = float(request.form.get('amount') or 0)
+        amount = Decimal(str(request.form.get('amount') or 0))
         installment_type = request.form.get('installment_type')
         cust_inst_id = request.form.get('customer_installment_id') or None
         transaction_id = request.form.get('transaction_id')
@@ -2435,7 +2414,7 @@ def manage_transactions(customer_id):
             for file in files:
                     from image_utils import save_as_webp
                     filename = save_as_webp(file, current_app.config['UPLOAD_FOLDER'])
-                    if filename:
+                    if filename and len(filename) > 5:
                         images.append(filename)
         
         # Determine bank_name to store on transaction
@@ -2446,92 +2425,75 @@ def manage_transactions(customer_id):
         elif payment_source == 'petty_cash':
             bank_name = 'Petty Cash'
         
-        new_tx = Transaction(
-            date=date,
-            amount=amount,
-            installment_type=installment_type,
-            bank_name=bank_name,
-            transaction_id=transaction_id,
-            remarks=remarks,
-            customer_id=customer_id,
-            customer_installment_id=cust_inst_id,
-            images=','.join(images)
-        )
-        db.session.add(new_tx)
-        
-        # Update Customer Totals
-        customer.total_paid += amount
-        customer.due_amount = customer.total_price - customer.total_paid
-        
-        # Update Director Totals
-        director = Director.query.get(customer.director_id)
-        director.total_paid = sum(c.total_paid for c in director.customers)
-        director.total_due = sum(c.due_amount for c in director.customers)
-
-        # Update Specific Installment if selected
-        if cust_inst_id:
-            cust_inst = CustomerInstallment.query.get(cust_inst_id)
-            if cust_inst:
-                cust_inst.paid_amount += amount
-                cust_inst.due_amount = cust_inst.total_amount - cust_inst.paid_amount
-                # Mirror installment name if not set
-                if not new_tx.installment_type:
-                    new_tx.installment_type = cust_inst.installment.name
-
-        # Handle Payment Source: update bank balance or petty cash
-        if payment_source == 'bank' and bank_id:
-            selected_bank = Bank.query.get(bank_id)
-            if selected_bank:
-                # Calculate running balance
-                last_tx = BankTransaction.query.filter_by(bank_id=selected_bank.id).order_by(BankTransaction.id.desc()).first()
-                running_balance = (last_tx.balance if last_tx else 0) + amount
-                bank_tx = BankTransaction(
-                    date=date,
-                    cheque_no=cheque_no or None,
-                    ref_no=transaction_id or None,
-                    narration=bank_narration or f'Customer Payment - {customer.name} ({customer.customer_id})',
-                    transaction_details=installment_type or 'Customer Payment',
-                    credit=amount,
-                    debit=0,
-                    balance=running_balance,
-                    bank_id=selected_bank.id
-                )
-                db.session.add(bank_tx)
-        elif payment_source == 'petty_cash':
-            pc_entry = PettyCash(
+        try:
+            new_tx = Transaction(
                 date=date,
-                description=petty_cash_desc or f'Customer Payment - {customer.name}',
-                category=petty_cash_category or 'Customer Payment',
-                type='Income',
-                amount=amount
+                amount=amount,
+                installment_type=installment_type,
+                bank_name=bank_name,
+                bank_id=bank_id if payment_source == 'bank' else None,
+                transaction_id=transaction_id,
+                remarks=remarks,
+                payment_method=payment_source.capitalize(),
+                customer_id=customer_id,
+                customer_installment_id=cust_inst_id,
+                images=','.join(images)
             )
-            db.session.add(pc_entry)
-        
-        # --- Double-Entry Journal Posting ---
-        from logic import journal_customer_payment_cash, journal_customer_payment_bank, journal_customer_booking
-        
-        if installment_type == 'Booking':
-            journal_customer_booking(customer, amount, date)
-        else:
-            if payment_source == 'bank' and bank_id:
-                bank_acc = Bank.query.get(bank_id)
-                if bank_acc and bank_acc.coa_account_code:
-                    journal_customer_payment_bank(customer, bank_acc.coa_account_code, new_tx.installment_type, amount, transaction_id, date)
+            db.session.add(new_tx)
+            
+            # Update Customer Totals
+            customer.total_paid += amount
+            customer.due_amount = customer.total_price - customer.total_paid
+            
+            # Update Director Totals
+            director = Director.query.get(customer.director_id)
+            director.total_paid = sum(c.total_paid for c in director.customers)
+            director.total_due = sum(c.due_amount for c in director.customers)
+
+            # Update Specific Installment if selected
+            if cust_inst_id:
+                cust_inst = CustomerInstallment.query.get(cust_inst_id)
+                if cust_inst:
+                    cust_inst.paid_amount += amount
+                    cust_inst.due_amount = cust_inst.total_amount - cust_inst.paid_amount
+                    # Mirror installment name if not set
+                    if not new_tx.installment_type:
+                        new_tx.installment_type = cust_inst.installment.name
+
+            # Handle Financial Side-effects using the new engine
+            process_transaction_financials(new_tx.id, action='add', payment_source=payment_source, bank_id=bank_id)
+            
+            # --- Double-Entry Journal Posting ---
+            from logic import journal_customer_payment_cash, journal_customer_payment_bank, journal_customer_booking
+            
+            if installment_type == 'Booking':
+                journal_customer_booking(customer, amount, date)
+            else:
+                if payment_source == 'bank' and bank_id:
+                    bank_acc = Bank.query.get(bank_id)
+                    if bank_acc and bank_acc.coa_account_code:
+                        journal_customer_payment_bank(customer, bank_acc.coa_account_code, new_tx.installment_type, amount, transaction_id, date)
+                    else:
+                        journal_customer_payment_cash(customer, new_tx.installment_type, amount, date)
                 else:
                     journal_customer_payment_cash(customer, new_tx.installment_type, amount, date)
-            else:
-                journal_customer_payment_cash(customer, new_tx.installment_type, amount, date)
 
-        db.session.commit()
+            db.session.commit()
 
-        # Recalculate everything
-        recalculate_customer_totals(customer)
-        db.session.commit()
+            # Recalculate everything
+            recalculate_customer_totals(customer)
+            db.session.commit()
 
-        trigger_excel_sync()
-        trigger_sync()
-        backup_to_telegram("Added Transaction for Customer: " + customer.name)
-        flash('Transaction Added!', 'success')
+            trigger_excel_sync()
+            trigger_sync()
+            backup_to_telegram("Added Transaction for Customer: " + customer.name)
+            flash('Transaction Added!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            from telegram_utils import log_debug
+            log_debug(f"Error adding transaction for customer {customer_id}: {e}")
+            flash(f'Error adding transaction: {str(e)}', 'danger')
+            
         return redirect(url_for('main.manage_transactions', customer_id=customer_id))
         
     transactions = Transaction.query.filter_by(customer_id=customer_id).all()
@@ -2575,9 +2537,8 @@ def delete_transaction(id):
             ci.paid_amount -= tx.amount
             ci.due_amount = ci.total_amount - ci.paid_amount
     
-    # --- Double-Entry Journal Deletion ---
-    from models import JournalEntry
-    JournalEntry.query.filter_by(reference_id=f"TX-{tx.id}").delete()
+    # --- Financial Side-effects Cleanup ---
+    process_transaction_financials(tx.id, action='delete')
     
     db.session.delete(tx)
     db.session.commit()
@@ -2607,14 +2568,27 @@ def edit_transaction_details(id):
     customer = Customer.query.get(tx.customer_id)
     
     # 1. Revert Old Amount from Customer Totals
-    customer.total_paid -= tx.amount
+    customer.total_paid -= Decimal(str(tx.amount))
     
     # 2. Update Transaction Data
     tx.date = request.form.get('date')
-    tx.amount = float(request.form.get('amount') or 0)
+    tx.amount = Decimal(str(request.form.get('amount') or 0))
     tx.installment_type = request.form.get('installment_type')
-    tx.bank_name = request.form.get('bank_name')
-    tx.transaction_id = request.form.get('transaction_id')
+    
+    # Update payment details if provided (fallback to old ones)
+    new_method = request.form.get('payment_source')
+    if new_method:
+        tx.payment_method = new_method.capitalize()
+    
+    new_bank_id = request.form.get('bank_id')
+    if new_bank_id:
+        tx.bank_id = new_bank_id
+        from models import Bank
+        bank = Bank.query.get(new_bank_id)
+        if bank:
+            tx.bank_name = bank.bank_name
+            
+    tx.transaction_id = request.form.get('transaction_id') or tx.transaction_id
     tx.remarks = request.form.get('remarks')
     
     # 3. Handle New Images (Append)
@@ -2625,7 +2599,7 @@ def edit_transaction_details(id):
             if file and file.filename != '':
                 from image_utils import save_as_webp
                 filename = save_as_webp(file, current_app.config['UPLOAD_FOLDER'])
-                if filename:
+                if filename and len(filename) > 5:
                     new_images.append(filename)
         
         if new_images:
@@ -2634,10 +2608,14 @@ def edit_transaction_details(id):
             tx.images = ','.join(updated_images)
             
     # 4. Apply New Amount to Customer Totals
-    customer.total_paid += tx.amount
+    customer.total_paid += Decimal(str(tx.amount))
     customer.due_amount = customer.total_price - customer.total_paid
     
     db.session.commit()
+    
+    # 5. Financial Side-effects Update
+    process_transaction_financials(tx.id, action='edit', bank_id=tx.bank_id)
+    
     trigger_excel_sync()
     trigger_sync()
     backup_to_telegram("Edited Transaction")
@@ -3275,28 +3253,32 @@ def manage_banks():
             flash('Invalid Admin Password!', 'danger')
             return redirect(url_for('main.manage_banks'))
 
-        # Add New Bank
-        new_bank = Bank(
-            bank_name=request.form.get('bank_name'),
-            branch=request.form.get('branch'),
-            account_holder_name=request.form.get('account_holder_name'),
-            joint_name=request.form.get('joint_name'),
-            fhp=request.form.get('fhp'),
-            address=request.form.get('address'),
-            city=request.form.get('city'),
-            phone=request.form.get('phone'),
-            customer_id=request.form.get('customer_id'),
-            account_no=request.form.get('account_no'),
-            prev_account_no=request.form.get('prev_account_no'),
-            account_type=request.form.get('account_type'),
-            currency=request.form.get('currency'),
-            status=request.form.get('status')
-        )
-        db.session.add(new_bank)
-        db.session.commit()
-        trigger_excel_sync()
-        backup_to_telegram("Added Bank: " + request.form.get('bank_name'))
-        flash('Bank Account Added!', 'success')
+        try:
+            # Add New Bank
+            new_bank = Bank(
+                bank_name=request.form.get('bank_name'),
+                branch=request.form.get('branch'),
+                account_holder_name=request.form.get('account_holder_name'),
+                joint_name=request.form.get('joint_name'),
+                fhp=request.form.get('fhp'),
+                address=request.form.get('address'),
+                city=request.form.get('city'),
+                phone=request.form.get('phone'),
+                customer_id=request.form.get('customer_id'),
+                account_no=request.form.get('account_no'),
+                prev_account_no=request.form.get('prev_account_no'),
+                account_type=request.form.get('account_type'),
+                currency=request.form.get('currency'),
+                status=request.form.get('status')
+            )
+            db.session.add(new_bank)
+            db.session.commit()
+            trigger_excel_sync()
+            backup_to_telegram("Added Bank: " + request.form.get('bank_name'))
+            flash('Bank Account Added!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding bank: {str(e)}', 'danger')
         return redirect(url_for('main.manage_banks'))
         
     banks = Bank.query.all()
@@ -3310,25 +3292,29 @@ def edit_bank(id):
 
     bank = Bank.query.get_or_404(id)
     
-    bank.bank_name = request.form.get('bank_name')
-    bank.branch = request.form.get('branch')
-    bank.account_holder_name = request.form.get('account_holder_name')
-    bank.joint_name = request.form.get('joint_name')
-    bank.fhp = request.form.get('fhp')
-    bank.address = request.form.get('address')
-    bank.city = request.form.get('city')
-    bank.phone = request.form.get('phone')
-    bank.customer_id = request.form.get('customer_id')
-    bank.account_no = request.form.get('account_no')
-    bank.prev_account_no = request.form.get('prev_account_no')
-    bank.account_type = request.form.get('account_type')
-    bank.currency = request.form.get('currency')
-    bank.status = request.form.get('status')
-    
-    db.session.commit()
-    trigger_excel_sync()
-    backup_to_telegram("Edited Bank: " + bank.bank_name)
-    flash('Bank Account Updated!', 'success')
+    try:
+        bank.bank_name = request.form.get('bank_name')
+        bank.branch = request.form.get('branch')
+        bank.account_holder_name = request.form.get('account_holder_name')
+        bank.joint_name = request.form.get('joint_name')
+        bank.fhp = request.form.get('fhp')
+        bank.address = request.form.get('address')
+        bank.city = request.form.get('city')
+        bank.phone = request.form.get('phone')
+        bank.customer_id = request.form.get('customer_id')
+        bank.account_no = request.form.get('account_no')
+        bank.prev_account_no = request.form.get('prev_account_no')
+        bank.account_type = request.form.get('account_type')
+        bank.currency = request.form.get('currency')
+        bank.status = request.form.get('status')
+        
+        db.session.commit()
+        trigger_excel_sync()
+        backup_to_telegram("Edited Bank: " + bank.bank_name)
+        flash('Bank Account Updated!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating bank: {str(e)}', 'danger')
     return redirect(url_for('main.manage_banks'))
 
 @main.route('/bank/delete/<int:id>', methods=['POST'])
@@ -3337,12 +3323,16 @@ def delete_bank(id):
         flash('Invalid Admin Password!', 'danger')
         return redirect(url_for('main.manage_banks'))
 
-    bank = Bank.query.get_or_404(id)
-    db.session.delete(bank)
-    db.session.commit()
-    trigger_excel_sync()
-    backup_to_telegram("Deleted Bank: " + bank.bank_name)
-    flash('Bank Account Deleted!', 'warning')
+    try:
+        bank = Bank.query.get_or_404(id)
+        db.session.delete(bank)
+        db.session.commit()
+        trigger_excel_sync()
+        backup_to_telegram("Deleted Bank: " + bank.bank_name)
+        flash('Bank Account Deleted!', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting bank: {str(e)}', 'danger')
     return redirect(url_for('main.manage_banks'))
 
 @main.route('/bank/<int:id>/ledger', methods=['GET', 'POST'])
@@ -3455,33 +3445,6 @@ def bank_ledger(id):
     return render_template('bank_ledger.html', bank=bank, transactions=transactions, 
                            start_date=start_date_str, end_date=end_date_str, categories=categories)
 
-def recompute_bank_balances(bank_id):
-    """
-    Recalculates the running balance for all transactions of a specific bank.
-    Sorts by Date (asc) and then ID (asc).
-    Handles mixed date formats (DD-MM-YYYY vs YYYY-MM-DD).
-    """
-    transactions = BankTransaction.query.filter_by(bank_id=bank_id).all()
-    
-    def parse_date(date_str):
-        # Prioritize DD-MM-YYYY
-        for fmt in ('%d-%m-%Y', '%Y-%m-%d'):
-            try:
-                return datetime.strptime(date_str, fmt)
-            except ValueError:
-                pass
-        return datetime.min
-
-    # Sort transactions (Oldest First for Calculation)
-    transactions.sort(key=lambda x: (parse_date(x.date), x.id))
-    
-    running_balance = 0.0
-    for tx in transactions:
-        running_balance += (tx.credit - tx.debit)
-        tx.balance = running_balance
-        
-    db.session.commit()
-
 @main.route('/bank/transaction/delete/<int:id>', methods=['POST'])
 def delete_bank_transaction(id):
     if not verify_password():
@@ -3552,9 +3515,10 @@ def manage_vouchers():
     search = request.args.get('search')
     
     if not start_date:
-        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+        start_date = ""
     if not end_date:
-        end_date = datetime.now().strftime('%Y-%m-%d')
+        end_date = ""
+
     
     query = Voucher.query
     if v_type:
@@ -3575,6 +3539,12 @@ def manage_vouchers():
 @main.route('/vouchers/add/<v_type>', methods=['GET', 'POST'])
 def add_voucher(v_type):
     if request.method == 'POST':
+        from telegram_utils import log_debug
+        log_debug(f"Voucher ADD attempt: {request.form.get('voucher_no')}")
+        if not verify_password():
+            flash('Invalid Admin Password!', 'danger')
+            return redirect(request.url)
+        
         voucher_no = request.form.get('voucher_no')
         date = request.form.get('date')
         party_id = request.form.get('party_id')
@@ -3591,41 +3561,51 @@ def add_voucher(v_type):
         due_amount = total_amount - amount_paid
         payment_percentage = (amount_paid / total_amount * 100) if total_amount > 0 else 0
         
-        v = Voucher(
-            voucher_no=voucher_no,
-            type=v_type,
-            date=date,
-            party_id=party_id if party_id else None,
-            customer_id=customer_id if customer_id else None,
-            description=description,
-            total_amount=total_amount,
-            amount_paid=amount_paid,
-            due_amount=due_amount,
-            payment_percentage=payment_percentage,
-            payment_method=payment_method,
-            bank_id=bank_id if bank_id else None,
-            category=category,
-            notes=notes,
-            debit_account_code=request.form.get('debit_account_code'),
-            credit_account_code=request.form.get('credit_account_code'),
-            is_payment=request.form.get('is_payment') == 'on'
-        )
-        
-        # Handle Attachment
-        file = request.files.get('attachment')
-        if file and file.filename:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-            v.attachment = filename
+        try:
+            v = Voucher(
+                voucher_no=voucher_no,
+                type=v_type,
+                date=date,
+                party_id=party_id if party_id else None,
+                customer_id=customer_id if customer_id else None,
+                description=description,
+                total_amount=total_amount,
+                amount_paid=amount_paid,
+                due_amount=due_amount,
+                payment_percentage=payment_percentage,
+                payment_method=payment_method,
+                bank_id=bank_id if bank_id else None,
+                category=category,
+                notes=notes,
+                debit_account_code=request.form.get('debit_account_code'),
+                credit_account_code=request.form.get('credit_account_code'),
+                is_payment=request.form.get('is_payment') == 'on'
+            )
             
-        db.session.add(v)
-        db.session.commit()
-        
-        # Process Financials
-        process_voucher_financials(v.id, action='add')
-        
-        backup_to_telegram(f"Added {v_type} Voucher: {voucher_no}")
-        flash(f'{v_type} Voucher added successfully!', 'success')
+            # Handle Attachment
+            file = request.files.get('attachment')
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                v.attachment = filename
+                
+            db.session.add(v)
+            db.session.commit()
+            
+            # Process Financials
+            success, msg = process_voucher_financials(v.id, action='add')
+            
+            backup_to_telegram(f"Added {v_type} Voucher: {voucher_no}")
+            if success:
+                flash(f'{v_type} Voucher added successfully!', 'success')
+            else:
+                flash(f'{v_type} Voucher added but accounting side-effects failed: {msg}', 'warning')
+        except Exception as e:
+            db.session.rollback()
+            from telegram_utils import log_debug
+            log_debug(f"Error adding voucher: {e}")
+            flash(f'Error adding voucher: {str(e)}', 'danger')
+            
         return redirect(url_for('main.manage_vouchers'))
         
     # GET request
@@ -3638,51 +3618,65 @@ def add_voucher(v_type):
     today_str = datetime.now().strftime('%Y-%m-%d')
     return render_template('voucher_form.html', v_type=v_type, suggested_no=suggested_no, 
                            parties=parties, banks=banks, categories=categories, customers=customers, 
-                           coa_accounts=coa_accounts, today_str=today_str)
+                           coa=coa_accounts, today_str=today_str)
 
 @main.route('/vouchers/edit/<int:id>', methods=['GET', 'POST'])
 def edit_voucher(id):
     v = Voucher.query.get_or_404(id)
     if request.method == 'POST':
-        v.voucher_no = request.form.get('voucher_no')
-        v.date = request.form.get('date')
-        v.party_id = request.form.get('party_id') if request.form.get('party_id') else None
-        v.customer_id = request.form.get('customer_id') if request.form.get('customer_id') else None
-        v.description = request.form.get('description')
-        v.total_amount = float(request.form.get('total_amount') or 0)
-        v.amount_paid = float(request.form.get('amount_paid') or 0)
-        v.category = request.form.get('category')
-        v.payment_method = request.form.get('payment_method')
-        v.bank_id = request.form.get('bank_id') if request.form.get('bank_id') else None
-        v.notes = request.form.get('notes')
-        v.is_payment = request.form.get('is_payment') == 'on'
-        
-        # Recalculate
-        v.due_amount = v.total_amount - v.amount_paid
-        v.payment_percentage = (v.amount_paid / v.total_amount * 100) if v.total_amount > 0 else 0
-        
-        # Handle Attachment
-        file = request.files.get('attachment')
-        if file and file.filename:
-            from image_utils import save_as_webp
-            filename = save_as_webp(file, current_app.config['UPLOAD_FOLDER'])
-            if filename:
-                v.attachment = filename
-                db.session.commit()
-        
-        # Re-process Financials
-        process_voucher_financials(v.id, action='edit')
-        
-        backup_to_telegram(f"Edited Voucher: {v.voucher_no}")
-        flash('Voucher updated successfully!', 'success')
+        from telegram_utils import log_debug
+        try:
+            v.voucher_no = request.form.get('voucher_no')
+            v.date = request.form.get('date')
+            v.party_id = request.form.get('party_id') if request.form.get('party_id') else None
+            v.customer_id = request.form.get('customer_id') if request.form.get('customer_id') else None
+            v.description = request.form.get('description')
+            v.total_amount = float(request.form.get('total_amount') or 0)
+            v.amount_paid = float(request.form.get('amount_paid') or 0)
+            v.category = request.form.get('category')
+            v.payment_method = request.form.get('payment_method')
+            v.bank_id = request.form.get('bank_id') if request.form.get('bank_id') else None
+            v.notes = request.form.get('notes')
+            v.is_payment = request.form.get('is_payment') == 'on'
+            
+            db.session.commit()
+            
+            # Recalculate
+            v.due_amount = v.total_amount - v.amount_paid
+            v.payment_percentage = (v.amount_paid / v.total_amount * 100) if v.total_amount > 0 else 0
+            
+            # Handle Attachment
+            file = request.files.get('attachment')
+            if file and file.filename:
+                from image_utils import save_as_webp
+                filename = save_as_webp(file, current_app.config['UPLOAD_FOLDER'])
+                if filename:
+                    v.attachment = filename
+                    db.session.commit()
+            
+            # Re-process Financials
+            success, msg = process_voucher_financials(v.id, action='edit')
+            
+            backup_to_telegram(f"Edited Voucher: {v.voucher_no}")
+            if success:
+                flash('Voucher updated successfully!', 'success')
+            else:
+                flash(f'Voucher updated but accounting side-effects failed: {msg}', 'warning')
+        except Exception as e:
+            db.session.rollback()
+            from telegram_utils import log_debug
+            log_debug(f"Error editing voucher: {e}")
+            flash(f'Error updating voucher: {str(e)}', 'danger')
+            
         return redirect(url_for('main.manage_vouchers'))
         
     parties = Party.query.order_by(Party.name).all()
     banks = Bank.query.filter_by(status='Active').all()
     categories = PettyCashCategory.query.order_by(PettyCashCategory.name).all()
     customers = Customer.query.order_by(Customer.name).all()
+    coa = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
     return render_template('voucher_form.html', v=v, v_type=v.type, 
-                           parties=parties, banks=banks, categories=categories, customers=customers)
+                           parties=parties, banks=banks, categories=categories, customers=customers, coa=coa)
 
 @main.route('/vouchers/delete/<int:id>', methods=['POST'])
 def delete_voucher(id):
@@ -3830,7 +3824,9 @@ def delete_contra_entry(id):
 @main.route('/accounting/coa')
 def manage_coa():
     accounts = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
-    return render_template('coa.html', accounts=accounts)
+    categories = db.session.query(ChartOfAccounts.account_category).distinct().all()
+    categories = [c[0] for c in categories if c[0]]
+    return render_template('coa.html', accounts=accounts, categories=categories)
 
 @main.route('/accounting/journal')
 def view_journal():
@@ -3891,27 +3887,80 @@ def report_balance_sheet():
 
 @main.route('/accounting/coa/add', methods=['POST'])
 def add_coa_account():
-    if not verify_password():
-        flash('Invalid Admin Password!', 'danger')
-        return redirect(url_for('main.manage_coa'))
-        
+    from sqlalchemy.exc import IntegrityError
     code = request.form.get('account_code')
     name = request.form.get('account_name')
     a_type = request.form.get('account_type')
     cat = request.form.get('account_category')
     bal = request.form.get('normal_balance')
     
-    new_acc = ChartOfAccounts(
-        account_code=code,
-        account_name=name,
-        account_type=a_type,
-        account_category=cat,
-        normal_balance=bal,
-        is_system=False
-    )
-    db.session.add(new_acc)
+    if not code or not name:
+        flash('Account code and name are required.', 'danger')
+        return redirect(url_for('main.manage_coa'))
+
+    # Check for existing code
+    existing = ChartOfAccounts.query.get(code)
+    if existing:
+        flash(f'Account code {code} already exists ({existing.account_name}). Please use a unique code.', 'danger')
+        return redirect(url_for('main.manage_coa'))
+    
+    try:
+        new_acc = ChartOfAccounts(
+            account_code=code,
+            account_name=name,
+            account_type=a_type,
+            account_category=cat,
+            normal_balance=bal,
+            is_system=False
+        )
+        db.session.add(new_acc)
+        db.session.commit()
+        flash(f'Account {code} - {name} added successfully!', 'success')
+    except IntegrityError:
+        db.session.rollback()
+        flash(f'Error: Account code {code} already exists.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An error occurred: {str(e)}', 'danger')
+        
+    return redirect(url_for('main.manage_coa'))
+
+@main.route('/accounting/coa/edit/<string:code>', methods=['POST'])
+def edit_coa_account(code):
+    acc = ChartOfAccounts.query.get_or_404(code)
+    if acc.is_system:
+        flash('System accounts cannot be modified.', 'danger')
+        return redirect(url_for('main.manage_coa'))
+        
+    try:
+        acc.account_name = request.form.get('account_name')
+        acc.account_type = request.form.get('account_type')
+        acc.account_category = request.form.get('account_category')
+        acc.normal_balance = request.form.get('normal_balance')
+        
+        db.session.commit()
+        flash('Account updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating account: {str(e)}', 'danger')
+        
+    return redirect(url_for('main.manage_coa'))
+
+@main.route('/accounting/coa/delete/<string:code>', methods=['POST'])
+def delete_coa_account(code):
+    acc = ChartOfAccounts.query.get_or_404(code)
+    if acc.is_system:
+        flash('System accounts cannot be deleted.', 'danger')
+        return redirect(url_for('main.manage_coa'))
+        
+    # Check if account has journal entries
+    if acc.journal_lines:
+        flash('Cannot delete account with existing transactions. Please reverse transactions first.', 'danger')
+        return redirect(url_for('main.manage_coa'))
+        
+    db.session.delete(acc)
     db.session.commit()
-    flash('Account added to COA.', 'success')
+    flash('Account deleted successfully!', 'warning')
     return redirect(url_for('main.manage_coa'))
 
 @main.route('/reports')
@@ -4335,6 +4384,10 @@ def clear_logs():
 @main.route('/ai_assistant')
 def ai_assistant():
     return render_template('ai_assistant.html')
+
+@main.route('/help')
+def help_page():
+    return render_template('help.html')
 
 @main.route('/favicon.ico')
 def favicon():

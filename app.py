@@ -153,13 +153,15 @@ def create_app():
         company_address = os.environ.get('COMPANY_ADDRESS', '')
         return dict(global_company_name=company_name, global_company_address=company_address)
 
-    import threading
-    sync_thread = threading.Thread(target=run_startup_sync, args=(app, logger, db_path))
-    sync_thread.daemon = True
-    sync_thread.start()
+    # Startup Sync & DB Check (Run once, even with reloader)
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+        import threading
+        sync_thread = threading.Thread(target=run_startup_sync, args=(app, logger, db_path))
+        sync_thread.daemon = True
+        sync_thread.start()
     
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(host='127.0.0.1', port=5001, use_reloader=True)
+    app.run(host='127.0.0.1', port=5001, debug=True, use_reloader=True)

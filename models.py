@@ -42,6 +42,7 @@ class JournalEntry(db.Model):
     is_posted = db.Column(db.Boolean, default=True)
     is_reversed = db.Column(db.Boolean, default=False)
     reversal_entry_id = db.Column(db.Integer, db.ForeignKey('journal_entry.id'), nullable=True)
+    voucher_id = db.Column(db.Integer, db.ForeignKey('voucher.id'), nullable=True)
     
     lines = db.relationship('JournalLine', backref='entry', lazy=True, cascade="all, delete-orphan")
 
@@ -67,9 +68,9 @@ class Director(db.Model):
     
     # Financials
     # Financials
-    total_share = db.Column(db.Float, default=0.0)
-    per_share_value = db.Column(db.Float, default=0.0)
-    fair_cost = db.Column(db.Float, default=0.0)
+    total_share = db.Column(Numeric(18, 2), default=0.0)
+    per_share_value = db.Column(Numeric(18, 2), default=0.0)
+    fair_cost = db.Column(Numeric(18, 2), default=0.0)
     land_value_extra_share = db.Column(Numeric(18, 2), default=0.0)
     
     total_paid = db.Column(Numeric(18, 2), default=0.0)
@@ -81,8 +82,8 @@ class Director(db.Model):
     @property
     def available_shares(self):
         from decimal import Decimal
-        assigned_shares = sum(Decimal(str(c.shares)) for c in self.customers)
-        return float(Decimal(str(self.total_share)) - assigned_shares)
+        assigned_shares = sum(Decimal(str(c.shares or 0)) for c in self.customers)
+        return Decimal(str(self.total_share or 0)) - assigned_shares
 
 
 class Customer(db.Model):
@@ -120,7 +121,7 @@ Director.customers = db.relationship('Customer', backref='director', lazy=True, 
 class Installment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False) # e.g. "Piling Installment"
-    amount_per_share = db.Column(db.Float, nullable=False)
+    amount_per_share = db.Column(Numeric(18, 2), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     customer_installments = db.relationship('CustomerInstallment', backref='installment', lazy=True, cascade="all, delete-orphan")
@@ -143,25 +144,32 @@ class CustomerInstallment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
     installment_id = db.Column(db.Integer, db.ForeignKey('installment.id'), nullable=False)
-    total_amount = db.Column(db.Float, default=0.0) # Calculated: shares * amount_per_share
-    paid_amount = db.Column(db.Float, default=0.0)
-    due_amount = db.Column(db.Float, default=0.0) # Calculated: total_amount - paid_amount
+    total_amount = db.Column(Numeric(18, 2), default=0.0) # Calculated: shares * amount_per_share
+    paid_amount = db.Column(Numeric(18, 2), default=0.0)
+    due_amount = db.Column(Numeric(18, 2), default=0.0) # Calculated: total_amount - paid_amount
     
     transactions = db.relationship('Transaction', backref='customer_installment', lazy=True)
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.String(20), nullable=False)
-    amount = db.Column(db.Float, default=0.0)
+    amount = db.Column(Numeric(18, 2), default=0.0)
     installment_type = db.Column(db.String(50)) # Full, Part, Booking, Installment Name, etc.
     bank_name = db.Column(db.String(100))
     transaction_id = db.Column(db.String(100))
     remarks = db.Column(db.Text)
+    payment_method = db.Column(db.String(50))
     images = db.Column(db.Text) # Comma-separated paths
     
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
     customer_installment_id = db.Column(db.Integer, db.ForeignKey('customer_installment.id'), nullable=True)
+    voucher_id = db.Column(db.Integer, db.ForeignKey('voucher.id'), nullable=True)
+    bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships for automated cleanup
+    petty_cash_entries = db.relationship('PettyCash', backref='customer_transaction', lazy=True, cascade="all, delete-orphan")
+    bank_entries = db.relationship('BankTransaction', backref='customer_transaction', lazy=True, cascade="all, delete-orphan")
 
 class PettyCashCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -179,12 +187,13 @@ class PettyCash(db.Model):
     description = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(50), nullable=False)
     type = db.Column(db.String(20), nullable=False) # 'Income' or 'Expense'
-    amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(Numeric(18, 2), nullable=False)
     images = db.Column(db.Text) # Comma-separated filenames
     
     # Financial Integration
     voucher_id = db.Column(db.Integer, db.ForeignKey('voucher.id'), nullable=True)
     contra_entry_id = db.Column(db.Integer, db.ForeignKey('contra_entry.id'), nullable=True)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'), nullable=True)
     
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -245,6 +254,7 @@ class BankTransaction(db.Model):
     # Financial Integration
     voucher_id = db.Column(db.Integer, db.ForeignKey('voucher.id'), nullable=True)
     contra_entry_id = db.Column(db.Integer, db.ForeignKey('contra_entry.id'), nullable=True)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'), nullable=True)
     category = db.Column(db.String(100), nullable=True) # Added for categorizing bank movements
     
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -287,8 +297,8 @@ class Party(db.Model):
         ).filter(PartyLedger.party_id == self.id).first()
         
         from decimal import Decimal
-        bill_sum = results[0] or Decimal('0.00')
-        paid_sum = results[1] or Decimal('0.00')
+        bill_sum = Decimal(str(results[0] or 0))
+        paid_sum = Decimal(str(results[1] or 0))
         return bill_sum - paid_sum
 
 class PartyLedger(db.Model):
@@ -439,7 +449,7 @@ class Salary(db.Model):
     month = db.Column(db.String(20), nullable=False) # e.g. '03'
     year = db.Column(db.String(20), nullable=False) # e.g. '2026'
     
-    net_salary = db.Column(db.Float, default=0.0)
+    net_salary = db.Column(Numeric(18, 2), default=0.0)
     working_days = db.Column(db.Integer, default=0)
     present_days = db.Column(db.Integer, default=0)
     absent_days = db.Column(db.Integer, default=0)

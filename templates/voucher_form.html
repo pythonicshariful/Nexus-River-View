@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div class="card-body p-4 p-md-5">
-                <form method="POST" enctype="multipart/form-data" id="voucherForm">
+                <form method="POST" enctype="multipart/form-data" id="voucherForm" onsubmit="return confirmAction(event, 'voucherForm')">
                     <div class="row g-4">
                         <!-- Basic Info -->
                         <div class="col-md-6">
@@ -67,20 +67,20 @@
                         </div>
 
                         <!-- Double Entry Account Selectors -->
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="debitAccountContainer">
                             <label class="form-label small fw-bold text-muted">Debit Account</label>
-                            <select name="debit_account_code" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" required>
+                            <select name="debit_account_code" id="debitAccountSelect" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" required>
                                 <option value="">Select Debit Account</option>
-                                {% for acc in coa_accounts %}
+                                {% for acc in coa %}
                                 <option value="{{ acc.account_code }}" {% if v and v.debit_account_code == acc.account_code %}selected{% endif %}>[{{ acc.account_code }}] {{ acc.account_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="creditAccountContainer">
                             <label class="form-label small fw-bold text-muted">Credit Account</label>
-                            <select name="credit_account_code" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" required>
+                            <select name="credit_account_code" id="creditAccountSelect" class="form-select rounded-pill px-3 bg-light border-0 shadow-none" required>
                                 <option value="">Select Credit Account</option>
-                                {% for acc in coa_accounts %}
+                                {% for acc in coa %}
                                 <option value="{{ acc.account_code }}" {% if v and v.credit_account_code == acc.account_code %}selected{% endif %}>[{{ acc.account_code }}] {{ acc.account_name }}</option>
                                 {% endfor %}
                             </select>
@@ -183,6 +183,7 @@
                             </div>
                         </div>
 
+
                         <div class="col-12 mt-4">
                             <button type="submit" class="btn {% if v_type == 'Debit' %}btn-danger{% else %}btn-success{% endif %} btn-lg rounded-pill px-5 shadow-lg w-100">
                                 <i class="fas fa-save me-2"></i> Save {{ v_type }} Voucher
@@ -214,6 +215,12 @@
         const methodBank = document.getElementById('methodBank');
         const methodCash = document.getElementById('methodCash');
         const bankSelection = document.getElementById('bankSelection');
+        
+        const debitAccountSelect = document.getElementById('debitAccountSelect');
+        const creditAccountSelect = document.getElementById('creditAccountSelect');
+        const debitAccountContainer = document.getElementById('debitAccountContainer');
+        const creditAccountContainer = document.getElementById('creditAccountContainer');
+        const vType = "{{ v_type }}"; // 'Debit' or 'Credit'
 
         function calculate() {
             const total = parseFloat(totalInput.value) || 0;
@@ -299,9 +306,49 @@
         });
 
         // Payment Method Toggling
+        function updateAccountAutofill() {
+            const isBank = methodBank.checked;
+            const isCash = methodCash.checked;
+            const cashAcc = '1010';
+            const bankAcc = '1020';
+            
+            if (vType === 'Debit') {
+                if (isCash) {
+                    creditAccountSelect.value = cashAcc;
+                    creditAccountContainer.style.display = 'none';
+                } else if (isBank) {
+                    creditAccountSelect.value = bankAcc;
+                    creditAccountContainer.style.display = 'none';
+                } else {
+                    creditAccountContainer.style.display = 'block';
+                }
+                debitAccountContainer.style.display = 'block';
+            } else {
+                if (isCash) {
+                    debitAccountSelect.value = cashAcc;
+                    debitAccountContainer.style.display = 'none';
+                } else if (isBank) {
+                    debitAccountSelect.value = bankAcc;
+                    debitAccountContainer.style.display = 'none';
+                } else {
+                    debitAccountContainer.style.display = 'block';
+                }
+                creditAccountContainer.style.display = 'block';
+            }
+        }
+
         function toggleBank() {
-            if (methodBank.checked) bankSelection.style.display = 'block';
-            else bankSelection.style.display = 'none';
+            if (methodBank.checked) {
+                bankSelection.style.display = 'block';
+                if (bankSelection.querySelector('select')) bankSelection.querySelector('select').required = true;
+            } else {
+                bankSelection.style.display = 'none';
+                if (bankSelection.querySelector('select')) {
+                    bankSelection.querySelector('select').required = false;
+                    bankSelection.querySelector('select').value = '';
+                }
+            }
+            updateAccountAutofill();
         }
         methodBank.addEventListener('change', toggleBank);
         methodCash.addEventListener('change', toggleBank);

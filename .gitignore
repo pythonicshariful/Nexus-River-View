@@ -1,41 +1,57 @@
-# Environment & secrets
-.env
-admin_config.json
-credentials.json
-
-# Databases
-*.db
-*.db-shm
-*.db-wal
-
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.pyo
-venv/
-.venv/
-*.egg-info/
-dist/
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Uploads & data
-uploads/
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.bak
 C:/NRV/
-nexus_backup_*.db
 
-# Logs
-*.log
+# Flask stuff:
+instance/
+.webassets-cache
 
-# IDE
-.vscode/
-.idea/
-
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-
-
-#pyinstallerfile
-dist
-build
-.spec
+test_*.py

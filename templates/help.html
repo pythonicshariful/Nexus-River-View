@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-dark-blue display-4">How can we help?</h1>
+                <p class="text-muted lead">Your guide to mastering the Nexus River View ERP system.</p>
+            </div>
+
+            <!-- Search Bar (Visual only for now) -->
+            <div class="mb-5">
+                <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden">
+                    <span class="input-group-text bg-white border-0 ps-4"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-0 py-3" placeholder="Search for answers...">
+                    <button class="btn btn-primary px-4">Search</button>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <a href="{{ url_for('main.manage_vouchers') }}" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                            <div class="display-6 text-primary mb-3"><i class="fas fa-file-invoice-dollar"></i></div>
+                            <h5 class="fw-bold text-dark">Vouchers</h5>
+                            <p class="small text-muted">Learn how to create Debit, Credit, and Contra vouchers.</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ url_for('main.manage_employees') }}" class="text-decoration-none"> <!-- Changed to Employees or Customers as appropriate -->
+                        <div class="card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                            <div class="display-6 text-success mb-3"><i class="fas fa-users"></i></div>
+                            <h5 class="fw-bold text-dark">Management</h5>
+                            <p class="small text-muted">Manage customers, plots, installments, and employees.</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ url_for('main.reports_dashboard') }}" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-100 text-center p-4 hover-lift">
+                            <div class="display-6 text-warning mb-3"><i class="fas fa-calculator"></i></div>
+                            <h5 class="fw-bold text-dark">Accounting</h5>
+                            <p class="small text-muted">Understand Trial Balance, P&L, and Journal Register.</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- FAQ Accordion -->
+            <div class="glass-card p-4 border-0 shadow-sm rounded-4">
+                <h3 class="fw-bold mb-4"><i class="fas fa-question-circle me-2 text-primary"></i>Frequently Asked Questions</h3>
+                
+                <div class="accordion accordion-flush" id="faqAccordion">
+                    
+                    <!-- Voucher Entry -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                How do I enter a transaction (Voucher)?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                1. Go to <strong>Accounting</strong> &gt; <strong>Vouchers</strong> from the sidebar.<br>
+                                2. Click <strong>Add Debit Voucher</strong> for payments (Money OUT) or <strong>Add Credit Voucher</strong> for receipts (Money IN).<br>
+                                3. Select the <strong>Payment Method</strong> (Cash or Bank).<br>
+                                4. Select the <strong>Accounts</strong> (Debit/Credit side). For example, if paying a bill, Debit the Expense and Credit Cash/Bank.<br>
+                                5. Enter the amount and click <strong>Save</strong>. The system automatically updates your Ledger, Journal, and Cash/Bank balances.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Sync -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Does bank money update automatically?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                Yes! When you select <strong>Bank</strong> as your payment method in a Voucher or Contra entry, the system instantly debits or credits your selected bank account. 
+                                <br><br>
+                                <i class="fas fa-info-circle text-info me-1"></i> <strong>Pro Tip:</strong> You can check your current balance anytime in the <strong>Bank Ledger</strong> section.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Installments -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                How to record a customer payment?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                1. Find the customer in <strong>Management</strong> &gt; <strong>All Customers</strong>.<br>
+                                2. Click <strong>Add Payment</strong>.<br>
+                                3. Enter the amount, date, and payment method.<br>
+                                4. If the payment is through a bank, select the bank and enter the cheque/ref number.<br>
+                                5. The system will automatically update the customer's due balance and the company's total collection.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contra Entry -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                What is a Contra Entry?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                A <strong>Contra Entry</strong> is used for internal fund transfers that do not affect the profit/loss of the company. 
+                                Common examples include:
+                                <ul class="mb-0">
+                                    <li>Depositing Cash into a Bank account.</li>
+                                    <li>Withdrawing Cash from a Bank account.</li>
+                                    <li>Transferring funds between two Bank accounts.</li>
+                                </ul>
+                                Access this via <strong>Accounting</strong> &gt; <strong>Contra Entries</strong>.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                Where can I see my company's financial status?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                Visit the <strong>Reports Dashboard</strong> for a bird's eye view. 
+                                For detailed auditing, check the <strong>Trial Balance</strong> (to ensure accounting parity), 
+                                the <strong>Profit & Loss Statement</strong> (to see income vs expenses), 
+                                and the <strong>Balance Sheet</strong> (for assets and liabilities).
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Salary & Payroll -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                                How do I manage Employee Salaries?
+                            </button>
+                        </h2>
+                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                1. Go to <strong>Management</strong> &gt; <strong>Employees</strong> to add staff.<br>
+                                2. In <strong>Payroll</strong> &gt; <strong>Salary Sheet</strong>, you can generate the monthly salary sheet for all employees.<br>
+                                3. Once generated, click <strong>Mark Paid</strong> on individual entries to record the payment and update the cash/bank accounts automatically.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart of Accounts -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                                Can I add new accounting categories?
+                            </button>
+                        </h2>
+                        <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                Yes. Go to <strong>Accounting</strong> &gt; <strong>Chart of Accounts</strong>. 
+                                Here you can add new accounts for specific expenses, assets, or liabilities. 
+                                <br><br>
+                                <i class="fas fa-exclamation-triangle text-warning me-1"></i> <strong>Note:</strong> System accounts (like Cash and Bank) are locked to ensure the software's core logic remains stable.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Backup -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                                How do I backup my data?
+                            </button>
+                        </h2>
+                        <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                Security is our priority. You can manually backup your database by clicking the <strong>Cloud Upload</strong> icon in the top right menu. This will send a secure copy of your database to your registered Telegram channel. 
+                                <br><br>
+                                Additionally, the system performs an automatic sync to Excel every time you save a transaction.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Assistant -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm rounded-3 overflow-hidden">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq9">
+                                How to use the AI Assistant?
+                            </button>
+                        </h2>
+                        <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted lh-lg">
+                                Click the <strong>Robot Icon</strong> in the sidebar. You can ask the AI questions like "What is the total due from customers?" or "Give me a summary of last month's expenses." 
+                                The AI has read-only access to your database and can provide instant insights in both English and Bengali.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Contact Support -->
+            <div class="mt-5 text-center">
+                <p class="text-muted">Still have questions?</p>
+                <a href="mailto:support@nexusriverview.com" class="btn btn-outline-primary px-5 rounded-pill">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        color: var(--bs-primary);
+    }
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
+</style>
+{% endblock %}
