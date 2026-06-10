@@ -76,8 +76,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% set total_in = [0.0] %}
-                    {% set total_out = [0.0] %}
+                    {% set total_in = [0] %}
+                    {% set total_out = [0] %}
                     {% for item in results.transactions %}
                         {% if item.type == 'Income' %}
                             {% if total_in.append(total_in.pop() + item.amount) %}{% endif %}
