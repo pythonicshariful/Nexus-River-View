@@ -1360,8 +1360,13 @@ def get_daily_cash_report(target_date):
     cash_out_today = db.session.query(func.sum(PettyCash.amount)).filter(PettyCash.date <= target_date, PettyCash.type == 'Expense').scalar() or 0
     today_cash = Decimal(str(cash_in_today)) - Decimal(str(cash_out_today))
     
-    # 3. Bank Balances
-    # We must sort using the same logic as recompute_bank_balances to handle mixed date formats
+    # 3. Bank Balances — computed from credit/debit sums to avoid stale stored balance column
+    from decimal import Decimal
+    target_date_obj = datetime.strptime(target_date, "%Y-%m-%d").date()
+    banks = Bank.query.all()
+    prev_bank = Decimal('0.00')
+    today_bank = Decimal('0.00')
+
     def parse_tx_date(date_str):
         for fmt in ('%d-%m-%Y', '%Y-%m-%d'):
             try:
@@ -1370,29 +1375,22 @@ def get_daily_cash_report(target_date):
                 pass
         return datetime.min.date()
 
-    from decimal import Decimal
-    target_date_obj = datetime.strptime(target_date, "%Y-%m-%d").date()
-    banks = Bank.query.all()
-    prev_bank = Decimal('0.00')
-    today_bank = Decimal('0.00')
-    
     for b in banks:
         all_tx = BankTransaction.query.filter_by(bank_id=b.id).all()
-        # Sort transactions: Date (asc), then ID (asc)
-        sorted_tx = sorted(all_tx, key=lambda x: (parse_tx_date(x.date), x.id))
-        
+
         bank_prev = Decimal('0.00')
         bank_today = Decimal('0.00')
-        
-        for tx in sorted_tx:
+
+        for tx in all_tx:
             tx_date = parse_tx_date(tx.date)
+            credit = Decimal(str(tx.credit or 0))
+            debit = Decimal(str(tx.debit or 0))
+            net = credit - debit
             if tx_date < target_date_obj:
-                bank_prev = tx.balance or Decimal('0.00')
+                bank_prev += net
             if tx_date <= target_date_obj:
-                bank_today = tx.balance or Decimal('0.00')
-            else:
-                break
-                
+                bank_today += net
+
         prev_bank += bank_prev
         today_bank += bank_today
             
