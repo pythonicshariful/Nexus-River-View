@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h3 class="fw-bold text-dark-blue mb-0">
+            <i class="fas fa-calendar-alt me-2 text-primary"></i>Monthly Cash & Bank Flow
+        </h3>
+        <p class="text-muted small mt-1 mb-0">Consolidated overview of all money in and out per month.</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('main.export_monthly_in_out_report') }}" class="btn btn-success shadow-sm rounded-3">
+            <i class="fas fa-file-excel me-2"></i>Export to Excel
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4 py-3">Month</th>
+                        <th class="text-end">Cash In</th>
+                        <th class="text-end">Bank In</th>
+                        <th class="text-end fw-bold text-success">Total In</th>
+                        <th class="text-end border-start">Cash Out</th>
+                        <th class="text-end">Bank Out</th>
+                        <th class="text-end fw-bold text-danger">Total Out</th>
+                        <th class="text-end pe-4 border-start">Net Flow</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if report_data %}
+                        {% for row in report_data %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ row.month }}</td>
+                            <td class="text-end">৳{{ "{:,.2f}".format(row.cash_in) }}</td>
+                            <td class="text-end">৳{{ "{:,.2f}".format(row.bank_in) }}</td>
+                            <td class="text-end fw-bold text-success">৳{{ "{:,.2f}".format(row.total_in) }}</td>
+                            <td class="text-end border-start">৳{{ "{:,.2f}".format(row.cash_out) }}</td>
+                            <td class="text-end">৳{{ "{:,.2f}".format(row.bank_out) }}</td>
+                            <td class="text-end fw-bold text-danger">৳{{ "{:,.2f}".format(row.total_out) }}</td>
+                            <td class="text-end pe-4 fw-bold border-start {% if row.net_flow > 0 %}text-success{% elif row.net_flow < 0 %}text-danger{% endif %}">
+                                ৳{{ "{:,.2f}".format(row.net_flow) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">No data available.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

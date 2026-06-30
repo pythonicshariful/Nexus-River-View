@@ -1,0 +1,229 @@
+2026-06-27 15:07:04,584 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-27 15:07:06,212 - INFO - Database tables verified/created.
+2026-06-27 15:07:06,295 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-06-27 15:07:06,297 - INFO - [33mPress CTRL+C to quit[0m
+2026-06-27 15:07:06,311 - INFO -  * Restarting with stat
+2026-06-27 15:07:06,394 - INFO - Chart of Accounts seeded.
+2026-06-27 15:07:06,558 - INFO - Default admin user created.
+2026-06-27 15:07:06,559 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-27 15:07:08,716 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-27 15:07:09,298 - WARNING -  * Debugger is active!
+2026-06-27 15:07:09,300 - INFO - Database tables verified/created.
+2026-06-27 15:07:09,356 - INFO -  * Debugger PIN: 113-660-391
+2026-06-27 15:07:09,449 - INFO - Chart of Accounts seeded.
+2026-06-27 15:07:09,452 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-27 15:07:15,236 - WARNING - Sync Mismatch Detected: ['Row count mismatch in director: DB=0, Sheets=19', 'Row count mismatch in customer: DB=0, Sheets=29', 'Row count mismatch in transaction: DB=0, Sheets=33', 'Row count mismatch in petty_cash: DB=0, Sheets=71', 'Row count mismatch in bank: DB=0, Sheets=1', 'Row count mismatch in bank_transaction: DB=0, Sheets=51', 'Row count mismatch in installment: DB=0, Sheets=1', 'Row count mismatch in customer_installment: DB=0, Sheets=29', 'Row count mismatch in party: DB=0, Sheets=6', 'Row count mismatch in party_ledger: DB=0, Sheets=29', 'Row count mismatch in voucher: DB=0, Sheets=20', 'Row count mismatch in party_category: DB=0, Sheets=4', 'Row count mismatch in employee: DB=0, Sheets=7', 'Row count mismatch in attendance: DB=0, Sheets=172', 'Row count mismatch in leave: DB=0, Sheets=5', 'Row count mismatch in salary: DB=0, Sheets=7']
+2026-06-27 15:07:17,014 - WARNING - Sync Mismatch Detected: ['Row count mismatch in director: DB=0, Sheets=19', 'Row count mismatch in customer: DB=0, Sheets=29', 'Row count mismatch in transaction: DB=0, Sheets=33', 'Row count mismatch in petty_cash: DB=0, Sheets=71', 'Row count mismatch in bank: DB=0, Sheets=1', 'Row count mismatch in bank_transaction: DB=0, Sheets=51', 'Row count mismatch in installment: DB=0, Sheets=1', 'Row count mismatch in customer_installment: DB=0, Sheets=29', 'Row count mismatch in party: DB=0, Sheets=6', 'Row count mismatch in party_ledger: DB=0, Sheets=29', 'Row count mismatch in voucher: DB=0, Sheets=20', 'Row count mismatch in party_category: DB=0, Sheets=4', 'Row count mismatch in employee: DB=0, Sheets=7', 'Row count mismatch in attendance: DB=0, Sheets=172', 'Row count mismatch in leave: DB=0, Sheets=5', 'Row count mismatch in salary: DB=0, Sheets=7']
+2026-06-27 15:07:32,739 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:32] "[32mGET /installments HTTP/1.1[0m" 302 -
+2026-06-27 15:07:33,075 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:33] "GET /login HTTP/1.1" 200 -
+2026-06-27 15:07:33,281 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:33] "GET /static/images/login_bg.png HTTP/1.1" 200 -
+2026-06-27 15:07:33,387 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:33] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-06-27 15:07:42,336 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:42] "POST /login HTTP/1.1" 200 -
+2026-06-27 15:07:42,366 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:42] "[36mGET /static/images/login_bg.png HTTP/1.1[0m" 304 -
+2026-06-27 15:07:48,867 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:48] "POST /login HTTP/1.1" 200 -
+2026-06-27 15:07:48,894 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:48] "[36mGET /static/images/login_bg.png HTTP/1.1[0m" 304 -
+2026-06-27 15:07:58,116 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:58] "POST /login HTTP/1.1" 200 -
+2026-06-27 15:07:58,147 - INFO - 127.0.0.1 - - [27/Jun/2026 15:07:58] "[36mGET /static/images/login_bg.png HTTP/1.1[0m" 304 -
+2026-06-27 15:08:08,993 - INFO - 127.0.0.1 - - [27/Jun/2026 15:08:08] "POST /login HTTP/1.1" 200 -
+2026-06-27 15:08:09,023 - INFO - 127.0.0.1 - - [27/Jun/2026 15:08:09] "[36mGET /static/images/login_bg.png HTTP/1.1[0m" 304 -
+2026-06-27 15:09:15,530 - INFO - 127.0.0.1 - - [27/Jun/2026 15:09:15] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-06-27 15:09:16,181 - INFO - 127.0.0.1 - - [27/Jun/2026 15:09:16] "GET / HTTP/1.1" 200 -
+2026-06-27 15:09:16,300 - INFO - 127.0.0.1 - - [27/Jun/2026 15:09:16] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-06-27 15:10:23,770 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-27 15:10:24,642 - INFO - Database tables verified/created.
+2026-06-27 15:10:24,754 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-06-27 15:10:24,755 - INFO - [33mPress CTRL+C to quit[0m
+2026-06-27 15:10:24,761 - INFO -  * Restarting with stat
+2026-06-27 15:10:24,788 - INFO - Chart of Accounts seeded.
+2026-06-27 15:10:24,792 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-27 15:10:27,280 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-27 15:10:27,869 - WARNING -  * Debugger is active!
+2026-06-27 15:10:27,870 - INFO - Database tables verified/created.
+2026-06-27 15:10:27,933 - INFO -  * Debugger PIN: 113-660-391
+2026-06-27 15:10:28,062 - INFO - Chart of Accounts seeded.
+2026-06-27 15:10:28,069 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-27 15:10:32,115 - INFO - 127.0.0.1 - - [27/Jun/2026 15:10:32] "GET / HTTP/1.1" 200 -
+2026-06-27 15:10:32,367 - INFO - 127.0.0.1 - - [27/Jun/2026 15:10:32] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:10:32,513 - WARNING - Sync Mismatch Detected: ['Row count mismatch in director: DB=19, Sheets=0', 'Row count mismatch in customer: DB=32, Sheets=0', 'Row count mismatch in transaction: DB=37, Sheets=0', 'Row count mismatch in petty_cash: DB=91, Sheets=0', 'Row count mismatch in bank: DB=1, Sheets=0', 'Row count mismatch in bank_transaction: DB=60, Sheets=0', 'Row count mismatch in installment: DB=1, Sheets=0', 'Row count mismatch in customer_installment: DB=32, Sheets=0', 'Row count mismatch in party: DB=9, Sheets=0', 'Row count mismatch in party_ledger: DB=49, Sheets=0', 'Row count mismatch in voucher: DB=40, Sheets=0', 'Row count mismatch in party_category: DB=4, Sheets=0', 'Row count mismatch in employee: DB=7, Sheets=0', 'Row count mismatch in attendance: DB=380, Sheets=0', 'Row count mismatch in leave: DB=12, Sheets=0', 'Row count mismatch in salary: DB=21, Sheets=0']
+2026-06-27 15:10:35,736 - WARNING - Sync Mismatch Detected: ['Row count mismatch in director: DB=19, Sheets=0', 'Row count mismatch in customer: DB=32, Sheets=0', 'Row count mismatch in transaction: DB=37, Sheets=0', 'Row count mismatch in petty_cash: DB=91, Sheets=0', 'Row count mismatch in bank: DB=1, Sheets=0', 'Row count mismatch in bank_transaction: DB=60, Sheets=0', 'Row count mismatch in installment: DB=1, Sheets=0', 'Row count mismatch in customer_installment: DB=32, Sheets=0', 'Row count mismatch in party: DB=9, Sheets=0', 'Row count mismatch in party_ledger: DB=49, Sheets=0', 'Row count mismatch in voucher: DB=40, Sheets=0', 'Row count mismatch in party_category: DB=4, Sheets=0', 'Row count mismatch in employee: DB=7, Sheets=0', 'Row count mismatch in attendance: DB=380, Sheets=0', 'Row count mismatch in leave: DB=12, Sheets=0', 'Row count mismatch in salary: DB=21, Sheets=0']
+2026-06-27 15:10:50,794 - INFO - 127.0.0.1 - - [27/Jun/2026 15:10:50] "GET /reports HTTP/1.1" 200 -
+2026-06-27 15:10:50,813 - INFO - 127.0.0.1 - - [27/Jun/2026 15:10:50] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:10:54,647 - INFO - 127.0.0.1 - - [27/Jun/2026 15:10:54] "GET /report/monthly-flow HTTP/1.1" 200 -
+2026-06-27 15:10:54,664 - INFO - 127.0.0.1 - - [27/Jun/2026 15:10:54] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:13,062 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:13] "GET /reports HTTP/1.1" 200 -
+2026-06-27 15:11:13,079 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:13] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:18,865 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:18] "GET /parties HTTP/1.1" 200 -
+2026-06-27 15:11:18,878 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:18] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:21,080 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:21] "GET /vouchers/add/Credit HTTP/1.1" 200 -
+2026-06-27 15:11:21,097 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:21] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:21,777 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:21] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-06-27 15:11:21,791 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:21] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:23,667 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:23] "GET /vouchers/add/Credit HTTP/1.1" 200 -
+2026-06-27 15:11:23,688 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:23] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:25,409 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "GET /contra HTTP/1.1" 200 -
+2026-06-27 15:11:25,423 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:25,457 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[33mGET /uploads/Untitled_design_19_20260510_155657_966119.webp HTTP/1.1[0m" 404 -
+2026-06-27 15:11:25,461 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[33mGET /uploads/WhatsApp_Image_2026-04-13_at_12.18.07_PM_20260413_162708_143456.webp HTTP/1.1[0m" 404 -
+2026-06-27 15:11:25,465 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[33mGET /uploads/WhatsApp_Image_2026-04-08_at_5.34.04_PM_20260408_174501_566640.webp HTTP/1.1[0m" 404 -
+2026-06-27 15:11:25,466 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[33mGET /uploads/WhatsApp_Image_2026-04-13_at_12.18.06_PM_20260413_162612_364032.webp HTTP/1.1[0m" 404 -
+2026-06-27 15:11:25,470 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[33mGET /uploads/WhatsApp_Image_2026-04-08_at_5.35.52_PM_20260408_174959_670350.webp HTTP/1.1[0m" 404 -
+2026-06-27 15:11:25,474 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[33mGET /uploads/WhatsApp_Image_2026-04-08_at_5.27.51_PM_20260408_173216_126640.webp HTTP/1.1[0m" 404 -
+2026-06-27 15:11:25,482 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:25] "[33mGET /uploads/WhatsApp_Image_2026-04-07_at_1.21.57_PM_20260407_152955_795092.webp HTTP/1.1[0m" 404 -
+2026-06-27 15:11:26,533 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:26] "GET /petty_cash HTTP/1.1" 200 -
+2026-06-27 15:11:26,552 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:26] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-27 15:11:29,474 - INFO - 127.0.0.1 - - [27/Jun/2026 15:11:29] "GET /petty_cash/export HTTP/1.1" 200 -
+2026-06-30 12:36:53,870 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-30 12:36:55,246 - INFO - Database tables verified/created.
+2026-06-30 12:36:55,446 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-06-30 12:36:55,446 - INFO - [33mPress CTRL+C to quit[0m
+2026-06-30 12:36:55,454 - INFO -  * Restarting with stat
+2026-06-30 12:36:55,455 - INFO - Chart of Accounts seeded.
+2026-06-30 12:36:55,459 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-30 12:36:58,179 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-30 12:36:58,804 - WARNING -  * Debugger is active!
+2026-06-30 12:36:58,805 - INFO - Database tables verified/created.
+2026-06-30 12:36:58,841 - INFO -  * Debugger PIN: 113-660-391
+2026-06-30 12:36:58,947 - INFO - Chart of Accounts seeded.
+2026-06-30 12:36:58,950 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-30 12:37:06,153 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:06] "[32mGET /reports HTTP/1.1[0m" 302 -
+2026-06-30 12:37:06,194 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:06] "GET /login HTTP/1.1" 200 -
+2026-06-30 12:37:06,375 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:06] "GET /static/images/login_bg.png HTTP/1.1" 200 -
+2026-06-30 12:37:06,650 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:06] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-06-30 12:37:07,736 - WARNING - Sync Mismatch Detected: ['Row count mismatch in director: DB=19, Sheets=0', 'Row count mismatch in customer: DB=32, Sheets=0', 'Row count mismatch in transaction: DB=37, Sheets=0', 'Row count mismatch in petty_cash: DB=91, Sheets=0', 'Row count mismatch in bank: DB=1, Sheets=0', 'Row count mismatch in bank_transaction: DB=60, Sheets=0', 'Row count mismatch in installment: DB=1, Sheets=0', 'Row count mismatch in customer_installment: DB=32, Sheets=0', 'Row count mismatch in party: DB=9, Sheets=0', 'Row count mismatch in party_ledger: DB=49, Sheets=0', 'Row count mismatch in voucher: DB=40, Sheets=0', 'Row count mismatch in party_category: DB=4, Sheets=0', 'Row count mismatch in employee: DB=7, Sheets=0', 'Row count mismatch in attendance: DB=380, Sheets=0', 'Row count mismatch in leave: DB=12, Sheets=0', 'Row count mismatch in salary: DB=21, Sheets=0']
+2026-06-30 12:37:11,309 - WARNING - Sync Mismatch Detected: ['Row count mismatch in director: DB=19, Sheets=0', 'Row count mismatch in customer: DB=32, Sheets=0', 'Row count mismatch in transaction: DB=37, Sheets=0', 'Row count mismatch in petty_cash: DB=91, Sheets=0', 'Row count mismatch in bank: DB=1, Sheets=0', 'Row count mismatch in bank_transaction: DB=60, Sheets=0', 'Row count mismatch in installment: DB=1, Sheets=0', 'Row count mismatch in customer_installment: DB=32, Sheets=0', 'Row count mismatch in party: DB=9, Sheets=0', 'Row count mismatch in party_ledger: DB=49, Sheets=0', 'Row count mismatch in voucher: DB=40, Sheets=0', 'Row count mismatch in party_category: DB=4, Sheets=0', 'Row count mismatch in employee: DB=7, Sheets=0', 'Row count mismatch in attendance: DB=380, Sheets=0', 'Row count mismatch in leave: DB=12, Sheets=0', 'Row count mismatch in salary: DB=21, Sheets=0']
+2026-06-30 12:37:20,675 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:20] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-06-30 12:37:20,857 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:20] "GET / HTTP/1.1" 200 -
+2026-06-30 12:37:20,932 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:20] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-06-30 12:37:26,995 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:26] "GET /reports HTTP/1.1" 200 -
+2026-06-30 12:37:27,037 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:27] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:37:31,621 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:31] "GET /reports HTTP/1.1" 200 -
+2026-06-30 12:37:31,753 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:31] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:37:54,605 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:54] "GET /reports/cash-bank-flow HTTP/1.1" 200 -
+2026-06-30 12:37:54,747 - INFO - 127.0.0.1 - - [30/Jun/2026 12:37:54] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:38:36,165 - INFO - 127.0.0.1 - - [30/Jun/2026 12:38:36] "GET /reports/cash-bank-flow?start_date=202606-06-01&end_date=260615-06-30 HTTP/1.1" 200 -
+2026-06-30 12:38:36,477 - INFO - 127.0.0.1 - - [30/Jun/2026 12:38:36] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:38:47,880 - INFO - 127.0.0.1 - - [30/Jun/2026 12:38:47] "GET /reports/cash-bank-flow?start_date=2026-06-05&end_date=2026-06-15 HTTP/1.1" 200 -
+2026-06-30 12:38:47,974 - INFO - 127.0.0.1 - - [30/Jun/2026 12:38:47] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:39:47,559 - INFO - 127.0.0.1 - - [30/Jun/2026 12:39:47] "GET /reports HTTP/1.1" 200 -
+2026-06-30 12:39:47,610 - INFO - 127.0.0.1 - - [30/Jun/2026 12:39:47] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:39:51,597 - INFO - 127.0.0.1 - - [30/Jun/2026 12:39:51] "[35m[1mGET /ai_assistant HTTP/1.1[0m" 500 -
+2026-06-30 12:39:51,650 - INFO - 127.0.0.1 - - [30/Jun/2026 12:39:51] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:40:06,800 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:06] "GET /notifications HTTP/1.1" 200 -
+2026-06-30 12:40:06,839 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:06] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:40:31,589 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:31] "[32mPOST /clear_logs HTTP/1.1[0m" 302 -
+2026-06-30 12:40:31,619 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:31] "GET /notifications HTTP/1.1" 200 -
+2026-06-30 12:40:31,671 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:31] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:40:36,913 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:36] "[35m[1mGET /ai_assistant HTTP/1.1[0m" 500 -
+2026-06-30 12:40:36,951 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:36] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:40:39,007 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:39] "GET /notifications HTTP/1.1" 200 -
+2026-06-30 12:40:39,047 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:40:53,019 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:53] "GET /reports HTTP/1.1" 200 -
+2026-06-30 12:40:53,059 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:53] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:40:59,961 - INFO - 127.0.0.1 - - [30/Jun/2026 12:40:59] "GET /parties HTTP/1.1" 200 -
+2026-06-30 12:41:00,003 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:41:04,585 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:04] "GET /reports HTTP/1.1" 200 -
+2026-06-30 12:41:04,634 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:04] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:41:05,874 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:05] "GET /report/monthly-flow HTTP/1.1" 200 -
+2026-06-30 12:41:05,920 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:05] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:41:26,958 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:26] "GET /reports HTTP/1.1" 200 -
+2026-06-30 12:41:27,000 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:27] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:41:31,794 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:31] "GET /reports/cash-bank-flow HTTP/1.1" 200 -
+2026-06-30 12:41:31,855 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:31] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:41:44,488 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:44] "POST /reports/cash-bank-flow/export HTTP/1.1" 200 -
+2026-06-30 12:41:49,414 - INFO - 127.0.0.1 - - [30/Jun/2026 12:41:49] "POST /reports/cash-bank-flow/export HTTP/1.1" 200 -
+2026-06-30 12:42:05,648 - INFO - 127.0.0.1 - - [30/Jun/2026 12:42:05] "GET /ai_assistant HTTP/1.1" 200 -
+2026-06-30 12:42:05,793 - INFO - 127.0.0.1 - - [30/Jun/2026 12:42:05] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:42:58,619 - INFO - 127.0.0.1 - - [30/Jun/2026 12:42:58] "POST /api/chat HTTP/1.1" 200 -
+2026-06-30 12:43:09,325 - INFO - 127.0.0.1 - - [30/Jun/2026 12:43:09] "GET /settings HTTP/1.1" 200 -
+2026-06-30 12:43:09,502 - INFO - 127.0.0.1 - - [30/Jun/2026 12:43:09] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:43:31,862 - INFO - 127.0.0.1 - - [30/Jun/2026 12:43:31] "GET /ai_assistant HTTP/1.1" 200 -
+2026-06-30 12:43:32,055 - INFO - 127.0.0.1 - - [30/Jun/2026 12:43:32] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:44:20,972 - INFO - 127.0.0.1 - - [30/Jun/2026 12:44:20] "POST /api/chat HTTP/1.1" 200 -
+2026-06-30 12:46:06,130 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-30 12:46:07,261 - INFO - Database tables verified/created.
+2026-06-30 12:46:07,397 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-06-30 12:46:07,397 - INFO - [33mPress CTRL+C to quit[0m
+2026-06-30 12:46:07,407 - INFO -  * Restarting with stat
+2026-06-30 12:46:07,444 - INFO - Chart of Accounts seeded.
+2026-06-30 12:46:07,448 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-30 12:46:07,549 - INFO - Google Sheets is empty. Initializing with local data...
+2026-06-30 12:46:10,452 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-30 12:46:11,943 - WARNING -  * Debugger is active!
+2026-06-30 12:46:11,946 - INFO - Database tables verified/created.
+2026-06-30 12:46:11,991 - INFO -  * Debugger PIN: 113-660-391
+2026-06-30 12:46:12,364 - INFO - Chart of Accounts seeded.
+2026-06-30 12:46:12,375 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-30 12:46:12,565 - INFO - Google Sheets is empty. Initializing with local data...
+2026-06-30 12:46:36,490 - INFO - AFC is enabled with max remote calls: 10.
+2026-06-30 12:46:38,253 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:46:38,281 - INFO - AFC remote call 1 is done.
+2026-06-30 12:46:42,227 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:46:42,242 - INFO - AFC remote call 2 is done.
+2026-06-30 12:46:45,745 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:46:45,762 - INFO - AFC remote call 3 is done.
+2026-06-30 12:46:52,583 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:46:52,591 - INFO - AFC remote call 4 is done.
+2026-06-30 12:46:56,795 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:46:56,807 - INFO - AFC remote call 5 is done.
+2026-06-30 12:47:00,818 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:47:00,870 - INFO - 127.0.0.1 - - [30/Jun/2026 12:47:00] "POST /api/chat HTTP/1.1" 200 -
+2026-06-30 12:47:57,434 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\ai_chat.py', reloading
+2026-06-30 12:47:59,675 - INFO -  * Restarting with stat
+2026-06-30 12:48:03,451 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-06-30 12:48:04,235 - INFO - Database tables verified/created.
+2026-06-30 12:48:04,322 - WARNING -  * Debugger is active!
+2026-06-30 12:48:04,332 - INFO -  * Debugger PIN: 113-660-391
+2026-06-30 12:48:04,388 - INFO - Chart of Accounts seeded.
+2026-06-30 12:48:04,392 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-06-30 12:48:04,468 - INFO - Google Sheets is empty. Initializing with local data...
+2026-06-30 12:49:27,699 - INFO - AFC is enabled with max remote calls: 10.
+2026-06-30 12:49:29,594 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:49:29,658 - INFO - AFC remote call 1 is done.
+2026-06-30 12:49:34,561 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:49:34,571 - INFO - AFC remote call 2 is done.
+2026-06-30 12:49:52,643 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:49:52,766 - INFO - AFC remote call 3 is done.
+2026-06-30 12:49:58,038 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:49:58,050 - INFO - AFC remote call 4 is done.
+2026-06-30 12:50:05,784 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:50:06,330 - INFO - 127.0.0.1 - - [30/Jun/2026 12:50:06] "POST /api/chat HTTP/1.1" 200 -
+2026-06-30 12:51:05,883 - INFO - 127.0.0.1 - - [30/Jun/2026 12:51:05] "GET /notifications HTTP/1.1" 200 -
+2026-06-30 12:51:06,454 - INFO - 127.0.0.1 - - [30/Jun/2026 12:51:06] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:51:15,748 - INFO - 127.0.0.1 - - [30/Jun/2026 12:51:15] "GET /ai_assistant HTTP/1.1" 200 -
+2026-06-30 12:51:16,066 - INFO - 127.0.0.1 - - [30/Jun/2026 12:51:16] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:51:58,204 - INFO - AFC is enabled with max remote calls: 10.
+2026-06-30 12:51:59,831 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:51:59,953 - INFO - AFC remote call 1 is done.
+2026-06-30 12:52:01,693 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:52:01,711 - INFO - AFC remote call 2 is done.
+2026-06-30 12:52:03,215 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:52:03,239 - INFO - 127.0.0.1 - - [30/Jun/2026 12:52:03] "POST /api/chat HTTP/1.1" 200 -
+2026-06-30 12:52:20,801 - INFO - 127.0.0.1 - - [30/Jun/2026 12:52:20] "GET /banks HTTP/1.1" 200 -
+2026-06-30 12:52:20,940 - INFO - 127.0.0.1 - - [30/Jun/2026 12:52:20] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:52:34,053 - INFO - 127.0.0.1 - - [30/Jun/2026 12:52:34] "GET /bank/1/ledger HTTP/1.1" 200 -
+2026-06-30 12:52:34,158 - INFO - 127.0.0.1 - - [30/Jun/2026 12:52:34] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:52:43,936 - INFO - 127.0.0.1 - - [30/Jun/2026 12:52:43] "GET /ai_assistant HTTP/1.1" 200 -
+2026-06-30 12:52:44,062 - INFO - 127.0.0.1 - - [30/Jun/2026 12:52:44] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:53:09,480 - INFO - AFC is enabled with max remote calls: 10.
+2026-06-30 12:53:11,371 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:53:11,430 - INFO - AFC remote call 1 is done.
+2026-06-30 12:53:14,202 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:53:14,217 - INFO - AFC remote call 2 is done.
+2026-06-30 12:53:15,435 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:53:15,492 - INFO - 127.0.0.1 - - [30/Jun/2026 12:53:15] "POST /api/chat HTTP/1.1" 200 -
+2026-06-30 12:53:54,302 - INFO - AFC is enabled with max remote calls: 10.
+2026-06-30 12:53:57,505 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:53:57,887 - INFO - AFC remote call 1 is done.
+2026-06-30 12:54:01,009 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:54:01,050 - INFO - AFC remote call 2 is done.
+2026-06-30 12:54:06,635 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-06-30 12:54:06,698 - INFO - 127.0.0.1 - - [30/Jun/2026 12:54:06] "POST /api/chat HTTP/1.1" 200 -
+2026-06-30 12:56:24,133 - INFO - 127.0.0.1 - - [30/Jun/2026 12:56:24] "GET /ai_assistant HTTP/1.1" 200 -
+2026-06-30 12:56:25,109 - INFO - 127.0.0.1 - - [30/Jun/2026 12:56:25] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-06-30 12:57:54,651 - INFO - AFC is enabled with max remote calls: 10.
+2026-06-30 12:57:55,477 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 429 Too Many Requests"
+2026-06-30 12:57:55,581 - INFO - 127.0.0.1 - - [30/Jun/2026 12:57:55] "POST /api/chat HTTP/1.1" 200 -

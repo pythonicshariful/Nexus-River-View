@@ -40,6 +40,10 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const chatForm = document.getElementById('chat-form');
@@ -71,7 +75,38 @@
             
             // Convert simple markdown newlines to breaks for AI responses
             let formattedMessage = message;
-            if(sender === 'ai') {
+            const chartsToRender = [];
+            
+            if(sender === 'ai' || sender === 'model') {
+                 // Check for chart code blocks: ```chart ... ```
+                 const chartRegex = /```chart\s*([\s\S]*?)\s*```/g;
+                 let match;
+                 let chartIdCounter = 0;
+                 
+                 // Run regex matching
+                 while ((match = chartRegex.exec(formattedMessage)) !== null) {
+                     const jsonText = match[1];
+                     const canvasId = `ai-chart-${Date.now()}-${chartIdCounter++}`;
+                     try {
+                         const chartConfig = JSON.parse(jsonText);
+                         // Replace this specific match in the formattedMessage
+                         formattedMessage = formattedMessage.replace(match[0], `
+                             <div class="chart-wrapper my-3 bg-white p-3 rounded shadow-sm border" style="max-width: 100%; min-width: 280px;">
+                                 <h6 class="text-center fw-bold text-dark mb-2">${chartConfig.title || 'Chart'}</h6>
+                                 <div style="position: relative; height: 230px; width: 100%;">
+                                     <canvas id="${canvasId}"></canvas>
+                                 </div>
+                             </div>
+                         `);
+                         chartsToRender.push({ id: canvasId, config: chartConfig });
+                     } catch (err) {
+                         console.error("Failed to parse chart JSON:", err);
+                         formattedMessage = formattedMessage.replace(match[0], `<div class="alert alert-warning py-1 small">Invalid chart definition: ${err.message}</div>`);
+                     }
+                     // Reset index because replace changed string length
+                     chartRegex.lastIndex = 0;
+                 }
+                 
                  formattedMessage = formattedMessage.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                  formattedMessage = formattedMessage.replace(/\n/g, '<br>');
             }
@@ -90,6 +125,78 @@
             `;
             chatBox.appendChild(wrapper);
             scrollToBottom();
+            
+            // Now render the charts
+            chartsToRender.forEach(c => {
+                 try {
+                     const canvasEl = document.getElementById(c.id);
+                     if (!canvasEl) return;
+                     const ctx = canvasEl.getContext('2d');
+                     
+                     const defaultColors = [
+                         'rgba(30, 58, 138, 0.75)',  // Deep Blue
+                         'rgba(16, 185, 129, 0.75)', // Green
+                         'rgba(245, 158, 11, 0.75)', // Orange
+                         'rgba(239, 68, 68, 0.75)',  // Red
+                         'rgba(139, 92, 246, 0.75)', // Purple
+                         'rgba(6, 182, 212, 0.75)',  // Cyan
+                     ];
+                     
+                     const isPieOrDoughnut = c.config.type === 'pie' || c.config.type === 'doughnut';
+                     const backgroundColors = isPieOrDoughnut 
+                         ? defaultColors.slice(0, (c.config.labels || []).length) 
+                         : 'rgba(30, 58, 138, 0.75)';
+                     const borderColors = isPieOrDoughnut
+                         ? defaultColors.slice(0, (c.config.labels || []).length).map(color => color.replace('0.75', '1'))
+                         : 'rgba(30, 58, 138, 1)';
+                         
+                     new Chart(ctx, {
+                         type: c.config.type || 'bar',
+                         data: {
+                             labels: c.config.labels || [],
+                             datasets: [{
+                                 label: c.config.label || 'Amount (৳)',
+                                 data: c.config.data || [],
+                                 backgroundColor: backgroundColors,
+                                 borderColor: borderColors,
+                                 borderWidth: 1.5
+                             }]
+                         },
+                         options: {
+                             responsive: true,
+                             maintainAspectRatio: false,
+                             plugins: {
+                                 legend: {
+                                     display: isPieOrDoughnut,
+                                     position: 'bottom',
+                                     labels: {
+                                         boxWidth: 12,
+                                         font: { size: 10 }
+                                     }
+                                 }
+                             },
+                             scales: isPieOrDoughnut ? {} : {
+                                 y: {
+                                     beginAtZero: true,
+                                     ticks: {
+                                         callback: function(value) {
+                                             return '৳' + Number(value).toLocaleString();
+                                         },
+                                         font: { size: 9 }
+                                     }
+                                 },
+                                 x: {
+                                     ticks: {
+                                         font: { size: 9 }
+                                     }
+                                 }
+                             }
+                         }
+                     });
+                 } catch (e) {
+                     console.error("Chart.js render error:", e);
+                 }
+            });
         };
 
         // Render previous history on load

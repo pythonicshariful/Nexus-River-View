@@ -41,6 +41,11 @@
                         </a>
                     </div>
                     <div class="col-6">
+                        <a href="{{ url_for('main.monthly_in_out_report') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
+                            <i class="fas fa-calendar-alt text-success me-2"></i> Monthly Flow
+                        </a>
+                    </div>
+                    <div class="col-6">
                         <a href="{{ url_for('main.manage_vouchers', type='Debit') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
                             <i class="fas fa-exclamation-circle text-danger me-2"></i> Due Payments Report
                         </a>
@@ -48,6 +53,11 @@
                     <div class="col-6">
                         <a href="{{ url_for('main.manage_parties') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
                             <i class="fas fa-address-book text-primary me-2"></i> Party Statement
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ url_for('main.cash_bank_flow_report') }}" class="btn btn-light w-100 text-start py-2 px-3 rounded-3 border-0 bg-light">
+                            <i class="fas fa-random text-primary me-2"></i> Receipts & Payments
                         </a>
                     </div>
                     <div class="col-6">
@@ -81,7 +91,7 @@
                             {% for b in bank_stats %}
                             <tr>
                                 <td class="ps-4">
-                                    <a href="{{ url_for('main.bank_report', bank_id=1) }}" class="text-decoration-none text-dark fw-bold">{{ b.name }}</a>
+                                    <a href="{{ url_for('main.bank_report', bank_id=b.id) }}" class="text-decoration-none text-dark fw-bold">{{ b.name }}</a>
                                 </td>
                                 <td class="text-end pe-4 fw-bold text-primary">৳{{ "{:,.2f}".format(b.balance) }}</td>
                             </tr>

@@ -2040,3 +2040,207 @@ def sync_to_double_entry():
 
     db.session.commit()
     return True
+
+def get_monthly_in_out_report():
+    from models import PettyCash, BankTransaction
+    from collections import defaultdict
+    from decimal import Decimal
+
+    report = defaultdict(lambda: {
+        'cash_in': Decimal('0.0'),
+        'cash_out': Decimal('0.0'),
+        'bank_in': Decimal('0.0'),
+        'bank_out': Decimal('0.0')
+    })
+    
+    # Process Petty Cash
+    cash_records = PettyCash.query.all()
+    for row in cash_records:
+        if not row.date:
+            continue
+        # Extract YYYY-MM
+        month_key = row.date[:7]
+        amount = Decimal(str(row.amount or 0))
+        if row.type == 'Income':
+            report[month_key]['cash_in'] += amount
+        elif row.type == 'Expense':
+            report[month_key]['cash_out'] += amount
+            
+    # Process Bank Transactions
+    bank_records = BankTransaction.query.all()
+    for row in bank_records:
+        if not row.date:
+            continue
+        month_key = row.date[:7]
+        credit = Decimal(str(row.credit or 0))
+        debit = Decimal(str(row.debit or 0))
+        report[month_key]['bank_in'] += credit
+        report[month_key]['bank_out'] += debit
+        
+    result = []
+    for month_key, data in sorted(report.items(), reverse=True): # Sort descending
+        total_in = data['cash_in'] + data['bank_in']
+        total_out = data['cash_out'] + data['bank_out']
+        net_flow = total_in - total_out
+        
+        # Convert YYYY-MM to more readable format
+        from datetime import datetime
+        try:
+            dt = datetime.strptime(month_key, '%Y-%m')
+            month_display = dt.strftime('%B %Y')
+        except:
+            month_display = month_key
+            
+        result.append({
+            'month': month_display,
+            'month_raw': month_key,
+            'cash_in': data['cash_in'],
+            'cash_out': data['cash_out'],
+            'bank_in': data['bank_in'],
+            'bank_out': data['bank_out'],
+            'total_in': total_in,
+            'total_out': total_out,
+            'net_flow': net_flow
+        })
+        
+    return result
+
+def get_cash_bank_flow_data(start_date_str, end_date_str):
+    """Calculates Opening (BD) & Closing (CD) cash and bank balances, and gets all transactions in period."""
+    from models import PettyCash, Bank, BankTransaction
+    from sqlalchemy import func
+    from datetime import datetime
+    from decimal import Decimal
+
+    # Parse dates
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+
+    def parse_tx_date(date_str):
+        for fmt in ('%d-%m-%Y', '%Y-%m-%d'):
+            try:
+                return datetime.strptime(date_str, fmt).date()
+            except ValueError:
+                pass
+        return datetime.min.date()
+
+    # 1. Opening Cash Balance (before start_date_str)
+    cash_in_before = db.session.query(func.sum(PettyCash.amount)).filter(
+        PettyCash.date < start_date_str, PettyCash.type == 'Income'
+    ).scalar() or 0
+    cash_out_before = db.session.query(func.sum(PettyCash.amount)).filter(
+        PettyCash.date < start_date_str, PettyCash.type == 'Expense'
+    ).scalar() or 0
+    opening_cash = Decimal(str(cash_in_before)) - Decimal(str(cash_out_before))
+
+    # 2. Opening Bank Balances (before start_date)
+    banks = Bank.query.all()
+    opening_banks = {}
+    total_opening_bank = Decimal('0.00')
+
+    for b in banks:
+        all_tx = BankTransaction.query.filter_by(bank_id=b.id).all()
+        bank_prev = Decimal('0.00')
+        for tx in all_tx:
+            tx_date = parse_tx_date(tx.date)
+            if tx_date < start_date:
+                bank_prev += Decimal(str(tx.credit or 0)) - Decimal(str(tx.debit or 0))
+        opening_banks[b.id] = {
+            'bank_name': b.bank_name,
+            'account_no': b.account_no,
+            'balance': bank_prev
+        }
+        total_opening_bank += bank_prev
+
+    # 3. Transactions during the period
+    # Fetch petty cash
+    petty_cash_tx = PettyCash.query.filter(
+        PettyCash.date >= start_date_str,
+        PettyCash.date <= end_date_str
+    ).all()
+
+    # Fetch bank transactions
+    bank_tx = BankTransaction.query.all()
+    filtered_bank_tx = []
+    for tx in bank_tx:
+        tx_date = parse_tx_date(tx.date)
+        if start_date <= tx_date <= end_date:
+            filtered_bank_tx.append(tx)
+
+    # Combine and sort chronologically
+    combined = []
+    for tx in petty_cash_tx:
+        dt = parse_tx_date(tx.date)
+        combined.append({
+            'date': tx.date,
+            'date_obj': dt,
+            'source': 'Cash',
+            'bank_name': 'Cash in Hand',
+            'description': tx.description,
+            'category': tx.category,
+            'ref': f"V-{tx.voucher.voucher_no}" if tx.voucher else (f"TX-{tx.transaction_id}" if tx.transaction_id else ""),
+            'cash_in': Decimal(str(tx.amount)) if tx.type == 'Income' else Decimal('0.00'),
+            'cash_out': Decimal(str(tx.amount)) if tx.type == 'Expense' else Decimal('0.00'),
+            'bank_in': Decimal('0.00'),
+            'bank_out': Decimal('0.00')
+        })
+
+    for tx in filtered_bank_tx:
+        dt = parse_tx_date(tx.date)
+        combined.append({
+            'date': tx.date,
+            'date_obj': dt,
+            'source': 'Bank',
+            'bank_name': tx.bank.bank_name,
+            'description': tx.narration or tx.transaction_details or "Bank Transaction",
+            'category': tx.category or "General",
+            'ref': f"V-{tx.voucher.voucher_no}" if tx.voucher else (tx.ref_no or tx.cheque_no or ""),
+            'cash_in': Decimal('0.00'),
+            'cash_out': Decimal('0.00'),
+            'bank_in': Decimal(str(tx.credit or 0)),
+            'bank_out': Decimal(str(tx.debit or 0))
+        })
+
+    # Sort combined by date_obj, then date string
+    combined.sort(key=lambda x: (x['date_obj'], x['date']))
+
+    # Compute totals during the period
+    total_cash_in = sum(x['cash_in'] for x in combined)
+    total_cash_out = sum(x['cash_out'] for x in combined)
+    total_bank_in = sum(x['bank_in'] for x in combined)
+    total_bank_out = sum(x['bank_out'] for x in combined)
+
+    # Closing cash and bank
+    closing_cash = opening_cash + total_cash_in - total_cash_out
+    
+    closing_banks = {}
+    total_closing_bank = Decimal('0.00')
+    for b in banks:
+        # Sum of period txs for this bank
+        period_in = sum(x['bank_in'] for x in combined if x['source'] == 'Bank' and x.get('bank_name') == b.bank_name)
+        period_out = sum(x['bank_out'] for x in combined if x['source'] == 'Bank' and x.get('bank_name') == b.bank_name)
+        b_closing = opening_banks[b.id]['balance'] + period_in - period_out
+        closing_banks[b.id] = {
+            'bank_name': b.bank_name,
+            'account_no': b.account_no,
+            'balance': b_closing
+        }
+        total_closing_bank += b_closing
+
+    return {
+        'start_date': start_date_str,
+        'end_date': end_date_str,
+        'opening_cash': opening_cash,
+        'opening_banks': opening_banks,
+        'total_opening_bank': total_opening_bank,
+        'total_opening': opening_cash + total_opening_bank,
+        'transactions': combined,
+        'total_cash_in': total_cash_in,
+        'total_cash_out': total_cash_out,
+        'total_bank_in': total_bank_in,
+        'total_bank_out': total_bank_out,
+        'closing_cash': closing_cash,
+        'closing_banks': closing_banks,
+        'total_closing_bank': total_closing_bank,
+        'total_closing': closing_cash + total_closing_bank
+    }

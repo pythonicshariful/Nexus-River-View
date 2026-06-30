@@ -3983,7 +3983,7 @@ def reports_dashboard():
     for b in banks:
         # Last balance
         last_tx = BankTransaction.query.filter_by(bank_id=b.id).order_by(BankTransaction.id.desc()).first()
-        bank_stats.append({'name': b.bank_name, 'balance': last_tx.balance if last_tx else 0})
+        bank_stats.append({'id': b.id, 'name': b.bank_name, 'balance': last_tx.balance if last_tx else 0})
         
     return render_template('reports.html', 
                           total_due_vouchers=total_due_vouchers, 
@@ -4474,4 +4474,130 @@ def admin_sync_accounting():
     sync_to_double_entry()
     flash('Database synchronized with Double-Entry Journals.', 'success')
     return redirect(url_for('main.view_journal'))
+
+@main.route('/report/monthly-flow')
+@login_required
+def monthly_in_out_report():
+    from logic import get_monthly_in_out_report
+    report_data = get_monthly_in_out_report()
+    return render_template('monthly_in_out_report.html', report_data=report_data)
+
+@main.route('/report/monthly-flow/export')
+@login_required
+def export_monthly_in_out_report():
+    from logic import get_monthly_in_out_report
+    import pandas as pd
+    import os
+    from flask import current_app, send_file
+    
+    report_data = get_monthly_in_out_report()
+    
+    # Flatten data for Excel
+    export_data = []
+    for row in report_data:
+        export_data.append({
+            'Month': row['month'],
+            'Cash In (৳)': float(row['cash_in']),
+            'Cash Out (৳)': float(row['cash_out']),
+            'Bank In (৳)': float(row['bank_in']),
+            'Bank Out (৳)': float(row['bank_out']),
+            'Total In (৳)': float(row['total_in']),
+            'Total Out (৳)': float(row['total_out']),
+            'Net Flow (৳)': float(row['net_flow'])
+        })
+        
+    df = pd.DataFrame(export_data)
+    
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'static/uploads')
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+        
+    filename = 'Monthly_Cash_and_Bank_Flow_Report.xlsx'
+    filepath = os.path.join(upload_folder, filename)
+    
+    df.to_excel(filepath, index=False, sheet_name='Monthly Flow')
+    
+    return send_file(filepath, as_attachment=True, download_name=filename)
+
+
+@main.route('/reports/cash-bank-flow')
+@login_required
+def cash_bank_flow_report():
+    from logic import get_cash_bank_flow_data
+    # Default to current month
+    today = datetime.now()
+    first_day = today.replace(day=1).strftime('%Y-%m-%d')
+    last_day = today.strftime('%Y-%m-%d')
+    
+    start_date = request.args.get('start_date', first_day)
+    end_date = request.args.get('end_date', last_day)
+    
+    try:
+        data = get_cash_bank_flow_data(start_date, end_date)
+    except Exception as e:
+        from telegram_utils import log_debug
+        log_debug(f"Error in cash_bank_flow_report: {e}")
+        flash(f"Error generating report: {e}", "danger")
+        data = {
+            'start_date': start_date, 'end_date': end_date,
+            'opening_cash': 0, 'opening_banks': {}, 'total_opening_bank': 0, 'total_opening': 0,
+            'transactions': [], 'total_cash_in': 0, 'total_cash_out': 0, 'total_bank_in': 0, 'total_bank_out': 0,
+            'closing_cash': 0, 'closing_banks': {}, 'total_closing_bank': 0, 'total_closing': 0
+        }
+        
+    return render_template('reports_cash_bank_flow.html', data=data)
+
+@main.route('/reports/cash-bank-flow/export', methods=['POST'])
+@login_required
+def export_cash_bank_flow():
+    from logic import get_cash_bank_flow_data
+    import pandas as pd
+    import io
+    from flask import send_file
+    
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    
+    data = get_cash_bank_flow_data(start_date, end_date)
+    
+    # Construct Excel sheets
+    # Sheet 1: Summary (Opening & Closing)
+    summary_rows = [
+        {'Category': 'Balance BD (Opening)', 'Cash': float(data['opening_cash']), 'Bank': float(data['total_opening_bank']), 'Total': float(data['total_opening'])},
+        {'Category': 'Period Receipts (Inflow)', 'Cash': float(data['total_cash_in']), 'Bank': float(data['total_bank_in']), 'Total': float(data['total_cash_in'] + data['total_bank_in'])},
+        {'Category': 'Period Payments (Outflow)', 'Cash': float(data['total_cash_out']), 'Bank': float(data['total_bank_out']), 'Total': float(data['total_cash_out'] + data['total_bank_out'])},
+        {'Category': 'Balance CD (Closing)', 'Cash': float(data['closing_cash']), 'Bank': float(data['total_closing_bank']), 'Total': float(data['total_closing'])}
+    ]
+    df_summary = pd.DataFrame(summary_rows)
+    
+    # Sheet 2: Transactions
+    tx_rows = []
+    for tx in data['transactions']:
+        tx_rows.append({
+            'Date': tx['date'],
+            'Source': tx['source'],
+            'Account/Bank': tx.get('bank_name', ''),
+            'Description': tx['description'],
+            'Category': tx['category'],
+            'Ref/Voucher': tx['ref'],
+            'Cash In (৳)': float(tx['cash_in']),
+            'Cash Out (৳)': float(tx['cash_out']),
+            'Bank In (৳)': float(tx['bank_in']),
+            'Bank Out (৳)': float(tx['bank_out'])
+        })
+    df_tx = pd.DataFrame(tx_rows)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_summary.to_excel(writer, sheet_name='Summary', index=False)
+        df_tx.to_excel(writer, sheet_name='Transactions', index=False)
+        
+    output.seek(0)
+    filename = f"Cash_and_Bank_Receipts_Payments_{start_date}_to_{end_date}.xlsx"
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
 

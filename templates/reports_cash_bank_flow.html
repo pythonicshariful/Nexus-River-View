@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Cash & Bank Receipts & Payments Flow{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h3 class="fw-bold text-dark-blue mb-0">
+            <i class="fas fa-random me-2 text-primary"></i>Receipts & Payments Statement
+        </h3>
+        <p class="text-muted small mb-0">Unified Cash & Bank Flow from <strong>{{ data.start_date }}</strong> to <strong>{{ data.end_date }}</strong></p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <form method="GET" class="d-inline-flex gap-2 align-items-center">
+            <label class="small text-muted text-nowrap">From:</label>
+            <input type="date" name="start_date" class="form-control form-control-sm rounded-pill px-3 border-0 shadow-sm" value="{{ data.start_date }}">
+            <label class="small text-muted text-nowrap">To:</label>
+            <input type="date" name="end_date" class="form-control form-control-sm rounded-pill px-3 border-0 shadow-sm" value="{{ data.end_date }}">
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">Filter</button>
+        </form>
+        <form method="POST" action="{{ url_for('main.export_cash_bank_flow') }}" class="d-inline-flex ms-2">
+            <input type="hidden" name="start_date" value="{{ data.start_date }}">
+            <input type="hidden" name="end_date" value="{{ data.end_date }}">
+            <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fas fa-file-excel me-1"></i> Export Excel
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Balance BD & CD Summary Card -->
+<div class="row g-3 mb-4">
+    <!-- Opening Balances (Balance BD) -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100 border-start border-primary border-4">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0 ps-4">
+                <h6 class="text-primary small text-uppercase fw-bold mb-0">
+                    <i class="fas fa-arrow-circle-down me-1"></i> Opening Balance (Balance BD)
+                </h6>
+            </div>
+            <div class="card-body px-4 py-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Cash in Hand (BD):</span>
+                    <span class="fw-bold">৳{{ "{:,.2f}".format(data.opening_cash) }}</span>
+                </div>
+                {% for bid, b_info in data.opening_banks.items() %}
+                <div class="d-flex justify-content-between align-items-center mb-1 small text-muted">
+                    <span>{{ b_info.bank_name }} ({{ b_info.account_no }}):</span>
+                    <span>৳{{ "{:,.2f}".format(b_info.balance) }}</span>
+                </div>
+                {% endfor %}
+                <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                    <span class="text-dark fw-bold">Total Bank (BD):</span>
+                    <span class="fw-bold text-dark">৳{{ "{:,.2f}".format(data.total_opening_bank) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                    <span class="text-primary fw-bold fs-6">Consolidated Opening:</span>
+                    <span class="fw-bold text-primary fs-5">৳{{ "{:,.2f}".format(data.total_opening) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Closing Balances (Balance CD) -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100 border-start border-success border-4">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0 ps-4">
+                <h6 class="text-success small text-uppercase fw-bold mb-0">
+                    <i class="fas fa-arrow-circle-up me-1"></i> Closing Balance (Balance CD)
+                </h6>
+            </div>
+            <div class="card-body px-4 py-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Cash in Hand (CD):</span>
+                    <span class="fw-bold">৳{{ "{:,.2f}".format(data.closing_cash) }}</span>
+                </div>
+                {% for bid, b_info in data.closing_banks.items() %}
+                <div class="d-flex justify-content-between align-items-center mb-1 small text-muted">
+                    <span>{{ b_info.bank_name }} ({{ b_info.account_no }}):</span>
+                    <span>৳{{ "{:,.2f}".format(b_info.balance) }}</span>
+                </div>
+                {% endfor %}
+                <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                    <span class="text-dark fw-bold">Total Bank (CD):</span>
+                    <span class="fw-bold text-dark">৳{{ "{:,.2f}".format(data.total_closing_bank) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                    <span class="text-success fw-bold fs-6">Consolidated Closing:</span>
+                    <span class="fw-bold text-success fs-5">৳{{ "{:,.2f}".format(data.total_closing) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ledger Flow Table -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4 py-3">Date</th>
+                        <th>Source</th>
+                        <th>Account/Bank</th>
+                        <th>Description / Category</th>
+                        <th>Ref / Voucher</th>
+                        <th class="text-end text-success">Cash In (Rec)</th>
+                        <th class="text-end text-danger">Cash Out (Pay)</th>
+                        <th class="text-end text-success">Bank In (Rec)</th>
+                        <th class="text-end text-danger">Bank Out (Pay)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data.transactions %}
+                    <tr>
+                        <td class="ps-4 small text-muted">{{ item.date }}</td>
+                        <td>
+                            <span class="badge {% if item.source == 'Cash' %}bg-warning-subtle text-warning-emphasis{% else %}bg-info-subtle text-info-emphasis{% endif %} border px-2 py-1 rounded-pill small">
+                                {{ item.source }}
+                            </span>
+                        </td>
+                        <td class="fw-bold text-dark small">{{ item.bank_name }}</td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ item.description }}</div>
+                            <span class="badge bg-light text-dark border px-2 py-0.5 rounded-pill small font-monospace">{{ item.category }}</span>
+                        </td>
+                        <td class="small text-muted font-monospace">{{ item.ref }}</td>
+                        
+                        <!-- Cash In -->
+                        <td class="text-end fw-bold text-success">
+                            {% if item.cash_in > 0 %}৳{{ "{:,.2f}".format(item.cash_in) }}{% else %}-{% endif %}
+                        </td>
+                        <!-- Cash Out -->
+                        <td class="text-end fw-bold text-danger">
+                            {% if item.cash_out > 0 %}৳{{ "{:,.2f}".format(item.cash_out) }}{% else %}-{% endif %}
+                        </td>
+                        <!-- Bank In -->
+                        <td class="text-end fw-bold text-success">
+                            {% if item.bank_in > 0 %}৳{{ "{:,.2f}".format(item.bank_in) }}{% else %}-{% endif %}
+                        </td>
+                        <!-- Bank Out -->
+                        <td class="text-end fw-bold text-danger">
+                            {% if item.bank_out > 0 %}৳{{ "{:,.2f}".format(item.bank_out) }}{% else %}-{% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">No transactions recorded for the selected period.</td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Sum of transactions -->
+                    <tr class="bg-light fw-bold border-top-2">
+                        <td colspan="5" class="text-end ps-4 py-3">Totals for Period:</td>
+                        <td class="text-end pe-2 text-success">৳{{ "{:,.2f}".format(data.total_cash_in) }}</td>
+                        <td class="text-end pe-2 text-danger">৳{{ "{:,.2f}".format(data.total_cash_out) }}</td>
+                        <td class="text-end pe-2 text-success">৳{{ "{:,.2f}".format(data.total_bank_in) }}</td>
+                        <td class="text-end pe-2 text-danger">৳{{ "{:,.2f}".format(data.total_bank_out) }}</td>
+                    </tr>
+                    <!-- Period shifts -->
+                    <tr class="bg-light text-muted small fw-bold">
+                        <td colspan="5" class="text-end ps-4 py-2">Net Shift:</td>
+                        <td colspan="2" class="text-center py-2 {% if data.total_cash_in >= data.total_cash_out %}text-success{% else %}text-danger{% endif %}">
+                            ৳{{ "{:,.2f}".format(data.total_cash_in - data.total_cash_out) }}
+                        </td>
+                        <td colspan="2" class="text-center py-2 {% if data.total_bank_in >= data.total_bank_out %}text-success{% else %}text-danger{% endif %}">
+                            ৳{{ "{:,.2f}".format(data.total_bank_in - data.total_bank_out) }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
