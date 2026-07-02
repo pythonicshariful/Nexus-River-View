@@ -227,3 +227,61 @@
 2026-06-30 12:57:54,651 - INFO - AFC is enabled with max remote calls: 10.
 2026-06-30 12:57:55,477 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 429 Too Many Requests"
 2026-06-30 12:57:55,581 - INFO - 127.0.0.1 - - [30/Jun/2026 12:57:55] "POST /api/chat HTTP/1.1" 200 -
+2026-07-02 12:51:29,711 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-02 12:51:30,703 - INFO - Database tables verified/created.
+2026-07-02 12:51:30,893 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-02 12:51:30,894 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 12:51:30,901 - INFO -  * Restarting with stat
+2026-07-02 12:51:30,955 - INFO - Chart of Accounts seeded.
+2026-07-02 12:51:30,959 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-02 12:51:31,063 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-02 12:51:33,950 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-02 12:51:35,024 - WARNING -  * Debugger is active!
+2026-07-02 12:51:35,025 - INFO - Database tables verified/created.
+2026-07-02 12:51:35,059 - INFO -  * Debugger PIN: 113-660-391
+2026-07-02 12:51:35,241 - INFO - Chart of Accounts seeded.
+2026-07-02 12:51:35,245 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-02 12:51:35,342 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-02 12:51:42,809 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:42] "[32mGET /installments HTTP/1.1[0m" 302 -
+2026-07-02 12:51:42,864 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:42] "GET /login HTTP/1.1" 200 -
+2026-07-02 12:51:42,971 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:42] "[36mGET /static/images/login_bg.png HTTP/1.1[0m" 304 -
+2026-07-02 12:51:43,193 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:43] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-07-02 12:51:54,398 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:54] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-07-02 12:51:56,129 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:56] "GET / HTTP/1.1" 200 -
+2026-07-02 12:51:56,265 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:56] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-02 12:51:59,913 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:59] "GET /reports HTTP/1.1" 200 -
+2026-07-02 12:51:59,954 - INFO - 127.0.0.1 - - [02/Jul/2026 12:51:59] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-02 12:52:05,328 - INFO - 127.0.0.1 - - [02/Jul/2026 12:52:05] "GET /reports/cash-bank-flow HTTP/1.1" 200 -
+2026-07-02 12:52:05,346 - INFO - 127.0.0.1 - - [02/Jul/2026 12:52:05] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-02 12:52:19,719 - INFO - 127.0.0.1 - - [02/Jul/2026 12:52:19] "GET /reports/cash-bank-flow?start_date=2026-06-01&end_date=2026-06-30 HTTP/1.1" 200 -
+2026-07-02 12:52:19,835 - INFO - 127.0.0.1 - - [02/Jul/2026 12:52:19] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-02 12:52:22,255 - INFO - 127.0.0.1 - - [02/Jul/2026 12:52:22] "POST /reports/cash-bank-flow/export HTTP/1.1" 200 -
+2026-07-02 12:56:15,326 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\routes.py', reloading
+2026-07-02 12:56:26,841 - INFO -  * Restarting with stat
+2026-07-02 12:56:51,371 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-02 12:56:52,289 - WARNING -  * Debugger is active!
+2026-07-02 12:56:52,297 - INFO -  * Debugger PIN: 113-660-391
+2026-07-02 12:56:52,306 - INFO - Database tables verified/created.
+2026-07-02 12:56:52,471 - INFO - Chart of Accounts seeded.
+2026-07-02 12:56:52,474 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-02 12:56:52,548 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-02 12:57:31,878 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-02 12:57:34,259 - INFO - Database tables verified/created.
+2026-07-02 12:57:34,478 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-02 12:57:34,478 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 12:57:34,488 - INFO -  * Restarting with stat
+2026-07-02 12:57:34,518 - INFO - Chart of Accounts seeded.
+2026-07-02 12:57:34,522 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-02 12:57:34,677 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-02 12:57:37,417 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-02 12:57:38,032 - WARNING -  * Debugger is active!
+2026-07-02 12:57:38,034 - INFO - Database tables verified/created.
+2026-07-02 12:57:38,087 - INFO -  * Debugger PIN: 113-660-391
+2026-07-02 12:57:38,194 - INFO - Chart of Accounts seeded.
+2026-07-02 12:57:38,197 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-02 12:57:38,310 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-02 12:57:39,878 - INFO - 127.0.0.1 - - [02/Jul/2026 12:57:39] "GET /reports/cash-bank-flow?start_date=2026-06-01&end_date=2026-06-30 HTTP/1.1" 200 -
+2026-07-02 12:57:40,083 - INFO - 127.0.0.1 - - [02/Jul/2026 12:57:40] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-02 12:57:41,692 - INFO - 127.0.0.1 - - [02/Jul/2026 12:57:41] "POST /reports/cash-bank-flow/export HTTP/1.1" 200 -

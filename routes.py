@@ -4562,13 +4562,6 @@ def export_cash_bank_flow():
     
     data = get_cash_bank_flow_data(start_date, end_date)
     
-    summary_rows = [
-        {'Category': 'Balance BD (Opening)', 'Cash': float(data['opening_cash']), 'Bank': float(data['total_opening_bank']), 'Total': float(data['total_opening'])},
-        {'Category': 'Period Receipts (Inflow)', 'Cash': float(data['total_cash_in']), 'Bank': float(data['total_bank_in']), 'Total': float(data['total_cash_in'] + data['total_bank_in'])},
-        {'Category': 'Period Payments (Outflow)', 'Cash': float(data['total_cash_out']), 'Bank': float(data['total_bank_out']), 'Total': float(data['total_cash_out'] + data['total_bank_out'])},
-        {'Category': 'Balance CD (Closing)', 'Cash': float(data['closing_cash']), 'Bank': float(data['total_closing_bank']), 'Total': float(data['total_closing'])}
-    ]
-    
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Statement"
@@ -4577,14 +4570,15 @@ def export_cash_bank_flow():
     ws.views.sheetView[0].showGridLines = True
     
     # Styles
-    navy_fill = PatternFill(start_color="1B365D", end_color="1B365D", fill_type="solid")
+    debit_fill = PatternFill(start_color="1B365D", end_color="1B365D", fill_type="solid") # Dark Navy
+    credit_fill = PatternFill(start_color="2D3748", end_color="2D3748", fill_type="solid") # Charcoal
     light_blue_fill = PatternFill(start_color="F2F4F8", end_color="F2F4F8", fill_type="solid")
     zebra_fill = PatternFill(start_color="F7F9FB", end_color="F7F9FB", fill_type="solid")
     
     title_font = Font(name="Calibri", size=16, bold=True, color="1B365D")
     subtitle_font = Font(name="Calibri", size=10, italic=True, color="4A5568")
-    section_font = Font(name="Calibri", size=12, bold=True, color="1B365D")
     header_font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+    section_font = Font(name="Calibri", size=11, bold=True, color="1B365D")
     data_font = Font(name="Calibri", size=10, color="000000")
     bold_data_font = Font(name="Calibri", size=10, bold=True, color="000000")
     
@@ -4599,123 +4593,210 @@ def export_cash_bank_flow():
     ws['A1'] = "NEXUS RIVER VIEW"
     ws['A1'].font = title_font
     
-    ws['A2'] = "Receipts & Payments Statement (Cash & Bank Flow)"
+    ws['A2'] = "Receipts & Payments Cash Book (Cash & Bank Flow)"
     ws['A2'].font = Font(name="Calibri", size=12, bold=True, color="4A5568")
     
     ws['A3'] = f"Statement Period: {start_date} to {end_date}"
     ws['A3'].font = subtitle_font
     
-    # --- Write Summary Section ---
-    ws['A5'] = "SUMMARY"
+    # --- Separate Transactions ---
+    receipts = []
+    payments = []
+    
+    # Add Balance BD (Opening) to Receipts
+    receipts.append({
+        'date': start_date,
+        'source': 'Opening',
+        'bank_name': 'Cash & Bank',
+        'description': 'Balance BD (Opening)',
+        'cash': float(data['opening_cash']),
+        'bank': float(data['total_opening_bank'])
+    })
+    
+    # Add period transactions
+    for tx in data['transactions']:
+        if float(tx['cash_in']) > 0 or float(tx['bank_in']) > 0:
+            receipts.append({
+                'date': tx['date'],
+                'source': tx['source'],
+                'bank_name': tx.get('bank_name', '') or '',
+                'description': tx['description'],
+                'cash': float(tx['cash_in']),
+                'bank': float(tx['bank_in'])
+            })
+        if float(tx['cash_out']) > 0 or float(tx['bank_out']) > 0:
+            payments.append({
+                'date': tx['date'],
+                'source': tx['source'],
+                'bank_name': tx.get('bank_name', '') or '',
+                'description': tx['description'],
+                'cash': float(tx['cash_out']),
+                'bank': float(tx['bank_out'])
+            })
+            
+    # Add Balance CD (Closing) to Payments
+    payments.append({
+        'date': end_date,
+        'source': 'Closing',
+        'bank_name': 'Cash & Bank',
+        'description': 'Balance CD (Closing)',
+        'cash': float(data['closing_cash']),
+        'bank': float(data['total_closing_bank'])
+    })
+    
+    # --- Write Section Labels ---
+    ws['A5'] = "RECEIPTS (DEBIT)"
     ws['A5'].font = section_font
     
-    summary_headers = ['Category', 'Cash', 'Bank', 'Total']
-    for col_idx, header in enumerate(summary_headers, 1):
-        cell = ws.cell(row=6, column=col_idx, value=header)
-        cell.font = header_font
-        cell.fill = navy_fill
-        cell.alignment = Alignment(horizontal="left" if col_idx == 1 else "right", vertical="center")
-        cell.border = thin_border
-        
-    for row_idx, r in enumerate(summary_rows, 7):
-        is_closing = (r['Category'] == 'Balance CD (Closing)')
-        font_to_use = bold_data_font if is_closing else data_font
-        fill_to_use = light_blue_fill if is_closing else None
-        
-        c_cat = ws.cell(row=row_idx, column=1, value=r['Category'])
-        c_cash = ws.cell(row=row_idx, column=2, value=r['Cash'])
-        c_bank = ws.cell(row=row_idx, column=3, value=r['Bank'])
-        c_tot = ws.cell(row=row_idx, column=4, value=r['Total'])
-        
-        for idx, cell in enumerate([c_cat, c_cash, c_bank, c_tot], 1):
-            cell.font = font_to_use
-            if fill_to_use:
-                cell.fill = fill_to_use
-            cell.alignment = Alignment(horizontal="left" if idx == 1 else "right", vertical="center")
-            cell.border = total_border if is_closing else thin_border
-            if idx > 1:
-                cell.number_format = '#,##0.00'
-                
-    # --- Write Transaction Details Section ---
-    start_tx_title_row = 12
-    ws.cell(row=start_tx_title_row, column=1, value="TRANSACTION DETAILS").font = section_font
+    ws['H5'] = "PAYMENTS (CREDIT)"
+    ws['H5'].font = Font(name="Calibri", size=11, bold=True, color="2D3748")
     
-    tx_headers = [
-        'Date', 'Source', 'Account/Bank', 'Description', 'Category', 
-        'Ref/Voucher', 'Cash In (৳)', 'Cash Out (৳)', 'Bank In (৳)', 'Bank Out (৳)'
-    ]
-    header_row = start_tx_title_row + 1
-    for col_idx, header in enumerate(tx_headers, 1):
+    # --- Write Table Headers ---
+    headers_left = ['Date', 'Source', 'Account/Bank', 'Description', 'Cash (Rec)', 'Bank (Rec)']
+    headers_right = ['Date', 'Source', 'Account/Bank', 'Description', 'Cash (Pay)', 'Bank (Pay)']
+    
+    header_row = 6
+    for col_idx, header in enumerate(headers_left, 1):
         cell = ws.cell(row=header_row, column=col_idx, value=header)
         cell.font = header_font
-        cell.fill = navy_fill
-        cell.alignment = Alignment(horizontal="right" if col_idx >= 7 else "left", vertical="center")
+        cell.fill = debit_fill
+        cell.alignment = Alignment(horizontal="right" if col_idx >= 5 else "left", vertical="center")
         cell.border = thin_border
         
-    # Write data rows
+    for col_idx, header in enumerate(headers_right, 8):
+        cell = ws.cell(row=header_row, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = credit_fill
+        cell.alignment = Alignment(horizontal="right" if col_idx >= 12 else "left", vertical="center")
+        cell.border = thin_border
+        
+    # --- Write Data Rows ---
+    max_rows = max(len(receipts), len(payments))
     current_row = header_row + 1
-    total_cash_in = 0
-    total_cash_out = 0
-    total_bank_in = 0
-    total_bank_out = 0
     
-    for idx, tx in enumerate(data['transactions']):
-        row_fill = zebra_fill if idx % 2 == 1 else None
+    total_rec_cash = 0
+    total_rec_bank = 0
+    total_pay_cash = 0
+    total_pay_bank = 0
+    
+    for r_idx in range(max_rows):
+        row_fill_left = zebra_fill if r_idx % 2 == 1 else None
+        row_fill_right = zebra_fill if r_idx % 2 == 1 else None
         
-        total_cash_in += float(tx['cash_in'])
-        total_cash_out += float(tx['cash_out'])
-        total_bank_in += float(tx['bank_in'])
-        total_bank_out += float(tx['bank_out'])
-        
-        vals = [
-            tx['date'],
-            tx['source'],
-            tx.get('bank_name', '') or '',
-            tx['description'],
-            tx['category'],
-            tx['ref'],
-            float(tx['cash_in']) if float(tx['cash_in']) > 0 else '',
-            float(tx['cash_out']) if float(tx['cash_out']) > 0 else '',
-            float(tx['bank_in']) if float(tx['bank_in']) > 0 else '',
-            float(tx['bank_out']) if float(tx['bank_out']) > 0 else ''
-        ]
-        
-        for col_idx, val in enumerate(vals, 1):
-            cell = ws.cell(row=current_row, column=col_idx, value=val)
-            cell.font = data_font
-            cell.border = thin_border
-            if row_fill:
-                cell.fill = row_fill
-            cell.alignment = Alignment(horizontal="right" if col_idx >= 7 else "left", vertical="center")
-            if col_idx >= 7 and isinstance(val, (int, float)):
-                cell.number_format = '#,##0.00'
+        # --- Left Side (Receipts) ---
+        if r_idx < len(receipts):
+            item = receipts[r_idx]
+            is_opening = item['source'] == 'Opening'
+            if is_opening:
+                row_fill_left = light_blue_fill
+            font_left = bold_data_font if is_opening else data_font
+            
+            total_rec_cash += item['cash']
+            total_rec_bank += item['bank']
+            
+            vals_left = [
+                item['date'],
+                item['source'],
+                item['bank_name'],
+                item['description'],
+                item['cash'] if item['cash'] > 0 else '',
+                item['bank'] if item['bank'] > 0 else ''
+            ]
+            
+            for col_idx, val in enumerate(vals_left, 1):
+                cell = ws.cell(row=current_row, column=col_idx, value=val)
+                cell.font = font_left
+                cell.border = thin_border
+                if row_fill_left:
+                    cell.fill = row_fill_left
+                cell.alignment = Alignment(horizontal="right" if col_idx >= 5 else "left", vertical="center")
+                if col_idx >= 5 and isinstance(val, (int, float)):
+                    cell.number_format = '#,##0.00'
+        else:
+            # Write empty bordered cells
+            for col_idx in range(1, 7):
+                cell = ws.cell(row=current_row, column=col_idx, value="")
+                cell.border = thin_border
+                if row_fill_left:
+                    cell.fill = row_fill_left
+                    
+        # --- Right Side (Payments) ---
+        if r_idx < len(payments):
+            item = payments[r_idx]
+            is_closing = item['source'] == 'Closing'
+            if is_closing:
+                row_fill_right = light_blue_fill
+            font_right = bold_data_font if is_closing else data_font
+            
+            total_pay_cash += item['cash']
+            total_pay_bank += item['bank']
+            
+            vals_right = [
+                item['date'],
+                item['source'],
+                item['bank_name'],
+                item['description'],
+                item['cash'] if item['cash'] > 0 else '',
+                item['bank'] if item['bank'] > 0 else ''
+            ]
+            
+            for col_idx, val in enumerate(vals_right, 8):
+                cell = ws.cell(row=current_row, column=col_idx, value=val)
+                cell.font = font_right
+                cell.border = thin_border
+                if row_fill_right:
+                    cell.fill = row_fill_right
+                cell.alignment = Alignment(horizontal="right" if col_idx >= 12 else "left", vertical="center")
+                if col_idx >= 12 and isinstance(val, (int, float)):
+                    cell.number_format = '#,##0.00'
+        else:
+            # Write empty bordered cells
+            for col_idx in range(8, 14):
+                cell = ws.cell(row=current_row, column=col_idx, value="")
+                cell.border = thin_border
+                if row_fill_right:
+                    cell.fill = row_fill_right
+                    
         current_row += 1
         
-    # Write totals row
-    total_cells = [
-        ws.cell(row=current_row, column=1, value="Total"),
-        ws.cell(row=current_row, column=2, value=""),
-        ws.cell(row=current_row, column=3, value=""),
-        ws.cell(row=current_row, column=4, value=""),
-        ws.cell(row=current_row, column=5, value=""),
-        ws.cell(row=current_row, column=6, value=""),
-        ws.cell(row=current_row, column=7, value=total_cash_in if total_cash_in > 0 else ''),
-        ws.cell(row=current_row, column=8, value=total_cash_out if total_cash_out > 0 else ''),
-        ws.cell(row=current_row, column=9, value=total_bank_in if total_bank_in > 0 else ''),
-        ws.cell(row=current_row, column=10, value=total_bank_out if total_bank_out > 0 else '')
+    # --- Write Totals Row ---
+    total_left = [
+        ("Total", 1), ("", 2), ("", 3), ("", 4),
+        (total_rec_cash if total_rec_cash > 0 else '', 5),
+        (total_rec_bank if total_rec_bank > 0 else '', 6)
     ]
     
-    for col_idx, cell in enumerate(total_cells, 1):
+    total_right = [
+        ("Total", 8), ("", 9), ("", 10), ("", 11),
+        (total_pay_cash if total_pay_cash > 0 else '', 12),
+        (total_pay_bank if total_pay_bank > 0 else '', 13)
+    ]
+    
+    for val, col_idx in total_left:
+        cell = ws.cell(row=current_row, column=col_idx, value=val)
         cell.font = bold_data_font
         cell.border = total_border
-        cell.alignment = Alignment(horizontal="right" if col_idx >= 7 else "left", vertical="center")
-        if col_idx >= 7 and cell.value != '':
+        cell.alignment = Alignment(horizontal="right" if col_idx >= 5 else "left", vertical="center")
+        if col_idx >= 5 and cell.value != '':
             cell.number_format = '#,##0.00'
             
+    for val, col_idx in total_right:
+        cell = ws.cell(row=current_row, column=col_idx, value=val)
+        cell.font = bold_data_font
+        cell.border = total_border
+        cell.alignment = Alignment(horizontal="right" if col_idx >= 12 else "left", vertical="center")
+        if col_idx >= 12 and cell.value != '':
+            cell.number_format = '#,##0.00'
+            
+    # Set width for separator column
+    ws.column_dimensions['G'].width = 3
+    
     # Auto-adjust column widths
     for col in ws.columns:
-        max_len = 0
         col_letter = get_column_letter(col[0].column)
+        if col_letter == 'G':
+            continue
+        max_len = 0
         for cell in col:
             val_str = str(cell.value or '')
             if cell.number_format == '#,##0.00' and isinstance(cell.value, (int, float)):
