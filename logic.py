@@ -691,6 +691,7 @@ def restore_from_data_dict(data_dict):
                 voucher_no=row['voucher_no'],
                 type=row['type'],
                 date=row['date'],
+                payment_date=row.get('payment_date') or row.get('date'),
                 party_id=party_id_map.get(old_party_id),
                 description=row.get('description', ''),
                 total_amount=float(row.get('total_amount') or 0),
@@ -1053,7 +1054,7 @@ def process_voucher_financials(voucher_id, action='add'):
                 if voucher.payment_method == 'Cash':
                     log_debug(f"process_voucher_financials: Adding PettyCash for {voucher.voucher_no}")
                     pc = PettyCash(
-                        date=voucher.date,
+                        date=voucher.payment_date or voucher.date,
                         description=f"Voucher {voucher.voucher_no}: {voucher.description}",
                         category=voucher.category or "General",
                         type="Expense" if voucher.type == "Debit" else "Income",
@@ -1064,7 +1065,7 @@ def process_voucher_financials(voucher_id, action='add'):
                 
                 elif voucher.payment_method == 'Bank' and voucher.bank_id:
                     bt = BankTransaction(
-                        date=voucher.date,
+                        date=voucher.payment_date or voucher.date,
                         narration=f"Voucher {voucher.voucher_no}: {voucher.description}",
                         debit=voucher.amount_paid if voucher.type == "Debit" else 0,
                         credit=voucher.amount_paid if voucher.type == "Credit" else 0,
@@ -1120,7 +1121,7 @@ def process_voucher_financials(voucher_id, action='add'):
                 
                 # Create a Transaction for the customer
                 tx = Transaction(
-                    date=voucher.date,
+                    date=voucher.payment_date or voucher.date,
                     amount=tx_amount,
                     installment_type="Installment",
                     remarks=f"Voucher {voucher.voucher_no}: {voucher.description}",
@@ -2243,4 +2244,113 @@ def get_cash_bank_flow_data(start_date_str, end_date_str):
         'closing_banks': closing_banks,
         'total_closing_bank': total_closing_bank,
         'total_closing': closing_cash + total_closing_bank
+    }
+
+def get_income_expense_data(start_date_str, end_date_str):
+    """Calculates Income & Expense data for the specified period.
+    
+    Income:
+    - Credit Vouchers (type == 'Credit', excluding customer-linked ones to avoid double counting, and excluding payment-only ones).
+    - Customer Payments (Transaction records, excluding voucher-linked ones to avoid double counting).
+    
+    Expense:
+    - Debit Vouchers (type == 'Debit', excluding payment-only ones).
+    """
+    from models import Voucher, Transaction
+    from datetime import datetime
+    from decimal import Decimal
+
+    # Parse dates to validate format (assumed YYYY-MM-DD)
+    def parse_tx_date(date_str):
+        for fmt in ('%Y-%m-%d', '%d-%m-%Y'):
+            try:
+                return datetime.strptime(date_str, fmt).date()
+            except ValueError:
+                pass
+        return datetime.min.date()
+
+    # 1. Fetch Expenses (Debit Vouchers)
+    # Exclude is_payment == True
+    dv_vouchers = Voucher.query.filter(
+        Voucher.type == 'Debit',
+        Voucher.date >= start_date_str,
+        Voucher.date <= end_date_str,
+        (Voucher.is_payment == False) | (Voucher.is_payment == None)
+    ).all()
+
+    expenses = []
+    for v in dv_vouchers:
+        party_name = v.party_obj.name if v.party_obj else (v.customer_obj.name if v.customer_obj else '')
+        expenses.append({
+            'date': v.date,
+            'date_obj': parse_tx_date(v.date),
+            'source': 'Debit Voucher',
+            'ref': v.voucher_no,
+            'party_name': party_name,
+            'category': v.category or 'General',
+            'description': v.description or '',
+            'amount': Decimal(str(v.total_amount or 0))
+        })
+
+    # 2. Fetch Incomes
+    incomes = []
+
+    # A. Credit Vouchers (exclude customer-linked to avoid double counting)
+    cv_vouchers = Voucher.query.filter(
+        Voucher.type == 'Credit',
+        Voucher.customer_id == None,
+        Voucher.date >= start_date_str,
+        Voucher.date <= end_date_str,
+        (Voucher.is_payment == False) | (Voucher.is_payment == None)
+    ).all()
+
+    for v in cv_vouchers:
+        party_name = v.party_obj.name if v.party_obj else ''
+        incomes.append({
+            'date': v.date,
+            'date_obj': parse_tx_date(v.date),
+            'source': 'Credit Voucher',
+            'ref': v.voucher_no,
+            'party_name': party_name,
+            'category': v.category or 'General',
+            'description': v.description or '',
+            'amount': Decimal(str(v.total_amount or 0))
+        })
+
+    # B. Customer Payments (Transaction records, exclude voucher-linked to avoid double counting)
+    txs = Transaction.query.filter(
+        Transaction.date >= start_date_str,
+        Transaction.date <= end_date_str,
+        Transaction.voucher_id == None
+    ).all()
+
+    for tx in txs:
+        party_name = tx.customer.name if tx.customer else ''
+        incomes.append({
+            'date': tx.date,
+            'date_obj': parse_tx_date(tx.date),
+            'source': 'Customer Payment',
+            'ref': tx.transaction_id or '',
+            'party_name': party_name,
+            'category': tx.installment_type or 'Customer Payment',
+            'description': tx.remarks or '',
+            'amount': Decimal(str(tx.amount or 0))
+        })
+
+    # Sort both chronologically
+    incomes.sort(key=lambda x: (x['date_obj'], x['date']))
+    expenses.sort(key=lambda x: (x['date_obj'], x['date']))
+
+    total_income = sum(x['amount'] for x in incomes)
+    total_expense = sum(x['amount'] for x in expenses)
+    net_profit = total_income - total_expense
+
+    return {
+        'start_date': start_date_str,
+        'end_date': end_date_str,
+        'incomes': incomes,
+        'expenses': expenses,
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'net_profit': net_profit
     }

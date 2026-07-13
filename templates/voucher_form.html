@@ -22,15 +22,20 @@
                 <form method="POST" enctype="multipart/form-data" id="voucherForm" onsubmit="return confirmAction(event, 'voucherForm')">
                     <div class="row g-4">
                         <!-- Basic Info -->
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold text-muted">Voucher Number</label>
                             <input type="text" name="voucher_no" class="form-control rounded-pill px-3 bg-light border-0 shadow-none fw-bold" 
                                    value="{{ v.voucher_no if v else suggested_no }}" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted">Date</label>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Income / Expense Date</label>
                             <input type="date" name="date" class="form-control rounded-pill px-3 bg-light border-0 shadow-none" 
                                    value="{{ v.date if v else today_str }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">{% if v_type == 'Debit' %}Paid Date (Payment Date){% else %}Received Date (Receipt Date){% endif %}</label>
+                            <input type="date" name="payment_date" class="form-control rounded-pill px-3 bg-light border-0 shadow-none" 
+                                   value="{{ v.payment_date if v and v.payment_date else (v.date if v else today_str) }}">
                         </div>
 
                         <!-- Party & Category -->

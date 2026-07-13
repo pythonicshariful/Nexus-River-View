@@ -89,3 +89,210 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 [2026-07-02 12:57:38] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
 [2026-07-02 12:57:42] Document sent successfully.
 [2026-07-02 12:57:43] Document sent successfully.
+[2026-07-13 15:27:03] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:27:03] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:27:03] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:27:05] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:27:05] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:27:06] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:27:11] Document sent successfully.
+[2026-07-13 15:27:11] Document sent successfully.
+[2026-07-13 15:27:34] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4394, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-13 15:27:43] Starting Background Tasks due to: User Login: admin
+[2026-07-13 15:27:43] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:27:43] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 15:27:43] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 15:27:43] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_152743.db
+[2026-07-13 15:27:43] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:27:46] Document sent successfully.
+[2026-07-13 15:31:49] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:31:49] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:31:49] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:31:52] Document sent successfully.
+[2026-07-13 15:32:05] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:32:05] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:32:05] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:32:07] Document sent successfully.
+[2026-07-13 15:32:14] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:32:14] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:32:14] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:32:20] Document sent successfully.
+[2026-07-13 15:32:55] process_voucher_financials: Processing add for TEST-DV-999 (ID: 44)
+[2026-07-13 15:32:55] process_voucher_financials: Adding PettyCash for TEST-DV-999
+[2026-07-13 15:32:55] process_voucher_financials: Processing edit for TEST-DV-999 (ID: 44)
+[2026-07-13 15:32:55] process_voucher_financials: Adding PettyCash for TEST-DV-999
+[2026-07-13 15:33:29] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:33:29] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:33:29] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:33:32] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:33:32] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:33:32] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:33:32] Document sent successfully.
+[2026-07-13 15:33:36] Document sent successfully.
+[2026-07-13 15:35:00] process_voucher_financials: Processing edit for DV33 (ID: 35)
+[2026-07-13 15:35:00] process_voucher_financials: Attempting double-entry for DV33
+[2026-07-13 15:35:00] process_voucher_financials: Double-entry posted for DV33
+[2026-07-13 15:35:00] process_voucher_financials: Adding PettyCash for DV33
+[2026-07-13 15:35:00] Starting Background Tasks due to: Edited Voucher: DV33
+[2026-07-13 15:35:00] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:35:01] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 15:35:01] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 15:35:01] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_153501.db
+[2026-07-13 15:35:01] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:35:05] Document sent successfully.
+[2026-07-13 15:35:33] process_voucher_financials: Processing edit for DV32 (ID: 34)
+[2026-07-13 15:35:33] process_voucher_financials: Attempting double-entry for DV32
+[2026-07-13 15:35:33] process_voucher_financials: Double-entry posted for DV32
+[2026-07-13 15:35:33] process_voucher_financials: Adding PettyCash for DV32
+[2026-07-13 15:35:33] Starting Background Tasks due to: Edited Voucher: DV32
+[2026-07-13 15:35:33] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:35:33] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 15:35:33] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 15:35:33] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_153533.db
+[2026-07-13 15:35:33] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:35:37] Document sent successfully.
+[2026-07-13 15:37:22] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:37:22] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:37:22] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:37:25] Document sent successfully.
+[2026-07-13 15:38:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:38:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:38:27] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:38:30] Document sent successfully.
+[2026-07-13 15:38:31] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:38:31] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:38:31] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:38:36] Document sent successfully.
+[2026-07-13 15:43:20] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:43:20] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:43:20] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:43:25] Document sent successfully.
+[2026-07-13 15:45:17] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:45:17] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:45:17] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:45:20] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:45:20] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:45:20] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:45:21] Document sent successfully.
+[2026-07-13 15:45:28] Document sent successfully.
+[2026-07-13 15:46:33] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:46:33] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 15:46:33] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 15:46:36] Document sent successfully.
+[2026-07-13 17:23:45] Voucher ADD attempt: DV42
+[2026-07-13 17:23:45] process_voucher_financials: Processing add for DV42 (ID: 44)
+[2026-07-13 17:23:45] process_voucher_financials: Attempting double-entry for DV42
+[2026-07-13 17:23:45] process_voucher_financials: Double-entry posted for DV42
+[2026-07-13 17:23:45] process_voucher_financials: Adding PettyCash for DV42
+[2026-07-13 17:23:45] Starting Background Tasks due to: Added Debit Voucher: DV42
+[2026-07-13 17:23:45] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:23:46] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:23:46] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:23:46] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_172346.db
+[2026-07-13 17:23:46] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:24:02] Document sent successfully.
+[2026-07-13 17:24:18] process_voucher_financials: Processing edit for DV42 (ID: 44)
+[2026-07-13 17:24:18] process_voucher_financials: Attempting double-entry for DV42
+[2026-07-13 17:24:18] process_voucher_financials: Double-entry posted for DV42
+[2026-07-13 17:24:18] process_voucher_financials: Adding PettyCash for DV42
+[2026-07-13 17:24:19] Starting Background Tasks due to: Edited Voucher: DV42
+[2026-07-13 17:24:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:24:19] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:24:19] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:24:19] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_172419.db
+[2026-07-13 17:24:19] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:24:25] Document sent successfully.
+[2026-07-13 17:26:41] Voucher ADD attempt: DV43
+[2026-07-13 17:26:41] process_voucher_financials: Processing add for DV43 (ID: 45)
+[2026-07-13 17:26:41] process_voucher_financials: Attempting double-entry for DV43
+[2026-07-13 17:26:41] process_voucher_financials: Double-entry posted for DV43
+[2026-07-13 17:26:41] process_voucher_financials: Adding PettyCash for DV43
+[2026-07-13 17:26:41] Starting Background Tasks due to: Added Debit Voucher: DV43
+[2026-07-13 17:26:41] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:26:42] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:26:42] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:26:42] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_172642.db
+[2026-07-13 17:26:42] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:26:46] Document sent successfully.
+[2026-07-13 17:28:12] Voucher ADD attempt: DV44
+[2026-07-13 17:28:13] process_voucher_financials: Processing add for DV44 (ID: 46)
+[2026-07-13 17:28:13] process_voucher_financials: Attempting double-entry for DV44
+[2026-07-13 17:28:13] process_voucher_financials: Double-entry posted for DV44
+[2026-07-13 17:28:13] process_voucher_financials: Adding PettyCash for DV44
+[2026-07-13 17:28:13] Starting Background Tasks due to: Added Debit Voucher: DV44
+[2026-07-13 17:28:13] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:28:13] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:28:13] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:28:13] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_172813.db
+[2026-07-13 17:28:13] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:28:17] Document sent successfully.
+[2026-07-13 17:28:52] process_voucher_financials: Processing edit for DV42 (ID: 44)
+[2026-07-13 17:28:52] process_voucher_financials: Attempting double-entry for DV42
+[2026-07-13 17:28:52] process_voucher_financials: Double-entry posted for DV42
+[2026-07-13 17:28:52] process_voucher_financials: Adding PettyCash for DV42
+[2026-07-13 17:28:52] Starting Background Tasks due to: Edited Voucher: DV42
+[2026-07-13 17:28:52] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:28:52] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:28:52] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:28:52] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_172852.db
+[2026-07-13 17:28:52] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:28:54] Document sent successfully.
+[2026-07-13 17:30:19] Voucher ADD attempt: DV45
+[2026-07-13 17:30:19] process_voucher_financials: Processing add for DV45 (ID: 47)
+[2026-07-13 17:30:19] process_voucher_financials: Attempting double-entry for DV45
+[2026-07-13 17:30:19] process_voucher_financials: Double-entry posted for DV45
+[2026-07-13 17:30:19] process_voucher_financials: Adding PettyCash for DV45
+[2026-07-13 17:30:19] Starting Background Tasks due to: Added Debit Voucher: DV45
+[2026-07-13 17:30:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:30:19] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:30:19] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:30:19] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_173019.db
+[2026-07-13 17:30:19] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:30:29] Document sent successfully.
+[2026-07-13 17:30:36] process_voucher_financials: Processing edit for DV45 (ID: 47)
+[2026-07-13 17:30:36] process_voucher_financials: Attempting double-entry for DV45
+[2026-07-13 17:30:36] process_voucher_financials: Double-entry posted for DV45
+[2026-07-13 17:30:36] process_voucher_financials: Adding PettyCash for DV45
+[2026-07-13 17:30:36] Starting Background Tasks due to: Edited Voucher: DV45
+[2026-07-13 17:30:36] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:30:36] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:30:36] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-13 17:30:36] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260713_173036.db
+[2026-07-13 17:30:36] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:30:52] Document sent successfully.
+[2026-07-13 17:36:30] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:36:30] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:36:30] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:36:34] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:36:34] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 17:36:34] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 17:36:40] Document sent successfully.
+[2026-07-13 17:36:40] Document sent successfully.
+[2026-07-13 18:16:51] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 18:16:51] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 18:16:51] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 18:16:54] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 18:16:54] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-13 18:16:54] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-13 18:17:03] Document sent successfully.
+[2026-07-13 18:17:04] Document sent successfully.

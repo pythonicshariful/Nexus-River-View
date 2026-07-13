@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Income & Expense Statement{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h3 class="fw-bold text-dark-blue mb-0">
+            <i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Income & Expense Statement
+        </h3>
+        <p class="text-muted small mb-0">Accrual Statement from <strong>{{ data.start_date }}</strong> to <strong>{{ data.end_date }}</strong></p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <form method="GET" class="d-inline-flex gap-2 align-items-center">
+            <label class="small text-muted text-nowrap">From:</label>
+            <input type="date" name="start_date" class="form-control form-control-sm rounded-pill px-3 border-0 shadow-sm" value="{{ data.start_date }}">
+            <label class="small text-muted text-nowrap">To:</label>
+            <input type="date" name="end_date" class="form-control form-control-sm rounded-pill px-3 border-0 shadow-sm" value="{{ data.end_date }}">
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">Filter</button>
+        </form>
+        <form method="POST" action="{{ url_for('main.export_income_expense') }}" class="d-inline-flex ms-2">
+            <input type="hidden" name="start_date" value="{{ data.start_date }}">
+            <input type="hidden" name="end_date" value="{{ data.end_date }}">
+            <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fas fa-file-excel me-1"></i> Export Excel
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-white border-start border-primary border-4 py-2">
+            <div class="card-body px-4 py-3">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Total Income</div>
+                <h3 class="fw-bold text-primary mb-0">৳{{ "{:,.2f}".format(data.total_income) }}</h3>
+                <div class="small text-muted mt-1">Credit vouchers & payments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-white border-start border-danger border-4 py-2">
+            <div class="card-body px-4 py-3">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Total Expense</div>
+                <h3 class="fw-bold text-danger mb-0">৳{{ "{:,.2f}".format(data.total_expense) }}</h3>
+                <div class="small text-muted mt-1">Debit vouchers (excluding payments)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-white border-start {% if data.net_profit >= 0 %}border-success{% else %}border-warning{% endif %} border-4 py-2">
+            <div class="card-body px-4 py-3">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Net Profit / (Loss)</div>
+                <h3 class="fw-bold {% if data.net_profit >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                    ৳{{ "{:,.2f}".format(data.net_profit) }}
+                </h3>
+                <div class="small text-muted mt-1">Net surplus for the period</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tables Section -->
+<div class="row g-4 mb-4">
+    <!-- Income Side -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark-blue mb-0">
+                    <i class="fas fa-plus-circle text-success me-2"></i>Income Records
+                </h5>
+                <span class="badge bg-success-subtle text-success border px-2.5 py-1 rounded-pill small">
+                    {{ data.incomes|length }} Entries
+                </span>
+            </div>
+            <div class="card-body p-0 mt-3">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-3">Date</th>
+                                <th>Source</th>
+                                <th>Customer/Party</th>
+                                <th>Category</th>
+                                <th class="text-end pe-4">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in data.incomes %}
+                            <tr>
+                                <td class="ps-4 small text-muted">{{ item.date }}</td>
+                                <td>
+                                    <span class="badge {% if item.source == 'Credit Voucher' %}bg-primary-subtle text-primary-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %} border px-2 py-0.5 rounded-pill small">
+                                        {{ item.source }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-dark small">{{ item.party_name }}</td>
+                                <td class="small font-monospace">{{ item.category }}</td>
+                                <td class="text-end pe-4 fw-bold text-success">৳{{ "{:,.2f}".format(item.amount) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">No income records in this period.</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="bg-light fw-bold">
+                                <td colspan="4" class="text-end ps-4 py-3">Total Income:</td>
+                                <td class="text-end pe-4 text-success">৳{{ "{:,.2f}".format(data.total_income) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Side -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark-blue mb-0">
+                    <i class="fas fa-minus-circle text-danger me-2"></i>Expense Records
+                </h5>
+                <span class="badge bg-danger-subtle text-danger border px-2.5 py-1 rounded-pill small">
+                    {{ data.expenses|length }} Entries
+                </span>
+            </div>
+            <div class="card-body p-0 mt-3">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-3">Date</th>
+                                <th>Source</th>
+                                <th>Customer/Party</th>
+                                <th>Category</th>
+                                <th class="text-end pe-4">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in data.expenses %}
+                            <tr>
+                                <td class="ps-4 small text-muted">{{ item.date }}</td>
+                                <td>
+                                    <span class="badge bg-danger-subtle text-danger-emphasis border px-2 py-0.5 rounded-pill small">
+                                        {{ item.source }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-dark small">{{ item.party_name }}</td>
+                                <td class="small font-monospace">{{ item.category }}</td>
+                                <td class="text-end pe-4 fw-bold text-danger">৳{{ "{:,.2f}".format(item.amount) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">No expense records in this period.</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="bg-light fw-bold">
+                                <td colspan="4" class="text-end ps-4 py-3">Total Expense:</td>
+                                <td class="text-end pe-4 text-danger">৳{{ "{:,.2f}".format(data.total_expense) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

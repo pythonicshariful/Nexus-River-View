@@ -322,6 +322,7 @@ class Voucher(db.Model):
     voucher_no = db.Column(db.String(50), unique=True, nullable=False) # Editable
     type = db.Column(db.String(20), nullable=False) # 'Debit' or 'Credit'
     date = db.Column(db.String(20), nullable=False)
+    payment_date = db.Column(db.String(20), nullable=True)
     
     party_id = db.Column(db.Integer, db.ForeignKey('party.id'), nullable=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True)

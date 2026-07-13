@@ -30,6 +30,13 @@
                     <option value="Credit" {% if v_type == 'Credit' %}selected{% endif %}>Credit (Receive)</option>
                 </select>
             </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted">Filter Date By</label>
+                <select name="date_type" class="form-select form-select-sm rounded-pill px-3 shadow-none border-0">
+                    <option value="voucher_date" {% if date_type == 'voucher_date' %}selected{% endif %}>Income/Expense Date</option>
+                    <option value="payment_date" {% if date_type == 'payment_date' %}selected{% endif %}>Paid/Received Date</option>
+                </select>
+            </div>
             <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Date Range</label>
                 <div class="input-group input-group-sm">
@@ -38,14 +45,14 @@
                     <input type="date" name="end_date" class="form-control rounded-end-pill border-0 px-3" value="{{ end_date }}">
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label small fw-bold text-muted">Search</label>
                 <div class="input-group input-group-sm rounded-pill overflow-hidden border-0 shadow-none">
                     <span class="input-group-text bg-white border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control border-0 px-2" placeholder="Voucher # or description..." value="{{ search }}" autocomplete="off">
+                    <input type="text" name="search" class="form-control border-0 px-2" placeholder="Voucher # or description..." value="{{ search or '' }}" autocomplete="off">
                 </div>
             </div>
-            <div class="col-md-3 d-flex align-items-end gap-2">
+            <div class="col-md-2 d-flex align-items-end gap-2">
                 <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 flex-grow-1 shadow-sm">Filter</button>
                 <a href="{{ url_for('main.manage_vouchers') }}" class="btn btn-light btn-sm rounded-pill px-3 text-muted border shadow-sm">Reset</a>
             </div>
@@ -86,7 +93,12 @@
                             <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 small rounded-pill">Credit</span>
                             {% endif %}
                         </td>
-                        <td class="small text-muted">{{ v.date }}</td>
+                        <td class="small text-muted">
+                            <div class="fw-semibold text-dark">{{ v.date }} <span class="text-muted small fw-normal">({% if v.type == 'Debit' %}Exp{% else %}Inc{% endif %})</span></div>
+                            {% if v.payment_date %}
+                            <div style="font-size: 0.75rem;" class="text-primary mt-1">{{ v.payment_date }} <span class="text-muted small fw-normal">({% if v.type == 'Debit' %}Paid{% else %}Rec{% endif %})</span></div>
+                            {% endif %}
+                        </td>
                         <td>
                             <div class="fw-semibold text-dark">
                                 {% if v.party_obj %}

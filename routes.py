@@ -3509,32 +3509,41 @@ def edit_bank_transaction(id):
 
 @main.route('/vouchers')
 def manage_vouchers():
-    v_type = request.args.get('type')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    search = request.args.get('search')
+    v_type = request.args.get('type') or ""
+    start_date = request.args.get('start_date') or ""
+    end_date = request.args.get('end_date') or ""
+    search = request.args.get('search') or ""
+    date_type = request.args.get('date_type', 'voucher_date')
     
-    if not start_date:
-        start_date = ""
-    if not end_date:
-        end_date = ""
+    # Handle string literal "None" sent by browser/template quirks
+    if search == "None":
+        search = ""
+    if v_type == "None":
+        v_type = ""
 
-    
     query = Voucher.query
     if v_type:
         query = query.filter_by(type=v_type)
+        
+    # Determine the date expression to filter and sort by (coalescing to main date if payment_date is NULL)
+    if date_type == 'payment_date':
+        date_expr = db.func.coalesce(Voucher.payment_date, Voucher.date)
+    else:
+        date_expr = Voucher.date
+        
     if start_date:
-        query = query.filter(Voucher.date >= start_date)
+        query = query.filter(date_expr >= start_date)
     if end_date:
-        query = query.filter(Voucher.date <= end_date)
+        query = query.filter(date_expr <= end_date)
     if search:
         query = query.filter(
             (Voucher.voucher_no.contains(search)) | 
             (Voucher.description.contains(search))
         )
         
-    vouchers = query.order_by(Voucher.date.desc(), Voucher.id.desc()).all()
-    return render_template('vouchers.html', vouchers=vouchers, v_type=v_type, start_date=start_date, end_date=end_date, search=search)
+    vouchers = query.order_by(date_expr.desc(), Voucher.id.desc()).all()
+        
+    return render_template('vouchers.html', vouchers=vouchers, v_type=v_type, start_date=start_date, end_date=end_date, search=search, date_type=date_type)
 
 @main.route('/vouchers/add/<v_type>', methods=['GET', 'POST'])
 def add_voucher(v_type):
@@ -3560,12 +3569,14 @@ def add_voucher(v_type):
         # Calculations
         due_amount = total_amount - amount_paid
         payment_percentage = (amount_paid / total_amount * 100) if total_amount > 0 else 0
+        payment_date = request.form.get('payment_date')
         
         try:
             v = Voucher(
                 voucher_no=voucher_no,
                 type=v_type,
                 date=date,
+                payment_date=payment_date if payment_date else date,
                 party_id=party_id if party_id else None,
                 customer_id=customer_id if customer_id else None,
                 description=description,
@@ -3628,6 +3639,7 @@ def edit_voucher(id):
         try:
             v.voucher_no = request.form.get('voucher_no')
             v.date = request.form.get('date')
+            v.payment_date = request.form.get('payment_date') or v.date
             v.party_id = request.form.get('party_id') if request.form.get('party_id') else None
             v.customer_id = request.form.get('customer_id') if request.form.get('customer_id') else None
             v.description = request.form.get('description')
@@ -4809,6 +4821,260 @@ def export_cash_bank_flow():
     output.seek(0)
     
     filename = f"Cash_and_Bank_Receipts_Payments_{start_date}_to_{end_date}.xlsx"
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
+
+
+@main.route('/reports/income-expense')
+@login_required
+def income_expense_report():
+    from logic import get_income_expense_data
+    # Default to current month
+    today = datetime.now()
+    first_day = today.replace(day=1).strftime('%Y-%m-%d')
+    last_day = today.strftime('%Y-%m-%d')
+    
+    start_date = request.args.get('start_date', first_day)
+    end_date = request.args.get('end_date', last_day)
+    
+    try:
+        data = get_income_expense_data(start_date, end_date)
+    except Exception as e:
+        from telegram_utils import log_debug
+        log_debug(f"Error in income_expense_report: {e}")
+        flash(f"Error generating report: {e}", "danger")
+        data = {
+            'start_date': start_date, 'end_date': end_date,
+            'incomes': [], 'expenses': [],
+            'total_income': 0, 'total_expense': 0, 'net_profit': 0
+        }
+        
+    return render_template('reports_income_expense.html', data=data)
+
+@main.route('/reports/income-expense/export', methods=['POST'])
+@login_required
+def export_income_expense():
+    from logic import get_income_expense_data
+    import io
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from flask import send_file
+    
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    
+    data = get_income_expense_data(start_date, end_date)
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Statement"
+    
+    # Enable grid lines explicitly
+    ws.views.sheetView[0].showGridLines = True
+    
+    # Styles
+    income_fill = PatternFill(start_color="1B365D", end_color="1B365D", fill_type="solid") # Dark Navy
+    expense_fill = PatternFill(start_color="2D3748", end_color="2D3748", fill_type="solid") # Charcoal
+    light_blue_fill = PatternFill(start_color="F2F4F8", end_color="F2F4F8", fill_type="solid")
+    zebra_fill = PatternFill(start_color="F7F9FB", end_color="F7F9FB", fill_type="solid")
+    
+    title_font = Font(name="Calibri", size=16, bold=True, color="1B365D")
+    subtitle_font = Font(name="Calibri", size=10, italic=True, color="4A5568")
+    header_font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+    section_font = Font(name="Calibri", size=11, bold=True, color="1B365D")
+    data_font = Font(name="Calibri", size=10, color="000000")
+    bold_data_font = Font(name="Calibri", size=10, bold=True, color="000000")
+    
+    thin_border_side = Side(border_style="thin", color="D1D5DB")
+    thin_border = Border(left=thin_border_side, right=thin_border_side, top=thin_border_side, bottom=thin_border_side)
+    
+    bottom_double_side = Side(border_style="double", color="1B365D")
+    top_thin_side = Side(border_style="thin", color="1B365D")
+    total_border = Border(top=top_thin_side, bottom=bottom_double_side)
+    
+    # --- Write Title ---
+    ws['A1'] = "NEXUS RIVER VIEW"
+    ws['A1'].font = title_font
+    
+    ws['A2'] = "Income & Expense Statement"
+    ws['A2'].font = Font(name="Calibri", size=12, bold=True, color="4A5568")
+    
+    ws['A3'] = f"Statement Period: {start_date} to {end_date}"
+    ws['A3'].font = subtitle_font
+    
+    # --- Write Section Labels ---
+    ws['A5'] = "INCOME (CREDIT)"
+    ws['A5'].font = section_font
+    
+    ws['I5'] = "EXPENSE (DEBIT)"
+    ws['I5'].font = Font(name="Calibri", size=11, bold=True, color="2D3748")
+    
+    # --- Write Table Headers ---
+    headers_left = ['Date', 'Voucher / Ref #', 'Source', 'Customer/Party', 'Category', 'Description', 'Amount (Rec)']
+    headers_right = ['Date', 'Voucher / Ref #', 'Source', 'Customer/Party', 'Category', 'Description', 'Amount (Pay)']
+    
+    header_row = 6
+    for col_idx, header in enumerate(headers_left, 1):
+        cell = ws.cell(row=header_row, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = income_fill
+        cell.alignment = Alignment(horizontal="right" if col_idx == 7 else "left", vertical="center")
+        cell.border = thin_border
+        
+    for col_idx, header in enumerate(headers_right, 9):
+        cell = ws.cell(row=header_row, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = expense_fill
+        cell.alignment = Alignment(horizontal="right" if col_idx == 15 else "left", vertical="center")
+        cell.border = thin_border
+        
+    # --- Write Data Rows ---
+    incomes = data['incomes']
+    expenses = data['expenses']
+    max_rows = max(len(incomes), len(expenses))
+    current_row = header_row + 1
+    
+    for r_idx in range(max_rows):
+        row_fill_left = zebra_fill if r_idx % 2 == 1 else None
+        row_fill_right = zebra_fill if r_idx % 2 == 1 else None
+        
+        # --- Left Side (Incomes) ---
+        if r_idx < len(incomes):
+            item = incomes[r_idx]
+            vals_left = [
+                item['date'],
+                item['ref'],
+                item['source'],
+                item['party_name'],
+                item['category'],
+                item['description'],
+                float(item['amount'])
+            ]
+            
+            for col_idx, val in enumerate(vals_left, 1):
+                cell = ws.cell(row=current_row, column=col_idx, value=val)
+                cell.font = data_font
+                cell.border = thin_border
+                if row_fill_left:
+                    cell.fill = row_fill_left
+                cell.alignment = Alignment(horizontal="right" if col_idx == 7 else "left", vertical="center")
+                if col_idx == 7 and isinstance(val, (int, float)):
+                    cell.number_format = '#,##0.00'
+        else:
+            # Write empty bordered cells
+            for col_idx in range(1, 8):
+                cell = ws.cell(row=current_row, column=col_idx, value="")
+                cell.border = thin_border
+                if row_fill_left:
+                    cell.fill = row_fill_left
+                    
+        # --- Right Side (Expenses) ---
+        if r_idx < len(expenses):
+            item = expenses[r_idx]
+            vals_right = [
+                item['date'],
+                item['ref'],
+                item['source'],
+                item['party_name'],
+                item['category'],
+                item['description'],
+                float(item['amount'])
+            ]
+            
+            for col_idx, val in enumerate(vals_right, 9):
+                cell = ws.cell(row=current_row, column=col_idx, value=val)
+                cell.font = data_font
+                cell.border = thin_border
+                if row_fill_right:
+                    cell.fill = row_fill_right
+                cell.alignment = Alignment(horizontal="right" if col_idx == 15 else "left", vertical="center")
+                if col_idx == 15 and isinstance(val, (int, float)):
+                    cell.number_format = '#,##0.00'
+        else:
+            # Write empty bordered cells
+            for col_idx in range(9, 16):
+                cell = ws.cell(row=current_row, column=col_idx, value="")
+                cell.border = thin_border
+                if row_fill_right:
+                    cell.fill = row_fill_right
+                    
+        current_row += 1
+        
+    # --- Write Totals Row ---
+    total_left = [
+        ("Total Income", 1), ("", 2), ("", 3), ("", 4), ("", 5), ("", 6),
+        (float(data['total_income']), 7)
+    ]
+    
+    total_right = [
+        ("Total Expense", 9), ("", 10), ("", 11), ("", 12), ("", 13), ("", 14),
+        (float(data['total_expense']), 15)
+    ]
+    
+    for val, col_idx in total_left:
+        cell = ws.cell(row=current_row, column=col_idx, value=val)
+        cell.font = bold_data_font
+        cell.border = total_border
+        cell.alignment = Alignment(horizontal="right" if col_idx == 7 else "left", vertical="center")
+        if col_idx == 7 and cell.value != '':
+            cell.number_format = '#,##0.00'
+            
+    for val, col_idx in total_right:
+        cell = ws.cell(row=current_row, column=col_idx, value=val)
+        cell.font = bold_data_font
+        cell.border = total_border
+        cell.alignment = Alignment(horizontal="right" if col_idx == 15 else "left", vertical="center")
+        if col_idx == 15 and cell.value != '':
+            cell.number_format = '#,##0.00'
+            
+    # Set width for separator column
+    ws.column_dimensions['H'].width = 3
+    
+    # Auto-adjust column widths
+    for col in ws.columns:
+        col_letter = get_column_letter(col[0].column)
+        if col_letter == 'H':
+            continue
+        max_len = 0
+        for cell in col:
+            val_str = str(cell.value or '')
+            if cell.number_format == '#,##0.00' and isinstance(cell.value, (int, float)):
+                val_str = f"{cell.value:,.2f}"
+            max_len = max(max_len, len(val_str))
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 10)
+        
+    # Summary Block at the bottom
+    current_row += 2
+    ws.cell(row=current_row, column=1, value="STATEMENT SUMMARY").font = Font(name="Calibri", size=11, bold=True, color="1B365D")
+    current_row += 1
+    
+    summary_data = [
+        ("Total Income", float(data['total_income']), "1B365D"),
+        ("Total Expense", float(data['total_expense']), "2D3748"),
+        ("Net Profit / (Loss)", float(data['net_profit']), "10B981" if data['net_profit'] >= 0 else "EF4444")
+    ]
+    
+    for label, val, color in summary_data:
+        ws.cell(row=current_row, column=1, value=label).font = bold_data_font
+        ws.cell(row=current_row, column=1).border = thin_border
+        
+        val_cell = ws.cell(row=current_row, column=2, value=val)
+        val_cell.font = Font(name="Calibri", size=10, bold=True, color=color)
+        val_cell.border = thin_border
+        val_cell.number_format = '#,##0.00'
+        val_cell.alignment = Alignment(horizontal="right")
+        current_row += 1
+        
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"Income_Expense_Statement_{start_date}_to_{end_date}.xlsx"
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

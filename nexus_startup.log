@@ -285,3 +285,378 @@
 2026-07-02 12:57:39,878 - INFO - 127.0.0.1 - - [02/Jul/2026 12:57:39] "GET /reports/cash-bank-flow?start_date=2026-06-01&end_date=2026-06-30 HTTP/1.1" 200 -
 2026-07-02 12:57:40,083 - INFO - 127.0.0.1 - - [02/Jul/2026 12:57:40] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
 2026-07-02 12:57:41,692 - INFO - 127.0.0.1 - - [02/Jul/2026 12:57:41] "POST /reports/cash-bank-flow/export HTTP/1.1" 200 -
+2026-07-13 15:25:37,020 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 15:27:02,589 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:27:03,075 - INFO - Database tables verified/created.
+2026-07-13 15:27:03,206 - INFO - Chart of Accounts seeded.
+2026-07-13 15:27:03,210 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:27:03,235 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-13 15:27:03,235 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 15:27:03,247 - INFO -  * Restarting with stat
+2026-07-13 15:27:03,283 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:27:05,282 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:27:05,767 - WARNING -  * Debugger is active!
+2026-07-13 15:27:05,768 - INFO - Database tables verified/created.
+2026-07-13 15:27:05,842 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:27:05,922 - INFO - Chart of Accounts seeded.
+2026-07-13 15:27:05,925 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:27:05,999 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:27:34,389 - INFO - 127.0.0.1 - - [13/Jul/2026 15:27:34] "[32mGET /installments HTTP/1.1[0m" 302 -
+2026-07-13 15:27:34,557 - INFO - 127.0.0.1 - - [13/Jul/2026 15:27:34] "GET /login HTTP/1.1" 200 -
+2026-07-13 15:27:34,701 - INFO - 127.0.0.1 - - [13/Jul/2026 15:27:34] "GET /static/images/login_bg.png HTTP/1.1" 200 -
+2026-07-13 15:27:34,905 - INFO - 127.0.0.1 - - [13/Jul/2026 15:27:34] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-07-13 15:27:43,295 - INFO - 127.0.0.1 - - [13/Jul/2026 15:27:43] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-07-13 15:27:43,654 - INFO - 127.0.0.1 - - [13/Jul/2026 15:27:43] "GET / HTTP/1.1" 200 -
+2026-07-13 15:27:43,702 - INFO - 127.0.0.1 - - [13/Jul/2026 15:27:43] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-07-13 15:28:08,944 - INFO - 127.0.0.1 - - [13/Jul/2026 15:28:08] "GET /reports HTTP/1.1" 200 -
+2026-07-13 15:28:08,959 - INFO - 127.0.0.1 - - [13/Jul/2026 15:28:08] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:28:12,124 - INFO - 127.0.0.1 - - [13/Jul/2026 15:28:12] "GET /reports/income-expense HTTP/1.1" 200 -
+2026-07-13 15:28:12,138 - INFO - 127.0.0.1 - - [13/Jul/2026 15:28:12] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:28:27,790 - INFO - 127.0.0.1 - - [13/Jul/2026 15:28:27] "GET /reports/income-expense?start_date=2026-06-01&end_date=2026-06-30 HTTP/1.1" 200 -
+2026-07-13 15:28:27,805 - INFO - 127.0.0.1 - - [13/Jul/2026 15:28:27] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:28:42,821 - INFO - 127.0.0.1 - - [13/Jul/2026 15:28:42] "POST /reports/income-expense/export HTTP/1.1" 200 -
+2026-07-13 15:29:30,362 - INFO - 127.0.0.1 - - [13/Jul/2026 15:29:30] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 15:29:30,374 - INFO - 127.0.0.1 - - [13/Jul/2026 15:29:30] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:31:44,554 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\models.py', reloading
+2026-07-13 15:31:45,109 - INFO -  * Restarting with stat
+2026-07-13 15:31:48,190 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:31:48,887 - INFO - Database tables verified/created.
+2026-07-13 15:31:48,900 - WARNING -  * Debugger is active!
+2026-07-13 15:31:48,966 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:31:49,023 - INFO - Chart of Accounts seeded.
+2026-07-13 15:31:49,027 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:31:49,096 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:32:00,884 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\logic.py', reloading
+2026-07-13 15:32:01,308 - INFO -  * Restarting with stat
+2026-07-13 15:32:04,150 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:32:04,867 - WARNING -  * Debugger is active!
+2026-07-13 15:32:04,870 - INFO - Database tables verified/created.
+2026-07-13 15:32:04,929 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:32:05,106 - INFO - Chart of Accounts seeded.
+2026-07-13 15:32:05,110 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:32:05,210 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:32:11,259 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\routes.py', reloading
+2026-07-13 15:32:11,644 - INFO -  * Restarting with stat
+2026-07-13 15:32:13,879 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:32:14,493 - WARNING -  * Debugger is active!
+2026-07-13 15:32:14,495 - INFO - Database tables verified/created.
+2026-07-13 15:32:14,571 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:32:14,623 - INFO - Chart of Accounts seeded.
+2026-07-13 15:32:14,626 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:32:14,697 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:32:54,563 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 15:33:28,763 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:33:29,325 - INFO - Database tables verified/created.
+2026-07-13 15:33:29,450 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-13 15:33:29,450 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 15:33:29,456 - INFO -  * Restarting with stat
+2026-07-13 15:33:29,457 - INFO - Chart of Accounts seeded.
+2026-07-13 15:33:29,461 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:33:29,531 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:33:31,714 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:33:32,267 - WARNING -  * Debugger is active!
+2026-07-13 15:33:32,268 - INFO - Database tables verified/created.
+2026-07-13 15:33:32,341 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:33:32,396 - INFO - Chart of Accounts seeded.
+2026-07-13 15:33:32,399 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:33:32,466 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:33:33,839 - INFO - 127.0.0.1 - - [13/Jul/2026 15:33:33] "GET / HTTP/1.1" 200 -
+2026-07-13 15:33:33,861 - INFO - 127.0.0.1 - - [13/Jul/2026 15:33:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:33:38,940 - INFO - 127.0.0.1 - - [13/Jul/2026 15:33:38] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 15:33:38,959 - INFO - 127.0.0.1 - - [13/Jul/2026 15:33:38] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:33:44,852 - INFO - 127.0.0.1 - - [13/Jul/2026 15:33:44] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 15:33:44,867 - INFO - 127.0.0.1 - - [13/Jul/2026 15:33:44] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:34:45,481 - INFO - 127.0.0.1 - - [13/Jul/2026 15:34:45] "GET /vouchers/edit/35 HTTP/1.1" 200 -
+2026-07-13 15:34:45,498 - INFO - 127.0.0.1 - - [13/Jul/2026 15:34:45] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:35:00,832 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:00] "[32mPOST /vouchers/edit/35 HTTP/1.1[0m" 302 -
+2026-07-13 15:35:00,906 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:00] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 15:35:00,935 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:35:18,473 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:18] "GET /vouchers/edit/34 HTTP/1.1" 200 -
+2026-07-13 15:35:18,489 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:18] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:35:33,542 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:33] "[32mPOST /vouchers/edit/34 HTTP/1.1[0m" 302 -
+2026-07-13 15:35:33,584 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:33] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 15:35:33,661 - INFO - 127.0.0.1 - - [13/Jul/2026 15:35:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:37:18,145 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\routes.py', reloading
+2026-07-13 15:37:18,621 - INFO -  * Restarting with stat
+2026-07-13 15:37:22,051 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:37:22,778 - INFO - Database tables verified/created.
+2026-07-13 15:37:22,854 - WARNING -  * Debugger is active!
+2026-07-13 15:37:22,860 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:37:22,911 - INFO - Chart of Accounts seeded.
+2026-07-13 15:37:22,915 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:37:22,987 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:37:53,859 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 15:37:54,407 - INFO - Database tables verified/created.
+2026-07-13 15:38:27,220 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:38:27,781 - INFO - Database tables verified/created.
+2026-07-13 15:38:27,888 - INFO - Chart of Accounts seeded.
+2026-07-13 15:38:27,891 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:38:27,955 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:38:28,048 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-13 15:38:28,048 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 15:38:28,050 - INFO -  * Restarting with stat
+2026-07-13 15:38:30,697 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:38:31,409 - WARNING -  * Debugger is active!
+2026-07-13 15:38:31,414 - INFO - Database tables verified/created.
+2026-07-13 15:38:31,416 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:38:31,593 - INFO - Chart of Accounts seeded.
+2026-07-13 15:38:31,596 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:38:31,677 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:38:32,882 - INFO - 127.0.0.1 - - [13/Jul/2026 15:38:32] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 15:38:32,908 - INFO - 127.0.0.1 - - [13/Jul/2026 15:38:32] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:07,833 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:07] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-03-01&end_date=2026-06-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:07,854 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:07] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:22,944 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:22] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:22,964 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:22] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:25,593 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:25] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:25,613 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:25] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:26,164 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:26] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:26,183 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:26] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:26,798 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:26] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:26,819 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:26] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:27,414 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:27] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:27,433 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:27] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:27,878 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:27] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:27,896 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:27] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:28,467 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:28] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:28,489 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:28] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:31,869 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:31] "GET /vouchers?type=&date_type=payment_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:31,887 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:31] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:32,819 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:32] "GET /vouchers?type=&date_type=payment_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:32,838 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:32] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:33,741 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:33] "GET /vouchers?type=&date_type=payment_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:33,760 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:34,271 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:34] "GET /vouchers?type=&date_type=payment_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:34,295 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:34] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:34,738 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:34] "GET /vouchers?type=&date_type=payment_date&start_date=2026-05-01&end_date=2026-05-30&search=None HTTP/1.1" 200 -
+2026-07-13 15:39:34,758 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:34] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:39:40,692 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:40] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 15:39:40,709 - INFO - 127.0.0.1 - - [13/Jul/2026 15:39:40] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:40:43,028 - INFO - 127.0.0.1 - - [13/Jul/2026 15:40:43] "GET /vouchers?type=&date_type=payment_date&start_date=2026-07-01&end_date=2026-07-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:40:43,055 - INFO - 127.0.0.1 - - [13/Jul/2026 15:40:43] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:40:44,959 - INFO - 127.0.0.1 - - [13/Jul/2026 15:40:44] "GET /vouchers?type=&date_type=payment_date&start_date=2026-07-01&end_date=2026-07-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:40:44,978 - INFO - 127.0.0.1 - - [13/Jul/2026 15:40:44] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:40:48,067 - INFO - 127.0.0.1 - - [13/Jul/2026 15:40:48] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-07-01&end_date=2026-07-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:40:48,089 - INFO - 127.0.0.1 - - [13/Jul/2026 15:40:48] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:42:37,107 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 15:43:00,681 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 15:43:16,681 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\routes.py', reloading
+2026-07-13 15:43:17,075 - INFO -  * Restarting with stat
+2026-07-13 15:43:19,472 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:43:19,979 - INFO - Database tables verified/created.
+2026-07-13 15:43:20,056 - WARNING -  * Debugger is active!
+2026-07-13 15:43:20,061 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:43:20,137 - INFO - Chart of Accounts seeded.
+2026-07-13 15:43:20,142 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:43:20,243 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:43:23,731 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 15:43:24,265 - INFO - Database tables verified/created.
+2026-07-13 15:45:16,172 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:45:16,976 - INFO - Database tables verified/created.
+2026-07-13 15:45:17,124 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-13 15:45:17,124 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 15:45:17,131 - INFO -  * Restarting with stat
+2026-07-13 15:45:17,181 - INFO - Chart of Accounts seeded.
+2026-07-13 15:45:17,186 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:45:17,292 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:45:19,728 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:45:20,376 - WARNING -  * Debugger is active!
+2026-07-13 15:45:20,378 - INFO - Database tables verified/created.
+2026-07-13 15:45:20,438 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:45:20,512 - INFO - Chart of Accounts seeded.
+2026-07-13 15:45:20,515 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:45:20,611 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:45:22,195 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:22] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-07-01&end_date=2026-07-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:22,216 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:22] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:45:33,482 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:33] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-07-01&end_date=2026-07-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:33,504 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:45:41,236 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:41] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:41,252 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:41] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:45:43,185 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:43] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:43,211 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:43] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:45:44,569 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:44] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:44,586 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:44] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:45:46,172 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:46] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:46,192 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:46] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:45:50,312 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:50] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:50,338 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:50] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:45:59,743 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:59] "GET /vouchers?type=&date_type=payment_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:45:59,761 - INFO - 127.0.0.1 - - [13/Jul/2026 15:45:59] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:46:00,720 - INFO - 127.0.0.1 - - [13/Jul/2026 15:46:00] "GET /vouchers?type=&date_type=payment_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:46:00,738 - INFO - 127.0.0.1 - - [13/Jul/2026 15:46:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:46:29,125 - INFO -  * Detected change in 'G:\\Personal\\Nexus-River-View\\routes.py', reloading
+2026-07-13 15:46:29,538 - INFO -  * Restarting with stat
+2026-07-13 15:46:32,672 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 15:46:33,210 - WARNING -  * Debugger is active!
+2026-07-13 15:46:33,212 - INFO - Database tables verified/created.
+2026-07-13 15:46:33,275 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 15:46:33,349 - INFO - Chart of Accounts seeded.
+2026-07-13 15:46:33,352 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 15:46:33,422 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 15:47:51,434 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 15:47:51,981 - INFO - Database tables verified/created.
+2026-07-13 15:48:23,434 - INFO - 127.0.0.1 - - [13/Jul/2026 15:48:23] "GET /vouchers?type=&date_type=payment_date&start_date=2026-06-01&end_date=2026-06-13&search=None HTTP/1.1" 200 -
+2026-07-13 15:48:23,464 - INFO - 127.0.0.1 - - [13/Jul/2026 15:48:23] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:49:50,285 - INFO - 127.0.0.1 - - [13/Jul/2026 15:49:50] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-01&end_date=2026-06-13&search= HTTP/1.1" 200 -
+2026-07-13 15:49:50,314 - INFO - 127.0.0.1 - - [13/Jul/2026 15:49:50] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:49:57,916 - INFO - 127.0.0.1 - - [13/Jul/2026 15:49:57] "GET / HTTP/1.1" 200 -
+2026-07-13 15:49:57,932 - INFO - 127.0.0.1 - - [13/Jul/2026 15:49:57] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:50:00,178 - INFO - 127.0.0.1 - - [13/Jul/2026 15:50:00] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 15:50:00,198 - INFO - 127.0.0.1 - - [13/Jul/2026 15:50:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:51:33,436 - INFO - 127.0.0.1 - - [13/Jul/2026 15:51:33] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 15:51:33,454 - INFO - 127.0.0.1 - - [13/Jul/2026 15:51:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:51:42,512 - INFO - 127.0.0.1 - - [13/Jul/2026 15:51:42] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 15:51:42,532 - INFO - 127.0.0.1 - - [13/Jul/2026 15:51:42] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:57:40,100 - INFO - 127.0.0.1 - - [13/Jul/2026 15:57:40] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 15:57:40,218 - INFO - 127.0.0.1 - - [13/Jul/2026 15:57:40] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 15:57:48,125 - INFO - 127.0.0.1 - - [13/Jul/2026 15:57:48] "GET / HTTP/1.1" 200 -
+2026-07-13 15:57:48,149 - INFO - 127.0.0.1 - - [13/Jul/2026 15:57:48] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:21:40,485 - INFO - 127.0.0.1 - - [13/Jul/2026 17:21:40] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 17:21:40,596 - INFO - 127.0.0.1 - - [13/Jul/2026 17:21:40] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:23:45,908 - INFO - 127.0.0.1 - - [13/Jul/2026 17:23:45] "[32mPOST /vouchers/add/Debit HTTP/1.1[0m" 302 -
+2026-07-13 17:23:46,099 - INFO - 127.0.0.1 - - [13/Jul/2026 17:23:46] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:23:46,125 - INFO - 127.0.0.1 - - [13/Jul/2026 17:23:46] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:23:52,165 - INFO - 127.0.0.1 - - [13/Jul/2026 17:23:52] "GET /vouchers/edit/43 HTTP/1.1" 200 -
+2026-07-13 17:23:52,181 - INFO - 127.0.0.1 - - [13/Jul/2026 17:23:52] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:23:53,792 - INFO - 127.0.0.1 - - [13/Jul/2026 17:23:53] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:23:53,811 - INFO - 127.0.0.1 - - [13/Jul/2026 17:23:53] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:24:00,073 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:00] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 17:24:00,096 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:24:03,053 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:03] "GET /vouchers/edit/44 HTTP/1.1" 200 -
+2026-07-13 17:24:03,074 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:03] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:24:19,009 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:19] "[32mPOST /vouchers/edit/44 HTTP/1.1[0m" 302 -
+2026-07-13 17:24:19,054 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:19] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:24:19,124 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:19] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:24:27,728 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:27] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 17:24:27,749 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:27] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:24:33,068 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:33] "GET /vouchers/add/Credit HTTP/1.1" 200 -
+2026-07-13 17:24:33,087 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:24:39,838 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:39] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:24:39,856 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:39] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:24:41,454 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:41] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 17:24:41,468 - INFO - 127.0.0.1 - - [13/Jul/2026 17:24:41] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:26:41,984 - INFO - 127.0.0.1 - - [13/Jul/2026 17:26:41] "[32mPOST /vouchers/add/Debit HTTP/1.1[0m" 302 -
+2026-07-13 17:26:42,052 - INFO - 127.0.0.1 - - [13/Jul/2026 17:26:42] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:26:42,138 - INFO - 127.0.0.1 - - [13/Jul/2026 17:26:42] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:26:46,216 - INFO - 127.0.0.1 - - [13/Jul/2026 17:26:46] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 17:26:46,232 - INFO - 127.0.0.1 - - [13/Jul/2026 17:26:46] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:26:51,382 - INFO - 127.0.0.1 - - [13/Jul/2026 17:26:51] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 17:26:51,402 - INFO - 127.0.0.1 - - [13/Jul/2026 17:26:51] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:28:13,146 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:13] "[32mPOST /vouchers/add/Debit HTTP/1.1[0m" 302 -
+2026-07-13 17:28:13,197 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:13] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:28:13,284 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:13] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:28:26,180 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:26] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 17:28:26,200 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:26] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:28:33,888 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:33] "GET /vouchers/edit/44 HTTP/1.1" 200 -
+2026-07-13 17:28:33,907 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:28:52,220 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:52] "[32mPOST /vouchers/edit/44 HTTP/1.1[0m" 302 -
+2026-07-13 17:28:52,269 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:52] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:28:52,336 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:52] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:28:57,521 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:57] "GET / HTTP/1.1" 200 -
+2026-07-13 17:28:57,540 - INFO - 127.0.0.1 - - [13/Jul/2026 17:28:57] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:29:05,368 - INFO - 127.0.0.1 - - [13/Jul/2026 17:29:05] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 17:29:05,385 - INFO - 127.0.0.1 - - [13/Jul/2026 17:29:05] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:30:19,341 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:19] "[32mPOST /vouchers/add/Debit HTTP/1.1[0m" 302 -
+2026-07-13 17:30:19,379 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:19] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:30:19,473 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:19] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:30:23,887 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:23] "GET /vouchers/edit/47 HTTP/1.1" 200 -
+2026-07-13 17:30:23,906 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:23] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:30:36,433 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:36] "[32mPOST /vouchers/edit/47 HTTP/1.1[0m" 302 -
+2026-07-13 17:30:36,475 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:36] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 17:30:36,556 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:36] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:30:48,008 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:48] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 17:30:48,026 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:48] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:30:54,588 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:54] "GET /vouchers?type=&date_type=voucher_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 17:30:54,607 - INFO - 127.0.0.1 - - [13/Jul/2026 17:30:54] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:31:28,292 - INFO - 127.0.0.1 - - [13/Jul/2026 17:31:28] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-01&end_date=2026-06-30&search= HTTP/1.1" 200 -
+2026-07-13 17:31:28,311 - INFO - 127.0.0.1 - - [13/Jul/2026 17:31:28] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:31:46,720 - INFO - 127.0.0.1 - - [13/Jul/2026 17:31:46] "GET /reports HTTP/1.1" 200 -
+2026-07-13 17:31:46,735 - INFO - 127.0.0.1 - - [13/Jul/2026 17:31:46] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:31:48,913 - INFO - 127.0.0.1 - - [13/Jul/2026 17:31:48] "GET /reports/income-expense HTTP/1.1" 200 -
+2026-07-13 17:31:48,927 - INFO - 127.0.0.1 - - [13/Jul/2026 17:31:48] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:32:02,032 - INFO - 127.0.0.1 - - [13/Jul/2026 17:32:02] "GET /reports/income-expense?start_date=2026-06-01&end_date=2026-06-30 HTTP/1.1" 200 -
+2026-07-13 17:32:02,052 - INFO - 127.0.0.1 - - [13/Jul/2026 17:32:02] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:32:05,566 - INFO - 127.0.0.1 - - [13/Jul/2026 17:32:05] "POST /reports/income-expense/export HTTP/1.1" 200 -
+2026-07-13 17:35:36,831 - INFO - Application starting with data_dir: g:\Personal\Nexus-River-View
+2026-07-13 17:35:37,607 - INFO - Database tables verified/created.
+2026-07-13 17:36:29,653 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 17:36:30,173 - INFO - Database tables verified/created.
+2026-07-13 17:36:30,301 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-13 17:36:30,301 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 17:36:30,306 - INFO - Chart of Accounts seeded.
+2026-07-13 17:36:30,309 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 17:36:30,310 - INFO -  * Restarting with stat
+2026-07-13 17:36:30,378 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 17:36:33,165 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 17:36:33,779 - WARNING -  * Debugger is active!
+2026-07-13 17:36:33,780 - INFO - Database tables verified/created.
+2026-07-13 17:36:33,820 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 17:36:33,941 - INFO - Chart of Accounts seeded.
+2026-07-13 17:36:33,944 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 17:36:34,009 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 17:36:35,829 - INFO - 127.0.0.1 - - [13/Jul/2026 17:36:35] "GET /reports/income-expense?start_date=2026-06-01&end_date=2026-06-30 HTTP/1.1" 200 -
+2026-07-13 17:36:35,850 - INFO - 127.0.0.1 - - [13/Jul/2026 17:36:35] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 17:36:43,295 - INFO - 127.0.0.1 - - [13/Jul/2026 17:36:43] "POST /reports/income-expense/export HTTP/1.1" 200 -
+2026-07-13 18:16:50,915 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 18:16:51,743 - INFO - Database tables verified/created.
+2026-07-13 18:16:51,855 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-13 18:16:51,855 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 18:16:51,860 - INFO -  * Restarting with stat
+2026-07-13 18:16:51,888 - INFO - Chart of Accounts seeded.
+2026-07-13 18:16:51,891 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 18:16:51,965 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 18:16:54,102 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-13 18:16:54,603 - INFO - Database tables verified/created.
+2026-07-13 18:16:54,604 - WARNING -  * Debugger is active!
+2026-07-13 18:16:54,687 - INFO -  * Debugger PIN: 113-660-391
+2026-07-13 18:16:54,732 - INFO - Chart of Accounts seeded.
+2026-07-13 18:16:54,735 - INFO - Verifying sync status with Google Sheets (Background)...
+2026-07-13 18:16:54,799 - INFO - Google Sheets is empty. Initializing with local data...
+2026-07-13 18:16:56,589 - INFO - 127.0.0.1 - - [13/Jul/2026 18:16:56] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 18:16:56,615 - INFO - 127.0.0.1 - - [13/Jul/2026 18:16:56] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:16:59,368 - INFO - 127.0.0.1 - - [13/Jul/2026 18:16:59] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 18:16:59,390 - INFO - 127.0.0.1 - - [13/Jul/2026 18:16:59] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:17:00,114 - INFO - 127.0.0.1 - - [13/Jul/2026 18:17:00] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 18:17:00,137 - INFO - 127.0.0.1 - - [13/Jul/2026 18:17:00] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:17:02,993 - INFO - 127.0.0.1 - - [13/Jul/2026 18:17:02] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 18:17:03,012 - INFO - 127.0.0.1 - - [13/Jul/2026 18:17:03] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:17:05,855 - INFO - 127.0.0.1 - - [13/Jul/2026 18:17:05] "GET /vouchers/print/43 HTTP/1.1" 200 -
+2026-07-13 18:17:13,082 - INFO - 127.0.0.1 - - [13/Jul/2026 18:17:13] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 18:17:13,102 - INFO - 127.0.0.1 - - [13/Jul/2026 18:17:13] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:20:28,474 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:28] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-13&end_date=2026-06-30&search= HTTP/1.1" 200 -
+2026-07-13 18:20:28,501 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:28] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:20:45,522 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:45] "GET /vouchers?type=&date_type=payment_date&start_date=2026-06-13&end_date=2026-06-30&search= HTTP/1.1" 200 -
+2026-07-13 18:20:45,542 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:45] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:20:48,660 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:48] "GET /vouchers?type=&date_type=voucher_date&start_date=2026-06-13&end_date=2026-06-30&search= HTTP/1.1" 200 -
+2026-07-13 18:20:48,675 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:48] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:20:57,812 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:57] "GET / HTTP/1.1" 200 -
+2026-07-13 18:20:57,832 - INFO - 127.0.0.1 - - [13/Jul/2026 18:20:57] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:23:01,795 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:01] "GET /vouchers/add/Debit HTTP/1.1" 200 -
+2026-07-13 18:23:01,816 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:01] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:23:04,170 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:04] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 18:23:04,189 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:04] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:23:10,516 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:10] "GET /vouchers?type=&date_type=voucher_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 18:23:10,533 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:10] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:23:37,554 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:37] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 18:23:37,572 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:37] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:23:41,204 - INFO - 127.0.0.1 - - [13/Jul/2026 18:23:41] "GET /vouchers/print/47 HTTP/1.1" 200 -
+2026-07-13 18:25:06,528 - INFO - 127.0.0.1 - - [13/Jul/2026 18:25:06] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 18:25:06,549 - INFO - 127.0.0.1 - - [13/Jul/2026 18:25:06] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:25:13,450 - INFO - 127.0.0.1 - - [13/Jul/2026 18:25:13] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 18:25:13,468 - INFO - 127.0.0.1 - - [13/Jul/2026 18:25:13] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:25:16,538 - INFO - 127.0.0.1 - - [13/Jul/2026 18:25:16] "GET /vouchers/print/46 HTTP/1.1" 200 -
+2026-07-13 18:26:22,916 - INFO - 127.0.0.1 - - [13/Jul/2026 18:26:22] "GET /vouchers/print/46 HTTP/1.1" 200 -
+2026-07-13 18:26:53,296 - INFO - 127.0.0.1 - - [13/Jul/2026 18:26:53] "GET /vouchers/print/43 HTTP/1.1" 200 -
+2026-07-13 18:26:56,417 - INFO - 127.0.0.1 - - [13/Jul/2026 18:26:56] "GET /vouchers HTTP/1.1" 200 -
+2026-07-13 18:26:56,443 - INFO - 127.0.0.1 - - [13/Jul/2026 18:26:56] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:26:59,860 - INFO - 127.0.0.1 - - [13/Jul/2026 18:26:59] "GET /vouchers?type=&date_type=payment_date&start_date=&end_date=&search= HTTP/1.1" 200 -
+2026-07-13 18:26:59,878 - INFO - 127.0.0.1 - - [13/Jul/2026 18:26:59] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 18:27:01,678 - INFO - 127.0.0.1 - - [13/Jul/2026 18:27:01] "GET /vouchers/print/47 HTTP/1.1" 200 -
+2026-07-13 18:28:45,186 - INFO - 127.0.0.1 - - [13/Jul/2026 18:28:45] "GET /vouchers/print/45 HTTP/1.1" 200 -
+2026-07-13 18:29:04,910 - INFO - 127.0.0.1 - - [13/Jul/2026 18:29:04] "GET /vouchers/print/44 HTTP/1.1" 200 -
