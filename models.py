@@ -129,7 +129,8 @@ class Installment(db.Model):
     @property
     def total_expected(self):
         from models import Director
-        total_shares = sum(d.total_share for d in Director.query.all())
+        from sqlalchemy import func
+        total_shares = db.session.query(func.sum(Director.total_share)).scalar() or 0
         return total_shares * self.amount_per_share
 
     @property

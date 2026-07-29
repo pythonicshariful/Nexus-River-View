@@ -1,5 +1,4 @@
-import pandas as pd
-import openpyxl
+
 from decimal import Decimal
 from models import (
     Director, Customer, PettyCash, Transaction, Bank, BankTransaction, 
@@ -477,7 +476,9 @@ def recalculate_customer_totals(customer):
     if director:
         director.total_paid = sum(Decimal(str(c.total_paid or 0)) for c in director.customers)
         from models import Installment
-        total_rate_per_share = sum(Decimal(str(inst.amount_per_share or 0)) for inst in Installment.query.all())
+        from sqlalchemy import func
+        from database import db
+        total_rate_per_share = db.session.query(func.sum(Installment.amount_per_share)).scalar() or 0
         director_total_expected = Decimal(str(director.total_share or 0)) * Decimal(str(total_rate_per_share))
         director.total_due = director_total_expected - director.total_paid
     
@@ -488,6 +489,8 @@ def export_party_ledger_to_excel(party_id):
     """
     Generates an Excel file for a specific party's ledger.
     """
+    import pandas as pd
+    import openpyxl
     party = Party.query.get(party_id)
     if not party:
         return None, "Party not found"

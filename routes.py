@@ -6,7 +6,7 @@ import os
 from models import User, Todo, Director, Customer, Transaction, PettyCash, PettyCashCategory, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger, Voucher, PartyCategory, ContraEntry, Employee, Attendance, Leave, Salary, ChartOfAccounts, JournalEntry, JournalLine
 from database import db
 from logic import recalculate_party_ledger_balances, export_party_ledger_to_excel, generate_voucher_number, process_voucher_financials, get_daily_cash_report, get_due_payments_report, generate_contra_number, process_contra_financials, recompute_bank_balances, recalculate_customer_totals, cleanup_journal_entries, process_transaction_financials
-import pandas as pd
+
 import io
 from datetime import datetime
 from flask import send_file, jsonify
@@ -141,22 +141,28 @@ def uploaded_file(filename):
 @login_required
 def index():
     try:
-        directors = Director.query.all()
-        customers = Customer.query.all()
+        from sqlalchemy.orm import joinedload
+        from sqlalchemy import func
+        directors = Director.query.options(joinedload(Director.customers)).all()
+        customers = Customer.query.options(joinedload(Customer.transactions)).all()
         from models import Installment
         from decimal import Decimal
-        total_milestone_rate = sum(Decimal(str(inst.amount_per_share or 0)) for inst in Installment.query.all())
-        total_director_shares = sum(Decimal(str(d.total_share or 0)) for d in directors)
+        total_milestone_rate = db.session.query(func.sum(Installment.amount_per_share)).scalar() or 0
+        total_director_shares = db.session.query(func.sum(Director.total_share)).scalar() or 0
         
         grand_total_payable = Decimal(str(total_director_shares)) * Decimal(str(total_milestone_rate))
         grand_total_paid = sum(Decimal(str(c.total_paid or 0)) for c in customers)
         grand_total_due = Decimal(str(grand_total_payable)) - Decimal(str(grand_total_paid))
         grand_total_outstanding = grand_total_due
             
-        total_bank_balance = sum(Decimal(str(tx.credit or 0)) - Decimal(str(tx.debit or 0)) for tx in BankTransaction.query.all())
+        bank_res = db.session.query(func.sum(BankTransaction.credit) - func.sum(BankTransaction.debit)).scalar()
+        total_bank_balance = Decimal(str(bank_res)) if bank_res else Decimal('0')
         
-        cash_income = sum(Decimal(str(pc.amount or 0)) for pc in PettyCash.query.filter_by(type='Income').all())
-        cash_expense = sum(Decimal(str(pc.amount or 0)) for pc in PettyCash.query.filter_by(type='Expense').all())
+        cash_inc_res = db.session.query(func.sum(PettyCash.amount)).filter_by(type='Income').scalar()
+        cash_income = Decimal(str(cash_inc_res)) if cash_inc_res else Decimal('0')
+        
+        cash_exp_res = db.session.query(func.sum(PettyCash.amount)).filter_by(type='Expense').scalar()
+        cash_expense = Decimal(str(cash_exp_res)) if cash_exp_res else Decimal('0')
         cash_in_hand = cash_income - cash_expense
 
         # Store today_todos safely
@@ -187,23 +193,23 @@ def index():
             return None
 
         # 1. Customer Transactions (Income)
-        for tx in Transaction.query.all():
-            m = get_month_key(tx.date)
-            if m: income_by_month[m] += float(tx.amount)
+        for date, amount in db.session.query(Transaction.date, Transaction.amount).all():
+            m = get_month_key(date)
+            if m: income_by_month[m] += float(amount or 0)
             
         # 2. Bank Transactions
-        for tx in BankTransaction.query.all():
-            m = get_month_key(tx.date)
+        for date, credit, debit in db.session.query(BankTransaction.date, BankTransaction.credit, BankTransaction.debit).all():
+            m = get_month_key(date)
             if m:
-                income_by_month[m] += float(tx.credit)
-                expense_by_month[m] += float(tx.debit)
+                income_by_month[m] += float(credit or 0)
+                expense_by_month[m] += float(debit or 0)
                 
         # 3. Petty Cash
-        for pc in PettyCash.query.all():
-            m = get_month_key(pc.date)
+        for date, type_, amount in db.session.query(PettyCash.date, PettyCash.type, PettyCash.amount).all():
+            m = get_month_key(date)
             if m:
-                if pc.type == 'Income': income_by_month[m] += float(pc.amount)
-                else: expense_by_month[m] += float(pc.amount)
+                if type_ == 'Income': income_by_month[m] += float(amount or 0)
+                else: expense_by_month[m] += float(amount or 0)
 
         # Prepare labels and values for the last 6 months
         import calendar
@@ -2061,7 +2067,8 @@ def edit_installment(id):
         recalculate_customer_totals(c)
 
     # Recalculate all director dues using total_share
-    total_rate_per_share = sum(i.amount_per_share for i in Installment.query.all())
+    from sqlalchemy import func
+    total_rate_per_share = db.session.query(func.sum(Installment.amount_per_share)).scalar() or 0
     from models import Director as Dir
     for d in Dir.query.all():
         from decimal import Decimal
@@ -2095,7 +2102,8 @@ def delete_installment(id):
         recalculate_customer_totals(c)
 
     # Recalculate all director dues
-    total_rate_per_share = sum(i.amount_per_share for i in Installment.query.all())
+    from sqlalchemy import func
+    total_rate_per_share = db.session.query(func.sum(Installment.amount_per_share)).scalar() or 0
     from models import Director as Dir
     for d in Dir.query.all():
         from decimal import Decimal

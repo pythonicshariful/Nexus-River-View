@@ -1479,3 +1479,35 @@
 2026-07-29 14:15:56,727 - INFO -  * Debugger PIN: 113-660-391
 2026-07-29 14:15:56,772 - INFO - Chart of Accounts seeded.
 2026-07-29 14:17:04,737 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-29 14:22:48,709 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-29 14:22:48,826 - INFO - Database tables verified/created.
+2026-07-29 14:22:48,945 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-29 14:22:48,945 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-29 14:22:48,950 - INFO -  * Restarting with stat
+2026-07-29 14:22:48,978 - INFO - Chart of Accounts seeded.
+2026-07-29 14:22:51,626 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-29 14:22:51,771 - INFO - Database tables verified/created.
+2026-07-29 14:22:51,920 - WARNING -  * Debugger is active!
+2026-07-29 14:22:51,944 - INFO -  * Debugger PIN: 113-660-391
+2026-07-29 14:22:52,190 - INFO - Chart of Accounts seeded.
+2026-07-29 14:23:00,287 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:00] "[32mGET / HTTP/1.1[0m" 302 -
+2026-07-29 14:23:00,352 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:00] "GET /login HTTP/1.1" 200 -
+2026-07-29 14:23:00,561 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:00] "GET /static/images/login_bg.png HTTP/1.1" 200 -
+2026-07-29 14:23:00,861 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:00] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-07-29 14:23:02,916 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:02] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-07-29 14:23:03,163 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:03] "GET / HTTP/1.1" 200 -
+2026-07-29 14:23:03,253 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:03] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-07-29 14:23:06,764 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:06] "GET /vouchers HTTP/1.1" 200 -
+2026-07-29 14:23:06,828 - INFO - 127.0.0.1 - - [29/Jul/2026 14:23:06] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-29 17:12:56,161 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-29 17:12:56,408 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-29 17:12:56,408 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-29 17:12:56,412 - INFO -  * Restarting with stat
+2026-07-29 17:12:58,194 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-29 17:12:58,294 - WARNING -  * Debugger is active!
+2026-07-29 17:12:58,307 - INFO -  * Debugger PIN: 113-660-391
+2026-07-29 17:13:12,399 - INFO - 127.0.0.1 - - [29/Jul/2026 17:13:12] "GET / HTTP/1.1" 200 -
+2026-07-29 17:13:12,412 - INFO - 127.0.0.1 - - [29/Jul/2026 17:13:12] "GET / HTTP/1.1" 200 -
+2026-07-29 17:13:12,834 - INFO - 127.0.0.1 - - [29/Jul/2026 17:13:12] "GET /static/css/style.css HTTP/1.1" 200 -

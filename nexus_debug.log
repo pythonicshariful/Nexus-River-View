@@ -1977,3 +1977,28 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 [2026-07-29 13:53:41] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260729_135341.db
 [2026-07-29 13:53:41] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
 [2026-07-29 13:53:44] Document sent successfully.
+[2026-07-29 14:23:00] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4325, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-29 14:23:02] Starting Background Tasks due to: User Login: admin
+[2026-07-29 14:23:02] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260729_142302.db
+[2026-07-29 14:23:02] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-29 14:23:05] Document sent successfully.

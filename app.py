@@ -83,46 +83,38 @@ def create_app():
         return db.session.get(User, int(user_id))
         
     app.register_blueprint(main)
-    
-    # Startup DB Check (Run in background thread to prevent GUI/Startup hang)
-    def run_startup_sync(app_to_sync, logger_to_use, db_path_to_use):
-        with app_to_sync.app_context():
-            # Ensure tables exist
+    # Database Initialization CLI Command
+    @app.cli.command("init-db")
+    def init_db_command():
+        """Creates the database tables and default admin."""
+        with app.app_context():
             try:
                 db.create_all()
-                logger_to_use.info("Database tables verified/created.")
+                print("Database tables verified/created.")
                 
                 # Seed Chart of Accounts
                 from logic import seed_chart_of_accounts
                 seed_chart_of_accounts()
-                logger_to_use.info("Chart of Accounts seeded.")
+                print("Chart of Accounts seeded.")
                 
                 # Check for default admin
                 from models import User
                 if not User.query.filter_by(username='admin').first():
                     admin = User(username='admin')
                     # Get password from config
-                    pwd = app_to_sync.config.get('ADMIN_PASSWORD', '1234')
+                    pwd = app.config.get('ADMIN_PASSWORD', '1234')
                     admin.set_password(pwd)
                     db.session.add(admin)
                     db.session.commit()
-                    logger_to_use.info("Default admin user created.")
+                    print("Default admin user created.")
             except Exception as e:
-                logger_to_use.error(f"Failed to initialize database tables or create admin: {e}")
-
+                print(f"Failed to initialize database tables or create admin: {e}")
 
     @app.context_processor
     def inject_company_settings():
         company_name = os.environ.get('COMPANY_NAME', 'Company Name')
         company_address = os.environ.get('COMPANY_ADDRESS', '')
         return dict(global_company_name=company_name, global_company_address=company_address)
-
-    # Startup Sync & DB Check (Run once, even with reloader)
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
-        import threading
-        sync_thread = threading.Thread(target=run_startup_sync, args=(app, logger, db_path))
-        sync_thread.daemon = True
-        sync_thread.start()
     
     return app
 
