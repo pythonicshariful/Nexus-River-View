@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import os
 from models import User, Todo, Director, Customer, Transaction, PettyCash, PettyCashCategory, Bank, BankTransaction, Installment, CustomerInstallment, Party, PartyLedger, Voucher, PartyCategory, ContraEntry, Employee, Attendance, Leave, Salary, ChartOfAccounts, JournalEntry, JournalLine
 from database import db
-from logic import sync_to_excel, restore_from_excel, recalculate_party_ledger_balances, export_party_ledger_to_excel, generate_voucher_number, process_voucher_financials, get_daily_cash_report, get_due_payments_report, generate_contra_number, process_contra_financials, recompute_bank_balances, recalculate_customer_totals, cleanup_journal_entries, process_transaction_financials
+from logic import recalculate_party_ledger_balances, export_party_ledger_to_excel, generate_voucher_number, process_voucher_financials, get_daily_cash_report, get_due_payments_report, generate_contra_number, process_contra_financials, recompute_bank_balances, recalculate_customer_totals, cleanup_journal_entries, process_transaction_financials
 import pandas as pd
 import io
 from datetime import datetime
@@ -56,8 +56,7 @@ def generate_next_customer_id(director_id):
 
 def background_sync_all(action_name="Data Update"):
     """
-    Consolidates all high-latency tasks into a single background thread.
-    This prevents multiple threads from competing for SQLite locks or CPU.
+    Consolidates background tasks (Telegram backup and task reminders).
     """
     app = current_app._get_current_object()
     
@@ -68,25 +67,16 @@ def background_sync_all(action_name="Data Update"):
         
     def sync_task(app_obj):
         try:
-            from sync_manager import sync_manager
             from telegram_utils import log_debug
-            from datetime import datetime, timedelta
+            from datetime import datetime
             log_debug(f"Starting Background Tasks due to: {action_name}")
             
-            sync_manager.sync_to_sheets()
-            
-            # 2. Master Excel Sync (Disabled/Moved elsewhere if needed to save time, or we can leave it)
-            try:
-                sync_to_excel()
-            except Exception as e:
-                log_debug(f"Background Excel sync failed: {e}")
-
-            # 3. DB Backup with Cleanup
+            # 1. DB Backup with Cleanup
             try:
                 from logic import create_db_backup
                 create_db_backup()
                 
-                # Also send to Telegram (existing logic)
+                # Send to Telegram
                 db_path = app_obj.config.get('DATABASE_PATH')
                 if db_path and os.path.exists(db_path):
                     from telegram_utils import send_telegram_document
@@ -96,7 +86,7 @@ def background_sync_all(action_name="Data Update"):
             except Exception as e:
                 log_debug(f"Background DB backup failed: {e}")
 
-            # 4. Task Reminders
+            # 2. Task Reminders
             try:
                 from models import Todo
                 now = datetime.now()
@@ -117,6 +107,7 @@ def background_sync_all(action_name="Data Update"):
                         
                         send_telegram_message(msg)
                         todo.reminder_sent = True
+                    from database import db
                     db.session.commit()
             except Exception as e:
                 log_debug(f"Background Task Reminders failed: {e}")
@@ -129,12 +120,13 @@ def background_sync_all(action_name="Data Update"):
 
     # Dispatch to thread
     run_in_background(sync_task, app, app)
+
 # For backward compatibility with existing calls, we redefine these to call the consolidated worker
 def trigger_sync():
-    background_sync_all("Google Sheets Sync")
+    background_sync_all("Database Update")
 
 def trigger_excel_sync():
-    background_sync_all("Excel Sync")
+    background_sync_all("Database Update")
 
 def backup_to_telegram(action_name="Database Update"):
     background_sync_all(action_name)
@@ -4264,15 +4256,7 @@ def settings():
     company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
     company_address = os.environ.get('COMPANY_ADDRESS', '')
 
-    # List available backups
-    backups = []
-    backup_dir = os.path.join(current_app.root_path, 'backups')
-    if os.path.exists(backup_dir):
-        files = sorted(os.listdir(backup_dir), reverse=True)
-        for f in files:
-            if f.endswith('.xlsx'):
-                backups.append(f)
-    return render_template('settings.html', backups=backups, company_name=company_name, company_address=company_address)
+    return render_template('settings.html', company_name=company_name, company_address=company_address)
 
 @main.route('/settings/company', methods=['POST'])
 def save_company_settings():
@@ -4290,72 +4274,7 @@ def save_company_settings():
         
     return redirect(url_for('main.settings'))
 
-@main.route('/settings/restore', methods=['POST'])
-def restore_data():
-    if 'backup_file' in request.files:
-        file = request.files['backup_file']
-        if file and file.filename != '':
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            
-            success, msg = restore_from_excel(filepath)
-            os.remove(filepath) # Clean up temp file
-            
-            if success:
-                flash('System successfully restored from upload!', 'success')
-            else:
-                flash(f'Restore failed: {msg}', 'danger')
-                
-    elif 'backup_filename' in request.form:
-        # Restore from internal backup
-        filename = request.form.get('backup_filename')
-        filepath = os.path.join(current_app.root_path, 'backups', filename)
-        if os.path.exists(filepath):
-            success, msg = restore_from_excel(filepath)
-            if success:
-                flash(f'System restored from {filename}', 'success')
-            else:
-                flash(f'Restore failed: {msg}', 'danger')
-        else:
-            flash('Backup file not found.', 'danger')
-            
-    return redirect(url_for('main.settings'))
 
-
-@main.route('/sync', methods=['GET', 'POST'])
-def sync_resolution():
-    from sync_manager import sync_manager
-    mismatch_details = current_app.config.get('SYNC_MISMATCH')
-    
-    if not mismatch_details:
-        current_app.config['SYNC_MISMATCH'] = None
-        flash('No sync mismatch details found. Proceeding to Dashboard.', 'info')
-        return redirect(url_for('main.index'))
-
-    if request.method == 'POST':
-        choice = request.form.get('choice')
-        if choice == 'sheet_to_db':
-            success, msg = sync_manager.restore_db_from_sheets()
-            if success:
-                flash('Local database restored from Google Sheets!', 'success')
-                current_app.config['SYNC_MISMATCH'] = None
-            else:
-                flash(f'Sync failed: {msg}', 'danger')
-        elif choice == 'db_to_sheet':
-            success, msg = sync_manager.sync_to_sheets()
-            if success:
-                flash('Google Sheets updated with local data!', 'success')
-                current_app.config['SYNC_MISMATCH'] = None
-            else:
-                flash(f'Sync failed: {msg}', 'danger')
-        
-        return redirect(url_for('main.index'))
-
-    return render_template('sync_resolution.html', details=mismatch_details)
-
-    # (Consolidated into global_request_processor at the top of the file)
-    pass
 
 # --- Notifications / Logs ---
 @main.route('/notifications')

@@ -84,9 +84,7 @@ def create_app():
         
     app.register_blueprint(main)
     
-    # Startup Sync & DB Check (Run in background thread to prevent GUI/Startup hang)
-    from sync_manager import sync_manager
-    
+    # Startup DB Check (Run in background thread to prevent GUI/Startup hang)
     def run_startup_sync(app_to_sync, logger_to_use, db_path_to_use):
         with app_to_sync.app_context():
             # Ensure tables exist
@@ -112,40 +110,6 @@ def create_app():
             except Exception as e:
                 logger_to_use.error(f"Failed to initialize database tables or create admin: {e}")
 
-            if not os.path.exists(db_path_to_use) or os.path.getsize(db_path_to_use) == 0:
-                logger_to_use.info("Database missing. Attempting recovery from Google Sheets...")
-                try:
-                    success, msg = sync_manager.restore_db_from_sheets()
-                    if success:
-                        logger_to_use.info("Database restored from Google Sheets.")
-                    else:
-                        logger_to_use.error(f"Recovery failed: {msg}")
-                except Exception as e:
-                    logger_to_use.error(f"Recovery hang/error: {e}")
-            else:
-                try:
-                    logger_to_use.info("Verifying sync status with Google Sheets (Background)...")
-                    status, details = sync_manager.check_for_mismatches()
-                    if status == "mismatch":
-                        app_to_sync.config['SYNC_MISMATCH'] = details
-                        logger_to_use.warning(f"Sync Mismatch Detected: {details}")
-                    elif status == "empty_sheets":
-                        logger_to_use.info("Google Sheets is empty. Initializing with local data...")
-                        sync_manager.sync_to_sheets()
-                except Exception as e:
-                    logger_to_use.error(f"Sync verification skipped due to error: {e}")
-            
-            # --- Added Telegram Backup on Startup (Safe Direct Call) ---
-            try:
-                db_path = app_to_sync.config.get('DATABASE_PATH')
-                if db_path and os.path.exists(db_path):
-                    from telegram_utils import send_telegram_document
-                    from datetime import datetime
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    caption = f"DB Backup triggered by: Application Startup\nTime: {timestamp}"
-                    send_telegram_document(db_path, caption=caption)
-            except Exception as e:
-                logger_to_use.error(f"Startup Telegram backup failed: {e}")
 
     @app.context_processor
     def inject_company_settings():

@@ -1932,3 +1932,48 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 [2026-07-29 11:51:42] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
 [2026-07-29 11:51:43] Document sent successfully.
 [2026-07-29 11:51:45] Document sent successfully.
+[2026-07-29 13:21:06] Voucher ADD attempt: DV73
+[2026-07-29 13:21:06] process_voucher_financials: Processing add for DV73 (ID: 76)
+[2026-07-29 13:21:06] process_voucher_financials: Attempting double-entry for DV73
+[2026-07-29 13:21:06] process_voucher_financials: Double-entry posted for DV73
+[2026-07-29 13:21:06] process_voucher_financials: Adding PettyCash for DV73
+[2026-07-29 13:21:06] Starting Background Tasks due to: Added Debit Voucher: DV73
+[2026-07-29 13:21:06] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-29 13:21:07] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-29 13:21:07] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-29 13:21:07] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260729_132107.db
+[2026-07-29 13:21:07] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-29 13:21:10] Document sent successfully.
+[2026-07-29 13:39:31] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4406, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-29 13:53:40] Voucher ADD attempt: DV74
+[2026-07-29 13:53:40] process_voucher_financials: Processing add for DV74 (ID: 77)
+[2026-07-29 13:53:40] process_voucher_financials: Attempting double-entry for DV74
+[2026-07-29 13:53:40] process_voucher_financials: Double-entry posted for DV74
+[2026-07-29 13:53:40] process_voucher_financials: Adding PettyCash for DV74
+[2026-07-29 13:53:40] Starting Background Tasks due to: Added Debit Voucher: DV74
+[2026-07-29 13:53:40] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-29 13:53:41] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-29 13:53:41] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-29 13:53:41] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260729_135341.db
+[2026-07-29 13:53:41] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-29 13:53:44] Document sent successfully.
