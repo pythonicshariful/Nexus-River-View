@@ -296,3 +296,1639 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 [2026-07-13 18:16:54] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
 [2026-07-13 18:17:03] Document sent successfully.
 [2026-07-13 18:17:04] Document sent successfully.
+[2026-07-21 11:59:05] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 11:59:05] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 11:59:05] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 11:59:08] Document sent successfully.
+[2026-07-21 11:59:08] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 11:59:08] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 11:59:08] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 11:59:12] Document sent successfully.
+[2026-07-21 11:59:34] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4406, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 11:59:37] Starting Background Tasks due to: User Login: admin
+[2026-07-21 11:59:37] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 11:59:38] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 11:59:38] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 11:59:38] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260721_115938.db
+[2026-07-21 11:59:38] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 11:59:40] Document sent successfully.
+[2026-07-21 12:01:23] Voucher ADD attempt: DV61
+[2026-07-21 12:01:23] process_voucher_financials: Processing add for DV61 (ID: 64)
+[2026-07-21 12:01:23] process_voucher_financials: Attempting double-entry for DV61
+[2026-07-21 12:01:23] process_voucher_financials: Double-entry posted for DV61
+[2026-07-21 12:01:23] process_voucher_financials: Adding PettyCash for DV61
+[2026-07-21 12:01:23] Starting Background Tasks due to: Added Debit Voucher: DV61
+[2026-07-21 12:01:23] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 12:01:23] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 12:01:23] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 12:01:23] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260721_120123.db
+[2026-07-21 12:01:23] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 12:01:32] Document sent successfully.
+[2026-07-21 12:05:03] process_voucher_financials: Processing edit for DV61 (ID: 64)
+[2026-07-21 12:05:03] process_voucher_financials: Attempting double-entry for DV61
+[2026-07-21 12:05:03] process_voucher_financials: Double-entry posted for DV61
+[2026-07-21 12:05:03] process_voucher_financials: Adding PettyCash for DV61
+[2026-07-21 12:05:03] Starting Background Tasks due to: Edited Voucher: DV61
+[2026-07-21 12:05:03] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 12:05:04] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 12:05:04] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 12:05:04] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260721_120504.db
+[2026-07-21 12:05:04] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 12:05:07] Document sent successfully.
+[2026-07-21 12:06:55] Voucher ADD attempt: DV62
+[2026-07-21 12:06:56] process_voucher_financials: Processing add for DV62 (ID: 65)
+[2026-07-21 12:06:56] process_voucher_financials: Attempting double-entry for DV62
+[2026-07-21 12:06:56] process_voucher_financials: Double-entry posted for DV62
+[2026-07-21 12:06:56] process_voucher_financials: Adding PettyCash for DV62
+[2026-07-21 12:06:56] Starting Background Tasks due to: Added Debit Voucher: DV62
+[2026-07-21 12:06:56] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 12:06:56] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 12:06:56] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 12:06:56] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260721_120656.db
+[2026-07-21 12:06:56] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 12:06:59] Document sent successfully.
+[2026-07-21 12:52:33] Unhandled Exception in /uploads/Untitled_design_19_20260510_155657_966119.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 12:52:33] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.07_PM_20260413_162708_143456.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 12:52:33] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.06_PM_20260413_162612_364032.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 12:52:33] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.35.52_PM_20260408_174959_670350.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 12:52:33] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.34.04_PM_20260408_174501_566640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 12:52:33] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.27.51_PM_20260408_173216_126640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 12:52:33] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-07_at_1.21.57_PM_20260407_152955_795092.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-21 16:41:34] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-21 16:41:34] [Added Customer: Abdul Rahman] Sync skipped: A sync is already in progress.
+lumn 140 (char 139)
+[2026-07-21 16:41:34] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 16:41:34] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 16:41:34] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260721_164134.db
+[2026-07-21 16:41:34] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 16:41:42] Document sent successfully.
+[2026-07-21 16:43:25] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (180, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Abdul Rahman - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-21 16:43:25] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-21 16:43:25] Starting Background Tasks due to: Excel Sync
+[2026-07-21 16:43:25] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 16:43:25] [Added Transaction for Customer: Abdul Rahman] Sync skipped: A sync is already in progress.
+[2026-07-21 16:43:25] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 16:43:25] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 16:43:25] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260721_164325.db
+[2026-07-21 16:43:25] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 16:43:30] Document sent successfully.
+[2026-07-21 16:49:44] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (181, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Aatiya Choudhury - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-21 16:49:45] Starting Background Tasks due to: Excel Sync
+[2026-07-21 16:49:45] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-21 16:49:45] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-21 16:49:45] [Added Transaction for Customer: Aatiya Choudhury] Sync skipped: A sync is already in progress.
+[2026-07-21 16:49:45] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 16:49:45] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-21 16:49:45] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260721_164945.db
+[2026-07-21 16:49:45] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-21 16:49:49] Document sent successfully.
+[2026-07-22 12:54:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 12:54:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 12:54:19] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 12:54:23] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 12:54:23] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 12:54:23] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 12:54:33] Document sent successfully.
+[2026-07-22 12:54:33] Document sent successfully.
+[2026-07-22 16:21:57] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:21:57] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:21:57] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:22:01] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:22:01] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:22:01] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:22:09] Document sent successfully.
+[2026-07-22 16:22:09] Document sent successfully.
+[2026-07-22 16:22:20] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4406, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-22 16:22:27] Starting Background Tasks due to: User Login: admin
+[2026-07-22 16:22:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:22:28] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:22:28] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:22:28] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_162228.db
+[2026-07-22 16:22:28] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:22:38] Document sent successfully.
+[2026-07-22 16:28:05] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (182, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Kycina Choudhury - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-22 16:28:05] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:28:05] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:28:05] [Added Transaction for Customer: Kycina Choudhury] Sync skipped: A sync is already in progress.
+[2026-07-22 16:28:06] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:28:06] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:28:06] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_162806.db
+[2026-07-22 16:28:06] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:28:14] Document sent successfully.
+[2026-07-22 16:29:29] Starting Background Tasks due to: Excel Sync
+[2026-07-22 16:29:29] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:29:29] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:29:29] [Added Customer: Ms Roksana Mizan] Sync skipped: A sync is already in progress.
+[2026-07-22 16:29:30] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:29:30] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:29:30] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_162930.db
+[2026-07-22 16:29:30] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:29:49] Document sent successfully.
+[2026-07-22 16:30:40] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (183, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Ms Roksana Mizan - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-22 16:30:40] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:30:40] Starting Background Tasks due to: Excel Sync
+[2026-07-22 16:30:40] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:30:40] [Added Transaction for Customer: Ms Roksana Mizan] Sync skipped: A sync is already in progress.
+[2026-07-22 16:30:41] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:30:41] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:30:41] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_163041.db
+[2026-07-22 16:30:41] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:30:51] Document sent successfully.
+[2026-07-22 16:32:22] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:32:22] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:32:22] [Edited Director: Jahidul Islam] Sync skipped: A sync is already in progress.
+[2026-07-22 16:32:23] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:32:23] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:32:23] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_163223.db
+[2026-07-22 16:32:23] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:32:25] Document sent successfully.
+[2026-07-22 16:32:49] Starting Background Tasks due to: Excel Sync
+lready in progress.
+[2026-07-22 16:32:49] [Added Customer: Md Hasan] Sync skipped: A sync is already in progress.
+[2026-07-22 16:32:49] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:32:50] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:32:50] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:32:50] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_163250.db
+[2026-07-22 16:32:50] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:32:54] Document sent successfully.
+[2026-07-22 16:33:15] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:33:15] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:33:15] [Added Customer: Nazmun Nahar] Sync skipped: A sync is already in progress.
+[2026-07-22 16:33:15] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:33:15] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:33:15] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_163315.db
+[2026-07-22 16:33:15] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:33:25] Document sent successfully.
+[2026-07-22 16:34:09] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (184, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Md Hasan - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-22 16:34:09] Starting Background Tasks due to: Excel Sync
+[2026-07-22 16:34:09] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:34:09] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:34:09] [Added Transaction for Customer: Md Hasan] Sync skipped: A sync is already in progress.
+[2026-07-22 16:34:09] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:34:09] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:34:09] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_163409.db
+[2026-07-22 16:34:09] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:34:12] Document sent successfully.
+[2026-07-22 16:38:14] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (185, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Nazmun Nahar - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-22 16:38:15] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:38:15] Starting Background Tasks due to: Excel Sync
+[2026-07-22 16:38:15] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:38:15] [Added Transaction for Customer: Nazmun Nahar] Sync skipped: A sync is already in progress.
+[2026-07-22 16:38:15] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:38:15] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:38:15] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_163815.db
+[2026-07-22 16:38:15] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:38:18] Document sent successfully.
+[2026-07-22 16:39:12] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:39:12] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:39:12] [Added Customer: Gazi Faruk] Sync skipped: A sync is already in progress.
+[2026-07-22 16:39:13] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:39:13] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:39:13] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_163913.db
+[2026-07-22 16:39:13] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:39:16] Document sent successfully.
+[2026-07-22 16:41:49] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (186, None, 'Unknown', 200000.0, 0.0, 'Customer payment - Gazi Faruk - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-22 16:41:49] Starting Background Tasks due to: Excel Sync
+[2026-07-22 16:41:49] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-22 16:41:49] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:41:49] [Added Transaction for Customer: Gazi Faruk] Sync skipped: A sync is already in progress.
+[2026-07-22 16:41:50] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:41:50] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:41:50] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_164150.db
+[2026-07-22 16:41:50] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:41:53] Document sent successfully.
+[2026-07-22 16:45:39] Voucher ADD attempt: DV63
+[2026-07-22 16:45:39] process_voucher_financials: Processing add for DV63 (ID: 66)
+[2026-07-22 16:45:39] process_voucher_financials: Attempting double-entry for DV63
+[2026-07-22 16:45:39] process_voucher_financials: Double-entry posted for DV63
+[2026-07-22 16:45:39] Starting Background Tasks due to: Added Debit Voucher: DV63
+[2026-07-22 16:45:39] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-22 16:45:39] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:45:39] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-22 16:45:39] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260722_164539.db
+[2026-07-22 16:45:39] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-22 16:45:53] Document sent successfully.
+[2026-07-23 10:36:20] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 10:36:20] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 10:36:20] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-23 10:36:24] Document sent successfully.
+[2026-07-23 10:36:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 10:36:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 10:36:27] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-23 10:36:32] Document sent successfully.
+[2026-07-23 10:43:33] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4406, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-23 10:45:54] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4406, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-23 11:41:46] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 11:41:46] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 11:41:46] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-23 11:41:49] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 11:41:49] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-23 11:41:49] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-23 11:41:50] Document sent successfully.
+[2026-07-23 11:41:52] Document sent successfully.
+[2026-07-25 13:43:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 13:43:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 13:43:19] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-25 13:43:21] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 13:43:21] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 13:43:21] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-25 13:43:26] Document sent successfully.
+[2026-07-25 13:43:26] Document sent successfully.
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/basket.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/stationary.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/computerset.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/WhatsApp_Image_2026-02-15_at_2.41.33_PM.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/WhatsApp_Image_2026-02-18_at_12.09.36_PM.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/stationary2.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/multiplug.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 13:46:10] Unhandled Exception in /uploads/img20260203_18140907.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/Untitled_design_19_20260510_155657_966119.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.06_PM_20260413_162612_364032.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.07_PM_20260413_162708_143456.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.27.51_PM_20260408_173216_126640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.34.04_PM_20260408_174501_566640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.35.52_PM_20260408_174959_670350.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-07_at_1.21.57_PM_20260407_152955_795092.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-02-15_at_2.41.33_PM.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/WhatsApp_Image_2026-02-18_at_12.09.36_PM.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/basket.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/computerset.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/stationary.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/stationary2.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/multiplug.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:52] Unhandled Exception in /uploads/img20260203_18140907.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:53] Unhandled Exception in /uploads/.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:01:53] Unhandled Exception in /uploads/WhatsApp_Image_2026-02-15_at_2.41.33_PM.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 14:18:51] process_voucher_financials: Processing edit for DV54 (ID: 57)
+[2026-07-25 14:18:51] process_voucher_financials: Attempting double-entry for DV54
+[2026-07-25 14:18:51] process_voucher_financials: Double-entry posted for DV54
+[2026-07-25 14:18:51] Starting Background Tasks due to: Edited Voucher: DV54
+[2026-07-25 14:18:51] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 14:18:52] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-25 14:18:52] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-25 14:18:52] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260725_141852.db
+[2026-07-25 14:18:52] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-25 14:18:55] Document sent successfully.
+[2026-07-25 16:24:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 16:24:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 16:24:19] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-25 16:24:22] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 16:24:22] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 16:24:22] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-25 16:24:28] Document sent successfully.
+[2026-07-25 16:24:28] Document sent successfully.
+[2026-07-25 16:25:50] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.27.51_PM_20260408_173216_126640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 16:25:50] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.34.04_PM_20260408_174501_566640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 16:25:50] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.06_PM_20260413_162612_364032.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 16:25:50] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.07_PM_20260413_162708_143456.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 16:25:50] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-07_at_1.21.57_PM_20260407_152955_795092.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 16:28:33] Unhandled Exception in /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 4406, in favicon
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:03:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 17:03:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 17:03:27] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-25 17:03:29] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 17:03:29] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-25 17:03:29] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-25 17:03:30] Document sent successfully.
+[2026-07-25 17:03:32] Document sent successfully.
+[2026-07-25 17:03:56] Unhandled Exception in /uploads/Untitled_design_19_20260510_155657_966119.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:03:56] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.07_PM_20260413_162708_143456.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:03:56] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.06_PM_20260413_162612_364032.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:03:56] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.34.04_PM_20260408_174501_566640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:03:56] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.27.51_PM_20260408_173216_126640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:03:56] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-07_at_1.21.57_PM_20260407_152955_795092.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:26:21] Unhandled Exception in /uploads/Untitled_design_19_20260510_155657_966119.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:26:21] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.07_PM_20260413_162708_143456.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:26:21] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-13_at_12.18.06_PM_20260413_162612_364032.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:26:21] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.34.04_PM_20260408_174501_566640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:26:21] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.35.52_PM_20260408_174959_670350.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:26:21] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-08_at_5.27.51_PM_20260408_173216_126640.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-25 17:26:21] Unhandled Exception in /uploads/WhatsApp_Image_2026-04-07_at_1.21.57_PM_20260407_152955_795092.webp: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Personal\Nexus-River-View\routes.py", line 146, in uploaded_file
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\flask\helpers.py", line 552, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        directory, path, **_prepare_send_file_kwargs(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\USER\AppData\Roaming\Python\Python313\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-07-26 16:21:29] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-26 16:21:29] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-26 16:21:29] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-26 16:21:33] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-26 16:21:33] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-26 16:21:33] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-26 16:21:33] Document sent successfully.
+[2026-07-26 16:21:40] Document sent successfully.
+[2026-07-27 12:12:17] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-27 12:12:17] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-27 12:12:17] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-27 12:12:21] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-27 12:12:21] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-27 12:12:21] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-27 12:12:25] Document sent successfully.
+[2026-07-27 12:12:25] Document sent successfully.
+[2026-07-27 12:15:46] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (189, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Mst. Dilharmin - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-27 12:15:46] Starting Background Tasks due to: Excel Sync
+[2026-07-27 12:15:46] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-27 12:15:46] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-27 12:15:46] [Added Transaction for Customer: Mst. Dilharmin] Sync skipped: A sync is already in progress.
+[2026-07-27 12:15:46] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-27 12:15:46] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-27 12:15:46] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260727_121546.db
+[2026-07-27 12:15:46] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-27 12:15:50] Document sent successfully.
+[2026-07-27 12:16:32] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (190, None, 'Unknown', 100000.0, 0.0, 'Customer payment - Md. Azizur - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-27 12:16:32] Starting Background Tasks due to: Excel Sync
+[2026-07-27 12:16:32] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-27 12:16:32] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-27 12:16:32] [Added Transaction for Customer: Md. Azizur] Sync skipped: A sync is already in progress.
+[2026-07-27 12:16:32] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-27 12:16:32] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-27 12:16:32] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260727_121632.db
+[2026-07-27 12:16:32] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-27 12:16:37] Document sent successfully.
+[2026-07-28 13:15:32] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:15:32] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:15:32] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:15:35] Document sent successfully.
+[2026-07-28 13:15:35] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:15:35] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:15:35] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:15:46] Document sent successfully.
+[2026-07-28 13:26:41] [Google Sheets Sync] Sync skipped: A sync is already in progress.
+[2026-07-28 13:26:41] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:26:41] [Edited Customer: Al Kaium] Sync skipped: A sync is already in progress.
+[2026-07-28 13:26:42] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:26:42] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:26:42] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_132642.db
+[2026-07-28 13:26:42] Auto-cleanup: Deleted 1 old backups.
+[2026-07-28 13:26:42] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:26:45] Document sent successfully.
+[2026-07-28 13:34:31] Voucher ADD attempt: DV64
+[2026-07-28 13:34:31] process_voucher_financials: Processing add for DV64 (ID: 67)
+[2026-07-28 13:34:31] process_voucher_financials: Attempting double-entry for DV64
+[2026-07-28 13:34:31] process_voucher_financials: Double-entry posted for DV64
+[2026-07-28 13:34:31] process_voucher_financials: Adding PettyCash for DV64
+[2026-07-28 13:34:31] Starting Background Tasks due to: Added Debit Voucher: DV64
+[2026-07-28 13:34:31] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:34:32] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:34:32] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:34:32] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_133432.db
+[2026-07-28 13:34:32] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:34:36] Document sent successfully.
+[2026-07-28 13:37:10] Voucher ADD attempt: DV65
+[2026-07-28 13:37:10] process_voucher_financials: Processing add for DV65 (ID: 68)
+[2026-07-28 13:37:10] process_voucher_financials: Attempting double-entry for DV65
+[2026-07-28 13:37:10] process_voucher_financials: Double-entry posted for DV65
+[2026-07-28 13:37:10] process_voucher_financials: Adding PettyCash for DV65
+[2026-07-28 13:37:10] Starting Background Tasks due to: Added Debit Voucher: DV65
+[2026-07-28 13:37:10] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:37:11] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:37:11] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:37:11] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_133711.db
+[2026-07-28 13:37:11] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:37:14] Document sent successfully.
+[2026-07-28 13:39:56] Voucher ADD attempt: DV66
+[2026-07-28 13:39:56] process_voucher_financials: Processing add for DV66 (ID: 69)
+[2026-07-28 13:39:56] process_voucher_financials: Attempting double-entry for DV66
+[2026-07-28 13:39:56] process_voucher_financials: Double-entry posted for DV66
+[2026-07-28 13:39:56] process_voucher_financials: Adding PettyCash for DV66
+[2026-07-28 13:39:56] Starting Background Tasks due to: Added Debit Voucher: DV66
+[2026-07-28 13:39:56] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:39:56] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:39:56] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:39:56] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_133956.db
+[2026-07-28 13:39:56] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:40:00] Document sent successfully.
+[2026-07-28 13:41:36] Voucher ADD attempt: DV67
+[2026-07-28 13:41:37] process_voucher_financials: Processing add for DV67 (ID: 70)
+[2026-07-28 13:41:37] process_voucher_financials: Attempting double-entry for DV67
+[2026-07-28 13:41:37] process_voucher_financials: Double-entry posted for DV67
+[2026-07-28 13:41:37] process_voucher_financials: Adding PettyCash for DV67
+[2026-07-28 13:41:37] Starting Background Tasks due to: Added Debit Voucher: DV67
+[2026-07-28 13:41:37] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:41:37] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:41:37] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:41:37] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_134137.db
+[2026-07-28 13:41:37] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:41:47] Document sent successfully.
+[2026-07-28 13:41:51] process_voucher_financials: Processing edit for DV66 (ID: 69)
+[2026-07-28 13:41:51] process_voucher_financials: Attempting double-entry for DV66
+[2026-07-28 13:41:51] process_voucher_financials: Double-entry posted for DV66
+[2026-07-28 13:41:51] process_voucher_financials: Adding PettyCash for DV66
+[2026-07-28 13:41:51] Starting Background Tasks due to: Edited Voucher: DV66
+[2026-07-28 13:41:51] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:41:51] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:41:51] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:41:51] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_134151.db
+[2026-07-28 13:41:51] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:41:56] Document sent successfully.
+[2026-07-28 13:42:06] process_voucher_financials: Processing edit for DV65 (ID: 68)
+[2026-07-28 13:42:06] process_voucher_financials: Attempting double-entry for DV65
+[2026-07-28 13:42:06] process_voucher_financials: Double-entry posted for DV65
+[2026-07-28 13:42:06] process_voucher_financials: Adding PettyCash for DV65
+[2026-07-28 13:42:06] Starting Background Tasks due to: Edited Voucher: DV65
+[2026-07-28 13:42:06] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:42:06] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:42:06] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:42:06] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_134206.db
+[2026-07-28 13:42:06] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:42:12] Document sent successfully.
+[2026-07-28 13:45:19] Voucher ADD attempt: DV68
+[2026-07-28 13:45:19] process_voucher_financials: Processing add for DV68 (ID: 71)
+[2026-07-28 13:45:19] process_voucher_financials: Attempting double-entry for DV68
+[2026-07-28 13:45:19] process_voucher_financials: Double-entry posted for DV68
+[2026-07-28 13:45:19] process_voucher_financials: Adding PettyCash for DV68
+[2026-07-28 13:45:19] Starting Background Tasks due to: Added Debit Voucher: DV68
+[2026-07-28 13:45:19] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:45:20] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:45:20] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:45:20] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_134520.db
+[2026-07-28 13:45:20] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:45:22] Document sent successfully.
+[2026-07-28 13:46:00] process_voucher_financials: Processing edit for DV68 (ID: 71)
+[2026-07-28 13:46:00] process_voucher_financials: Attempting double-entry for DV68
+[2026-07-28 13:46:00] process_voucher_financials: Double-entry posted for DV68
+[2026-07-28 13:46:00] process_voucher_financials: Adding PettyCash for DV68
+[2026-07-28 13:46:00] Starting Background Tasks due to: Edited Voucher: DV68
+[2026-07-28 13:46:00] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:46:00] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:46:00] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:46:00] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_134600.db
+[2026-07-28 13:46:00] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:46:06] Document sent successfully.
+[2026-07-28 13:48:03] Voucher ADD attempt: DV69
+[2026-07-28 13:48:03] process_voucher_financials: Processing add for DV69 (ID: 72)
+[2026-07-28 13:48:03] process_voucher_financials: Attempting double-entry for DV69
+[2026-07-28 13:48:03] process_voucher_financials: Double-entry posted for DV69
+[2026-07-28 13:48:03] process_voucher_financials: Adding PettyCash for DV69
+[2026-07-28 13:48:03] Starting Background Tasks due to: Added Debit Voucher: DV69
+[2026-07-28 13:48:03] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:48:04] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:48:04] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:48:04] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_134804.db
+[2026-07-28 13:48:04] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:48:10] Document sent successfully.
+[2026-07-28 13:56:02] Voucher ADD attempt: DV70
+[2026-07-28 13:56:02] process_voucher_financials: Processing add for DV70 (ID: 73)
+[2026-07-28 13:56:02] process_voucher_financials: Attempting double-entry for DV70
+[2026-07-28 13:56:02] process_voucher_financials: Double-entry posted for DV70
+[2026-07-28 13:56:02] process_voucher_financials: Adding PettyCash for DV70
+[2026-07-28 13:56:02] Starting Background Tasks due to: Added Debit Voucher: DV70
+[2026-07-28 13:56:02] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 13:56:03] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:56:03] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 13:56:03] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_135603.db
+[2026-07-28 13:56:03] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 13:56:07] Document sent successfully.
+[2026-07-28 14:19:27] Voucher ADD attempt: DV71
+[2026-07-28 14:19:27] process_voucher_financials: Processing add for DV71 (ID: 74)
+[2026-07-28 14:19:27] process_voucher_financials: Attempting double-entry for DV71
+[2026-07-28 14:19:27] process_voucher_financials: Double-entry posted for DV71
+[2026-07-28 14:19:27] process_voucher_financials: Adding PettyCash for DV71
+[2026-07-28 14:19:27] Starting Background Tasks due to: Added Debit Voucher: DV71
+[2026-07-28 14:19:27] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 14:19:27] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 14:19:27] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 14:19:27] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_141927.db
+[2026-07-28 14:19:27] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 14:19:33] Document sent successfully.
+[2026-07-28 14:22:45] Voucher ADD attempt: DV72
+[2026-07-28 14:22:46] process_voucher_financials: Processing add for DV72 (ID: 75)
+[2026-07-28 14:22:46] process_voucher_financials: Attempting double-entry for DV72
+[2026-07-28 14:22:46] process_voucher_financials: Double-entry posted for DV72
+[2026-07-28 14:22:46] process_voucher_financials: Adding PettyCash for DV72
+[2026-07-28 14:22:46] Starting Background Tasks due to: Added Debit Voucher: DV72
+[2026-07-28 14:22:46] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-28 14:22:46] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 14:22:46] Synced Excel to: G:\Personal\Nexus-River-View\nexus_river_view_master.xlsx
+[2026-07-28 14:22:46] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260728_142246.db
+[2026-07-28 14:22:46] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-28 14:22:58] Document sent successfully.
+[2026-07-29 11:51:39] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-29 11:51:39] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-29 11:51:39] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-29 11:51:42] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-29 11:51:42] Failed to authorize Google Sheets: Unterminated string starting at: line 1 column 140 (char 139)
+[2026-07-29 11:51:42] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-29 11:51:43] Document sent successfully.
+[2026-07-29 11:51:45] Document sent successfully.
