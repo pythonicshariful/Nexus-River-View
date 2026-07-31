@@ -1,141 +1,141 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row mb-4 align-items-center g-3">
-    <div class="col-md-6">
+<div class="page-header mb-3">
+    <div class="page-header-title">
         <h3 class="fw-bold text-dark-blue mb-0">
             <i class="fas fa-history me-2 text-primary"></i>Voucher History
         </h3>
         <p class="text-muted small mb-0">Manage and track all debit and credit vouchers.</p>
     </div>
-    <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end">
-        <a href="{{ url_for('main.add_voucher', v_type='Debit') }}" class="btn btn-danger rounded-pill px-4 shadow-sm">
-            <i class="fas fa-minus-circle me-1"></i> New Debit Voucher
+    <div class="page-header-actions">
+        <a href="{{ url_for('main.add_voucher', v_type='Debit') }}" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fas fa-minus-circle me-1"></i> <span class="d-none d-sm-inline">New </span>Debit
         </a>
-        <a href="{{ url_for('main.add_voucher', v_type='Credit') }}" class="btn btn-success rounded-pill px-4 shadow-sm">
-            <i class="fas fa-plus-circle me-1"></i> New Credit Voucher
+        <a href="{{ url_for('main.add_voucher', v_type='Credit') }}" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fas fa-plus-circle me-1"></i> <span class="d-none d-sm-inline">New </span>Credit
         </a>
     </div>
 </div>
 
 <!-- Filters -->
-<div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-    <div class="card-body p-4 bg-light bg-opacity-50">
-        <form method="GET" action="{{ url_for('main.manage_vouchers') }}" class="row g-3">
-            <div class="col-md-2">
-                <label class="form-label small fw-bold text-muted">Voucher Type</label>
-                <select name="type" class="form-select form-select-sm rounded-pill px-3 shadow-none border-0">
-                    <option value="">All Types</option>
-                    <option value="Debit" {% if v_type == 'Debit' %}selected{% endif %}>Debit (Payment)</option>
-                    <option value="Credit" {% if v_type == 'Credit' %}selected{% endif %}>Credit (Receive)</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small fw-bold text-muted">Filter Date By</label>
-                <select name="date_type" class="form-select form-select-sm rounded-pill px-3 shadow-none border-0">
-                    <option value="voucher_date" {% if date_type == 'voucher_date' %}selected{% endif %}>Income/Expense Date</option>
-                    <option value="payment_date" {% if date_type == 'payment_date' %}selected{% endif %}>Paid/Received Date</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Date Range</label>
-                <div class="input-group input-group-sm">
-                    <input type="date" name="start_date" class="form-control rounded-start-pill border-0 px-3" value="{{ start_date }}">
-                    <span class="input-group-text bg-white border-0 px-2 text-muted small">to</span>
-                    <input type="date" name="end_date" class="form-control rounded-end-pill border-0 px-3" value="{{ end_date }}">
+<div class="card border-0 shadow-sm mb-3 rounded-3 overflow-hidden">
+    <div class="card-body p-3 bg-light bg-opacity-50">
+        <button class="filter-panel-toggle" data-target="voucherFilterPanel" id="voucherFilterToggle">
+            <span><i class="fas fa-filter me-1"></i> Filters</span>
+            <i class="fas fa-chevron-down toggle-arrow"></i>
+        </button>
+        <div id="voucherFilterPanel" class="filter-collapsible d-md-block">
+            <form method="GET" action="{{ url_for('main.manage_vouchers') }}" class="row g-2">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Type</label>
+                    <select name="type" class="form-select form-select-sm">
+                        <option value="">All Types</option>
+                        <option value="Debit" {% if v_type == 'Debit' %}selected{% endif %}>Debit</option>
+                        <option value="Credit" {% if v_type == 'Credit' %}selected{% endif %}>Credit</option>
+                    </select>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-muted">Search</label>
-                <div class="input-group input-group-sm rounded-pill overflow-hidden border-0 shadow-none">
-                    <span class="input-group-text bg-white border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control border-0 px-2" placeholder="Voucher # or description..." value="{{ search or '' }}" autocomplete="off">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Date By</label>
+                    <select name="date_type" class="form-select form-select-sm">
+                        <option value="voucher_date" {% if date_type == 'voucher_date' %}selected{% endif %}>Inc/Exp Date</option>
+                        <option value="payment_date" {% if date_type == 'payment_date' %}selected{% endif %}>Paid/Rec Date</option>
+                    </select>
                 </div>
-            </div>
-            <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 flex-grow-1 shadow-sm">Filter</button>
-                <a href="{{ url_for('main.manage_vouchers') }}" class="btn btn-light btn-sm rounded-pill px-3 text-muted border shadow-sm">Reset</a>
-            </div>
-        </form>
+                <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Date Range</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                        <span class="input-group-text bg-white px-1 text-muted small">to</span>
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="Voucher # or desc..." value="{{ search or '' }}" autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1 shadow-sm">Filter</button>
+                    <a href="{{ url_for('main.manage_vouchers') }}" class="btn btn-light btn-sm rounded-pill px-2 text-muted border shadow-sm">Reset</a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- Voucher Table -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
+            <table class="table table-hover mb-0 align-middle table-mobile-stack" style="min-width: 600px;">
                 <thead class="bg-white text-muted small text-uppercase">
                     <tr>
-                        <th class="ps-4 py-3">Voucher #</th>
-                        <th>Type</th>
-                        <th>Date</th>
-                        <th>Party / Description</th>
-                        <th>Amount</th>
-                        <th>Due</th>
-                        <th class="text-center">Method</th>
-                        <th class="text-end pe-4">Actions</th>
+                        <th class="ps-3 py-3" style="font-size:0.7rem;">Voucher #</th>
+                        <th style="font-size:0.7rem;">Type</th>
+                        <th style="font-size:0.7rem;">Date</th>
+                        <th style="font-size:0.7rem;">Party / Desc</th>
+                        <th style="font-size:0.7rem;">Amount</th>
+                        <th style="font-size:0.7rem;">Due</th>
+                        <th class="text-center" style="font-size:0.7rem;">Method</th>
+                        <th class="text-end pe-3" style="font-size:0.7rem;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for v in vouchers %}
                     <tr>
-                        <td class="ps-4">
+                        <td class="ps-3" data-label="Voucher #" style="font-size:0.82rem;">
                             <span class="fw-bold text-dark">{{ v.voucher_no }}</span>
                             {% if v.attachment %}
-                            <i class="fas fa-paperclip ms-1 text-muted small" title="Has attachment: {{ v.attachment }}"></i>
+                            <i class="fas fa-paperclip ms-1 text-muted" style="font-size:0.7rem;" title="Has attachment"></i>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Type">
                             {% if v.type == 'Debit' %}
-                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 small rounded-pill">Debit</span>
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded-pill" style="font-size:0.68rem;">Debit</span>
                             {% else %}
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 small rounded-pill">Credit</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill" style="font-size:0.68rem;">Credit</span>
                             {% endif %}
                         </td>
-                        <td class="small text-muted">
-                            <div class="fw-semibold text-dark">{{ v.date }} <span class="text-muted small fw-normal">({% if v.type == 'Debit' %}Exp{% else %}Inc{% endif %})</span></div>
+                        <td data-label="Date" style="font-size:0.8rem;">
+                            <div class="fw-semibold text-dark">{{ v.date }}</div>
                             {% if v.payment_date %}
-                            <div style="font-size: 0.75rem;" class="text-primary mt-1">{{ v.payment_date }} <span class="text-muted small fw-normal">({% if v.type == 'Debit' %}Paid{% else %}Rec{% endif %})</span></div>
+                            <div style="font-size: 0.72rem;" class="text-primary mt-1">{{ v.payment_date }}</div>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Party" style="font-size:0.82rem;">
                             <div class="fw-semibold text-dark">
-                                {% if v.party_obj %}
-                                    {{ v.party_obj.name }} ({{ v.party_obj.category }})
-                                {% else %}
-                                    Open Party
-                                {% endif %}
+                                {% if v.party_obj %}{{ v.party_obj.name }}{% else %}Open Party{% endif %}
                             </div>
-                            <div class="small text-muted text-truncate" style="max-width: 250px;">{{ v.description }}</div>
+                            <div class="small text-muted text-truncate" style="max-width: 200px; font-size:0.75rem;">{{ v.description }}</div>
                         </td>
-                        <td>
+                        <td data-label="Amount" style="font-size:0.82rem;">
                             <div class="fw-bold">৳{{ "{:,.2f}".format(v.amount_paid) }}</div>
                             {% if v.total_amount > v.amount_paid %}
-                            <div class="small text-muted" style="font-size: 0.75rem;">of ৳{{ "{:,.2f}".format(v.total_amount) }}</div>
+                            <div class="small text-muted" style="font-size: 0.72rem;">of ৳{{ "{:,.0f}".format(v.total_amount) }}</div>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Due" style="font-size:0.82rem;">
                             {% if v.due_amount > 0 %}
                             <span class="text-danger fw-bold">৳{{ "{:,.2f}".format(v.due_amount) }}</span>
                             {% else %}
-                            <span class="text-success small fw-semibold"><i class="fas fa-check-circle me-1"></i> Paid</span>
+                            <span class="text-success" style="font-size:0.78rem;"><i class="fas fa-check-circle me-1"></i>Paid</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" data-label="Method">
                             {% if v.payment_method == 'Cash' %}
                             <i class="fas fa-wallet text-warning" title="Cash"></i>
                             {% else %}
-                            <i class="fas fa-university text-primary" title="Bank: {{ v.bank_obj.bank_name if v.bank_obj else 'Bank' }}"></i>
+                            <i class="fas fa-university text-primary" title="Bank"></i>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-4">
+                        <td class="text-end pe-3 td-actions">
                             <div class="btn-group btn-group-sm shadow-none">
                                 <a href="{{ url_for('main.print_voucher', id=v.id) }}" target="_blank" class="btn btn-outline-light border-0 text-muted px-2" title="Print"><i class="fas fa-print"></i></a>
                                 <a href="{{ url_for('main.edit_voucher', id=v.id) }}" class="btn btn-outline-light border-0 text-primary px-2" title="Edit"><i class="fas fa-edit"></i></a>
-                                <button type="button" class="btn btn-outline-light border-0 text-danger px-2" title="Delete" onclick="confirmDelete(event, '{{ url_for('main.delete_voucher', id=v.id) }}')">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
+                                <button type="button" class="btn btn-outline-light border-0 text-danger px-2" title="Delete" onclick="confirmDelete(event, '{{ url_for('main.delete_voucher', id=v.id) }}')"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </td>
                     </tr>

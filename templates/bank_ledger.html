@@ -4,18 +4,18 @@
 <div class="row justify-content-center">
     <div class="col-12">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold text-dark-blue">{{ bank.bank_name }} Ledger</h2>
-                <div class="text-muted mb-0">{{ bank.account_holder_name }} | {{ bank.account_no }}</div>
+        <div class="page-header mb-3">
+            <div class="page-header-title">
+                <h2 class="fw-bold text-dark-blue" style="font-size: clamp(1rem, 4vw, 1.5rem);">{{ bank.bank_name }} Ledger</h2>
+                <div class="text-muted mb-0 small">{{ bank.account_holder_name }} | {{ bank.account_no }}</div>
                 <div class="small text-muted">{{ bank.branch }}</div>
             </div>
-            <div class="d-flex gap-2">
-                 <a href="{{ url_for('main.export_bank_ledger', id=bank.id) }}" class="btn btn-outline-success rounded-pill">
-                    <i class="fas fa-file-excel me-2"></i>Export Ledger
+            <div class="page-header-actions">
+                 <a href="{{ url_for('main.export_bank_ledger', id=bank.id) }}" class="btn btn-outline-success rounded-pill btn-sm">
+                    <i class="fas fa-file-excel me-1"></i><span class="d-none d-sm-inline">Export</span>
                 </a>
-                <a href="{{ url_for('main.manage_banks') }}" class="btn btn-outline-secondary rounded-pill">
-                    <i class="fas fa-arrow-left me-1"></i> Back to Banks
+                <a href="{{ url_for('main.manage_banks') }}" class="btn btn-outline-secondary rounded-pill btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> <span class="d-none d-sm-inline">Banks</span>
                 </a>
             </div>
         </div>
@@ -31,28 +31,28 @@
             {% set display_balance = 0 %}
         {% endif %}
 
-        <div class="row mb-4">
-            <div class="col-md-4">
+        <div class="row g-2 mb-3">
+            <div class="col-4">
                 <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
-                    <div class="card-body text-center p-3">
-                        <div class="small fw-bold text-success text-uppercase">Total Credit (Deposit)</div>
-                        <div class="h3 fw-bold text-dark mb-0">৳{{ "{:,.2f}".format(total_credit) }}</div>
+                    <div class="card-body text-center p-2 p-md-3">
+                        <div class="summary-label text-success">Credit</div>
+                        <div class="summary-value fw-bold text-dark">৳{{ "{:,.0f}".format(total_credit) }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-4">
                 <div class="card border-0 shadow-sm h-100 bg-danger bg-opacity-10">
-                    <div class="card-body text-center p-3">
-                        <div class="small fw-bold text-danger text-uppercase">Total Debit (Withdrawal)</div>
-                        <div class="h3 fw-bold text-dark mb-0">৳{{ "{:,.2f}".format(total_debit) }}</div>
+                    <div class="card-body text-center p-2 p-md-3">
+                        <div class="summary-label text-danger">Debit</div>
+                        <div class="summary-value fw-bold text-dark">৳{{ "{:,.0f}".format(total_debit) }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-4">
                 <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10">
-                    <div class="card-body text-center p-3">
-                        <div class="small fw-bold text-primary text-uppercase">Current Balance</div>
-                        <div class="h3 fw-bold text-dark mb-0">৳{{ "{:,.2f}".format(display_balance) }}</div>
+                    <div class="card-body text-center p-2 p-md-3">
+                        <div class="summary-label text-primary">Balance</div>
+                        <div class="summary-value fw-bold text-dark">৳{{ "{:,.0f}".format(display_balance) }}</div>
                     </div>
                 </div>
             </div>

@@ -4,43 +4,42 @@
 <div class="row justify-content-center">
     <div class="col-12">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold text-dark-blue">Petty Cash Management</h2>
+        <div class="page-header mb-3">
+            <div class="page-header-title">
+                <h2 class="fw-bold text-dark-blue">Petty Cash</h2>
                 <p class="text-muted mb-0">Track Daily Office Income &amp; Expenses</p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="page-header-actions">
                 <button class="btn btn-outline-secondary rounded-pill btn-sm" onclick="openCategoryModal()">
-                    <i class="fas fa-tags me-1"></i> Manage Categories
+                    <i class="fas fa-tags me-1"></i> <span class="d-none d-sm-inline">Manage </span>Categories
                 </button>
-                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill"><i
-                        class="fas fa-arrow-left me-1"></i> Back to Dashboard</a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill btn-sm"><i class="fas fa-arrow-left me-1"></i> <span class="d-none d-sm-inline">Dashboard</span></a>
             </div>
         </div>
 
-        <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4">
+        <!-- Summary Cards: 3-col on md, 3-col on mobile (compact) -->
+        <div class="row g-2 mb-3">
+            <div class="col-4">
                 <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10">
-                    <div class="card-body text-center p-3">
-                        <div class="small fw-bold text-success text-uppercase">Total Income</div>
-                        <div class="h3 fw-bold text-dark mb-0">৳{{ "{:,.0f}".format(total_income) }}</div>
+                    <div class="card-body text-center p-2 p-md-3">
+                        <div class="summary-label text-success">Income</div>
+                        <div class="summary-value fw-bold text-dark">৳{{ "{:,.0f}".format(total_income) }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-4">
                 <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
-                    <div class="card-body text-center p-3">
-                        <div class="small fw-bold text-warning text-uppercase">Total Expense</div>
-                        <div class="h3 fw-bold text-dark mb-0">৳{{ "{:,.0f}".format(total_expense) }}</div>
+                    <div class="card-body text-center p-2 p-md-3">
+                        <div class="summary-label text-warning">Expense</div>
+                        <div class="summary-value fw-bold text-dark">৳{{ "{:,.0f}".format(total_expense) }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-4">
                 <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10">
-                    <div class="card-body text-center p-3">
-                        <div class="small fw-bold text-primary text-uppercase">Cash in Hand</div>
-                        <div class="h3 fw-bold text-dark mb-0">৳{{ "{:,.0f}".format(current_balance) }}</div>
+                    <div class="card-body text-center p-2 p-md-3">
+                        <div class="summary-label text-primary">Cash in Hand</div>
+                        <div class="summary-value fw-bold text-dark">৳{{ "{:,.0f}".format(current_balance) }}</div>
                     </div>
                 </div>
             </div>
@@ -49,78 +48,82 @@
         <div class="row">
             <div class="col-12">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h5 class="fw-bold text-dark mb-0"><i class="fas fa-history me-2"></i>History</h5>
-                            
-                            <!-- Actions & Filter -->
+                    <div class="card-header bg-white border-0 pt-3 px-3 pb-0">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <h5 class="fw-bold text-dark mb-0" style="font-size: clamp(0.9rem, 3vw, 1.1rem);"><i class="fas fa-history me-2"></i>History</h5>
                             <div class="d-flex gap-2 align-items-center flex-wrap">
-                                <!-- Add Button -->
                                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" onclick="openAddModal()">
                                     <i class="fas fa-plus me-1"></i> Add Entry
                                 </button>
-                                
-                                <div class="vr mx-1"></div>
-
-                                <!-- Filter Form -->
-                                <form method="GET" action="{{ url_for('main.manage_petty_cash') }}" class="d-flex gap-2 align-items-center">
+                                <a href="{{ url_for('main.export_petty_cash_report', **request.args) }}" class="btn btn-sm btn-success text-white rounded-pill" title="Export Excel"><i class="fas fa-file-excel"></i> <span class="d-none d-md-inline">Excel</span></a>
+                                <button class="filter-panel-toggle" data-target="pettyFilterPanel" id="pettyFilterToggle">
+                                    <span><i class="fas fa-filter me-1"></i> Filters</span>
+                                    <i class="fas fa-chevron-down toggle-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Filter Form: always visible on md+, collapsible on mobile -->
+                        <div id="pettyFilterPanel" class="filter-collapsible d-md-block pb-2">
+                            <form method="GET" action="{{ url_for('main.manage_petty_cash') }}" class="row g-2 align-items-end petty-filter-form">
+                                <div class="col-6 col-md-auto">
                                     <input type="date" name="start_date" class="form-control form-control-sm" value="{{ request.args.get('start_date', '') }}" title="Start Date">
-                                    <span class="text-muted">-</span>
+                                </div>
+                                <div class="col-6 col-md-auto">
                                     <input type="date" name="end_date" class="form-control form-control-sm" value="{{ request.args.get('end_date', '') }}" title="End Date">
-                                    
-                                    <select name="category" class="form-select form-select-sm" style="width: 150px;">
+                                </div>
+                                <div class="col-8 col-md-auto">
+                                    <select name="category" class="form-select form-select-sm">
                                         <option value="All">All Categories</option>
                                         {% for cat in available_categories %}
                                         <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
                                         {% endfor %}
                                     </select>
-                                    
+                                </div>
+                                <div class="col-4 col-md-auto d-flex gap-1">
                                     <button type="submit" class="btn btn-sm btn-outline-primary"><i class="fas fa-filter"></i></button>
                                     <a href="{{ url_for('main.manage_petty_cash') }}" class="btn btn-sm btn-outline-secondary" title="Clear"><i class="fas fa-times"></i></a>
-                                    
-                                    <a href="{{ url_for('main.export_petty_cash_report', **request.args) }}" class="btn btn-sm btn-success text-white" title="Export Excel"><i class="fas fa-file-excel"></i></a>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    <div class="card-body p-0 mt-3">
+                    <div class="card-body p-0 mt-2">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
+                            <table class="table table-hover align-middle mb-0 table-mobile-stack">
                                 <thead class="bg-light text-muted small text-uppercase">
                                     <tr>
-                                        <th class="ps-4">Date</th>
-                                        <th>Description</th>
-                                        <th>Category</th>
-                                        <th>Type</th>
-                                        <th>Proof</th>
-                                        <th class="text-end">Amount</th>
-                                        <th class="text-end pe-4">Actions</th>
+                                        <th class="ps-3" style="font-size:0.7rem;">Date</th>
+                                        <th style="font-size:0.7rem;">Description</th>
+                                        <th style="font-size:0.7rem;">Category</th>
+                                        <th style="font-size:0.7rem;">Type</th>
+                                        <th style="font-size:0.7rem;">Proof</th>
+                                        <th class="text-end" style="font-size:0.7rem;">Amount</th>
+                                        <th class="text-end pe-3" style="font-size:0.7rem;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for entry in entries %}
                                     <tr>
-                                        <td class="ps-4 text-secondary">{{ entry.date }}</td>
-                                        <td class="fw-bold text-dark">{{ entry.description }}</td>
-                                        <td><span class="badge bg-light text-dark border">{{ entry.category }}</span></td>
-                                        <td>
+                                        <td class="ps-3 text-secondary" data-label="Date" style="font-size:0.82rem;">{{ entry.date }}</td>
+                                        <td class="fw-bold text-dark" data-label="Description" style="font-size:0.82rem;">{{ entry.description }}</td>
+                                        <td data-label="Category"><span class="badge bg-light text-dark border" style="font-size:0.72rem;">{{ entry.category }}</span></td>
+                                        <td data-label="Type">
                                             {% if entry.type == 'Income' %}
-                                            <span class="badge bg-success bg-opacity-10 text-success">INCOME</span>
+                                            <span class="badge bg-success bg-opacity-10 text-success" style="font-size:0.72rem;">INCOME</span>
                                             {% else %}
-                                            <span class="badge bg-danger bg-opacity-10 text-danger">EXPENSE</span>
+                                            <span class="badge bg-danger bg-opacity-10 text-danger" style="font-size:0.72rem;">EXPENSE</span>
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        <td data-label="Proof">
                                             {% if entry.images %}
                                             <div>
                                                 {% for img in entry.images.split(',') if img %}
                                                     {% if img.lower().endswith('.pdf') %}
-                                                        <a href="{{ url_for('static', filename='uploads/' + img) }}" target="_blank" class="text-danger me-1 fs-5" title="View PDF"><i class="fas fa-file-pdf"></i></a>
+                                                        <a href="{{ url_for('static', filename='uploads/' + img) }}" target="_blank" class="text-danger me-1" title="View PDF"><i class="fas fa-file-pdf"></i></a>
                                                     {% elif img.lower().endswith('.doc') or img.lower().endswith('.docx') %}
-                                                        <a href="{{ url_for('main.uploaded_file', filename=img) }}" class="text-primary me-1 fs-5" title="Download Doc"><i class="fas fa-file-word"></i></a>
+                                                        <a href="{{ url_for('main.uploaded_file', filename=img) }}" class="text-primary me-1" title="Download Doc"><i class="fas fa-file-word"></i></a>
                                                     {% else %}
                                                         <a href="{{ url_for('main.uploaded_file', filename=img) }}" target="_blank" class="d-inline-block me-1">
-                                                            <img src="{{ url_for('main.uploaded_file', filename=img) }}" class="img-thumbnail rounded-circle" style="height: 30px; width: 30px; object-fit: cover;">
+                                                            <img src="{{ url_for('main.uploaded_file', filename=img) }}" class="img-thumbnail rounded-circle" style="height: 26px; width: 26px; object-fit: cover;">
                                                         </a>
                                                     {% endif %}
                                                 {% endfor %}
@@ -129,11 +132,11 @@
                                             <span class="text-muted small">-</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end fw-bold {{ 'text-success' if entry.type == 'Income' else 'text-dark' }}">
+                                        <td class="text-end fw-bold {{ 'text-success' if entry.type == 'Income' else 'text-dark' }}" data-label="Amount" style="font-size:0.82rem;">
                                             ৳{{ "{:,.0f}".format(entry.amount) }}
                                         </td>
-                                        <td class="text-end pe-4">
-                                            <a href="{{ url_for('main.invoice_view', id=entry.id) }}" class="btn btn-sm btn-outline-dark rounded-circle me-1" title="Print Invoice">
+                                        <td class="text-end pe-3 td-actions">
+                                            <a href="{{ url_for('main.invoice_view', id=entry.id) }}" class="btn btn-sm btn-outline-dark rounded-circle me-1" title="Print Invoice" style="width:30px;height:30px;padding:0;line-height:30px;">
                                                 <i class="fas fa-print"></i>
                                             </a>
                                             <button class="btn btn-sm btn-outline-primary rounded-circle me-1" 
@@ -144,10 +147,10 @@
                                                     data-type="{{ entry.type }}"
                                                     data-amount="{{ entry.amount }}"
                                                     onclick="openEditModal(this)"
-                                                    title="Edit">
+                                                    title="Edit" style="width:30px;height:30px;padding:0;line-height:30px;">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <a href="#" class="btn btn-sm btn-outline-danger rounded-circle" onclick="return confirmDelete(event, '{{ url_for('main.delete_petty_cash', id=entry.id) }}')" title="Delete">
+                                            <a href="#" class="btn btn-sm btn-outline-danger rounded-circle" onclick="return confirmDelete(event, '{{ url_for('main.delete_petty_cash', id=entry.id) }}')" title="Delete" style="width:30px;height:30px;padding:0;line-height:30px;">
                                                 <i class="fas fa-trash-alt"></i>
                                             </a>
                                         </td>

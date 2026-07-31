@@ -3,59 +3,54 @@
 {% block title %}Income & Expense Statement{% endblock %}
 
 {% block content %}
-<div class="row mb-4 align-items-center">
-    <div class="col-md-6">
+<div class="page-header mb-3">
+    <div class="page-header-title">
         <h3 class="fw-bold text-dark-blue mb-0">
-            <i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Income & Expense Statement
+            <i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Income &amp; Expense
         </h3>
-        <p class="text-muted small mb-0">Accrual Statement from <strong>{{ data.start_date }}</strong> to <strong>{{ data.end_date }}</strong></p>
+        <p class="text-muted small mb-0">{{ data.start_date }} to {{ data.end_date }}</p>
     </div>
-    <div class="col-md-6 text-md-end">
-        <form method="GET" class="d-inline-flex gap-2 align-items-center">
-            <label class="small text-muted text-nowrap">From:</label>
-            <input type="date" name="start_date" class="form-control form-control-sm rounded-pill px-3 border-0 shadow-sm" value="{{ data.start_date }}">
-            <label class="small text-muted text-nowrap">To:</label>
-            <input type="date" name="end_date" class="form-control form-control-sm rounded-pill px-3 border-0 shadow-sm" value="{{ data.end_date }}">
-            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">Filter</button>
+    <div class="page-header-actions">
+        <form method="GET" class="d-flex gap-1 align-items-center flex-wrap">
+            <input type="date" name="start_date" class="form-control form-control-sm" value="{{ data.start_date }}" style="max-width: 130px;">
+            <input type="date" name="end_date" class="form-control form-control-sm" value="{{ data.end_date }}" style="max-width: 130px;">
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">Go</button>
         </form>
-        <form method="POST" action="{{ url_for('main.export_income_expense') }}" class="d-inline-flex ms-2">
+        <form method="POST" action="{{ url_for('main.export_income_expense') }}" class="d-inline-flex">
             <input type="hidden" name="start_date" value="{{ data.start_date }}">
             <input type="hidden" name="end_date" value="{{ data.end_date }}">
-            <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm">
-                <i class="fas fa-file-excel me-1"></i> Export Excel
+            <button type="submit" class="btn btn-success btn-sm rounded-pill px-2">
+                <i class="fas fa-file-excel"></i>
             </button>
         </form>
     </div>
 </div>
 
-<!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 bg-white border-start border-primary border-4 py-2">
-            <div class="card-body px-4 py-3">
-                <div class="text-muted small fw-bold text-uppercase mb-1">Total Income</div>
-                <h3 class="fw-bold text-primary mb-0">৳{{ "{:,.2f}".format(data.total_income) }}</h3>
-                <div class="small text-muted mt-1">Credit vouchers & payments</div>
+<!-- Summary Cards: 3-per-row always (compact on mobile) -->
+<div class="row g-2 mb-3">
+    <div class="col-4">
+        <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-primary border-4 py-1">
+            <div class="card-body px-2 px-md-4 py-2">
+                <div class="summary-label text-primary" style="font-size: 0.75rem;">Income</div>
+                <div class="summary-value fw-bold text-primary">৳{{ "{:,.0f}".format(data.total_income) }}</div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 bg-white border-start border-danger border-4 py-2">
-            <div class="card-body px-4 py-3">
-                <div class="text-muted small fw-bold text-uppercase mb-1">Total Expense</div>
-                <h3 class="fw-bold text-danger mb-0">৳{{ "{:,.2f}".format(data.total_expense) }}</h3>
-                <div class="small text-muted mt-1">Debit vouchers (excluding payments)</div>
+    <div class="col-4">
+        <div class="card border-0 shadow-sm rounded-3 bg-white border-start border-danger border-4 py-1">
+            <div class="card-body px-2 px-md-4 py-2">
+                <div class="summary-label text-danger" style="font-size: 0.75rem;">Expense</div>
+                <div class="summary-value fw-bold text-danger">৳{{ "{:,.0f}".format(data.total_expense) }}</div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 bg-white border-start {% if data.net_profit >= 0 %}border-success{% else %}border-warning{% endif %} border-4 py-2">
-            <div class="card-body px-4 py-3">
-                <div class="text-muted small fw-bold text-uppercase mb-1">Net Profit / (Loss)</div>
-                <h3 class="fw-bold {% if data.net_profit >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
-                    ৳{{ "{:,.2f}".format(data.net_profit) }}
-                </h3>
-                <div class="small text-muted mt-1">Net surplus for the period</div>
+    <div class="col-4">
+        <div class="card border-0 shadow-sm rounded-3 bg-white border-start {% if data.net_profit >= 0 %}border-success{% else %}border-warning{% endif %} border-4 py-1">
+            <div class="card-body px-2 px-md-4 py-2">
+                <div class="summary-label {% if data.net_profit >= 0 %}text-success{% else %}text-warning{% endif %}" style="font-size: 0.75rem;">Net</div>
+                <div class="summary-value fw-bold {% if data.net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    ৳{{ "{:,.0f}".format(data.net_profit) }}
+                </div>
             </div>
         </div>
     </div>

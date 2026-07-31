@@ -1,53 +1,55 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold text-dark-blue mb-0"><i class="fas fa-address-book me-2"></i>Party Management</h4>
-    <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary rounded-pill shadow-sm px-4" onclick="openCategoryModal()">
-            <i class="fas fa-tags me-1"></i> Manage Categories
+<div class="page-header mb-3">
+    <div class="page-header-title">
+        <h4 class="fw-bold text-dark-blue mb-0"><i class="fas fa-address-book me-2"></i>Party Management</h4>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-outline-secondary rounded-pill shadow-sm btn-sm" onclick="openCategoryModal()">
+            <i class="fas fa-tags me-1"></i> <span class="d-none d-sm-inline">Manage </span>Categories
         </button>
-        <a href="{{ url_for('main.add_party') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <a href="{{ url_for('main.add_party') }}" class="btn btn-primary rounded-pill btn-sm px-3 shadow-sm">
             <i class="fas fa-plus me-1"></i> Add New Party
         </a>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 table-mobile-stack" style="min-width: 500px;">
             <thead class="bg-light text-muted small text-uppercase">
                 <tr>
-                    <th class="ps-4">Name</th>
-                    <th>Category</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Current Balance</th>
-                    <th class="text-end pe-4">Actions</th>
+                    <th class="ps-3" style="font-size:0.7rem;">Name</th>
+                    <th style="font-size:0.7rem;">Category</th>
+                    <th style="font-size:0.7rem;">Phone</th>
+                    <th class="d-none d-md-table-cell" style="font-size:0.7rem;">Address</th>
+                    <th style="font-size:0.7rem;">Balance</th>
+                    <th class="text-end pe-3" style="font-size:0.7rem;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for party in parties %}
                 <tr>
-                    <td class="ps-4 fw-bold text-dark">{{ party.name }}</td>
-                    <td>
-                        <span class="badge {% if party.category == 'Supplier' %}bg-primary{% elif party.category == 'Contractor' %}bg-info{% else %}bg-secondary{% endif %} bg-opacity-10 {% if party.category == 'Supplier' %}text-primary{% elif party.category == 'Contractor' %}text-info{% else %}text-secondary{% endif %} border">
+                    <td class="ps-3 fw-bold text-dark" data-label="Name" style="font-size:0.85rem;">{{ party.name }}</td>
+                    <td data-label="Category">
+                        <span class="badge {% if party.category == 'Supplier' %}bg-primary{% elif party.category == 'Contractor' %}bg-info{% else %}bg-secondary{% endif %} bg-opacity-10 {% if party.category == 'Supplier' %}text-primary{% elif party.category == 'Contractor' %}text-info{% else %}text-secondary{% endif %} border" style="font-size:0.7rem;">
                             {{ party.category }}
                         </span>
                     </td>
-                    <td>{{ party.phone or 'N/A' }}</td>
-                    <td><small class="text-muted">{{ party.address or 'N/A' }}</small></td>
-                    <td>
+                    <td data-label="Phone" style="font-size:0.82rem;">{{ party.phone or 'N/A' }}</td>
+                    <td class="d-none d-md-table-cell"><small class="text-muted">{{ party.address or 'N/A' }}</small></td>
+                    <td data-label="Balance">
                         {% set bal = party.current_balance %}
-                        <span class="fw-bold {% if bal > 0 %}text-danger{% elif bal < 0 %}text-success{% else %}text-muted{% endif %}">
-                            ৳{{ "{:,.2f}".format(bal|abs) }}
-                            {% if bal > 0 %}(Due){% elif bal < 0 %}(Advance){% endif %}
+                        <span class="fw-bold {% if bal > 0 %}text-danger{% elif bal < 0 %}text-success{% else %}text-muted{% endif %}" style="font-size:0.82rem;">
+                            ৳{{ "{:,.0f}".format(bal|abs) }}
+                            {% if bal > 0 %}<span class="d-none d-sm-inline">(Due)</span>{% elif bal < 0 %}<span class="d-none d-sm-inline">(Adv)</span>{% endif %}
                         </span>
                     </td>
-                    <td class="text-end pe-4">
+                    <td class="text-end pe-3 td-actions">
                         <div class="btn-group btn-group-sm">
-                            <a href="{{ url_for('main.view_party_ledger', id=party.id) }}" class="btn btn-outline-primary" title="View Ledger">
-                                <i class="fas fa-list-alt"></i> Ledger
+                            <a href="{{ url_for('main.view_party_ledger', id=party.id) }}" class="btn btn-outline-primary" title="Ledger">
+                                <i class="fas fa-list-alt"></i> <span class="d-none d-md-inline">Ledger</span>
                             </a>
                             <a href="{{ url_for('main.edit_party', id=party.id) }}" class="btn btn-outline-secondary" title="Edit">
                                 <i class="fas fa-edit"></i>

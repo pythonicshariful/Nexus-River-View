@@ -4,37 +4,37 @@
 <div class="row justify-content-center">
     <div class="col-md-10">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
+        <div class="page-header mb-3">
+            <div class="page-header-title">
                 <h2 class="fw-bold text-dark-blue">Transactions</h2>
                 <p class="text-muted mb-0">Managing payment history for <strong>{{ customer.name }}</strong></p>
                 <div class="small text-muted">ID: {{ customer.customer_id }} | Plot: {{ customer.plot_no }}</div>
             </div>
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('main.download_individual_customer_report', id=customer.id) }}" class="btn btn-outline-success rounded-pill">
-                    <i class="fas fa-file-excel me-2"></i> Report
+            <div class="page-header-actions">
+                <a href="{{ url_for('main.download_individual_customer_report', id=customer.id) }}" class="btn btn-outline-success rounded-pill btn-sm">
+                    <i class="fas fa-file-excel me-1"></i> <span class="d-none d-sm-inline">Report</span>
                 </a>
-                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill">
-                    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> <span class="d-none d-sm-inline">Dashboard</span>
                 </a>
             </div>
         </div>
 
         <!-- Financial Summary Card -->
-        <div class="card border-0 shadow-sm mb-4 bg-white">
-            <div class="card-body p-4">
-                <div class="row text-center">
-                    <div class="col-md-4 border-end">
-                        <div class="text-muted small text-uppercase fw-bold">Total Price</div>
-                        <div class="h3 text-dark fw-bold mb-0">৳{{ "{:,.0f}".format(customer.total_price) }}</div>
+        <div class="card border-0 shadow-sm mb-3 bg-white">
+            <div class="card-body p-2 p-md-4">
+                <div class="row text-center g-0">
+                    <div class="col-4 border-end">
+                        <div class="text-muted summary-label text-uppercase">Total</div>
+                        <div class="summary-value fw-bold text-dark">৳{{ "{:,.0f}".format(customer.total_price) }}</div>
                     </div>
-                    <div class="col-md-4 border-end">
-                        <div class="text-muted small text-uppercase fw-bold">Total Paid</div>
-                        <div class="h3 text-success fw-bold mb-0">৳{{ "{:,.0f}".format(customer.total_paid) }}</div>
+                    <div class="col-4 border-end">
+                        <div class="text-muted summary-label text-uppercase">Paid</div>
+                        <div class="summary-value fw-bold text-success">৳{{ "{:,.0f}".format(customer.total_paid) }}</div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="text-muted small text-uppercase fw-bold">Due Amount</div>
-                        <div class="h3 text-danger fw-bold mb-0">৳{{ "{:,.0f}".format(customer.due_amount) }}</div>
+                    <div class="col-4">
+                        <div class="text-muted summary-label text-uppercase">Due</div>
+                        <div class="summary-value fw-bold text-danger">৳{{ "{:,.0f}".format(customer.due_amount) }}</div>
                     </div>
                 </div>
             </div>
@@ -42,7 +42,7 @@
 
         <div class="row">
             <!-- Add Transaction Form -->
-            <div class="col-md-4">
+            <div class="col-12 col-md-4 mb-3 mb-md-0">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
                         <h5 class="fw-bold text-primary"><i class="fas fa-plus-circle me-2"></i>New Transaction</h5>

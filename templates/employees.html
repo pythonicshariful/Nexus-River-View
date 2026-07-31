@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h2>Employee Management</h2>
+<div class="page-header mb-3">
+    <div class="page-header-title">
+        <h2 class="fw-bold text-dark-blue mb-0">Employee Management</h2>
     </div>
-    <div class="col-md-4 text-end">
-        <a href="{{ url_for('main.add_employee') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Employee</a>
+    <div class="page-header-actions">
+        <a href="{{ url_for('main.add_employee') }}" class="btn btn-primary btn-sm rounded-pill px-3">
+            <i class="fas fa-plus me-1"></i> <span class="d-none d-sm-inline">Add </span>Employee
+        </a>
     </div>
 </div>
 
-<div class="card shadow">
-    <div class="card-body">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle" id="employeesTable">
+            <table class="table table-hover align-middle table-mobile-stack mb-0" id="employeesTable">
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>

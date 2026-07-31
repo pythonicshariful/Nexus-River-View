@@ -4,20 +4,20 @@
 <div class="row justify-content-center">
     <div class="col-12">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
+        <div class="page-header mb-3 d-flex justify-content-between align-items-center">
+            <div class="page-header-title">
                 <h2 class="fw-bold text-dark-blue">Bank Management</h2>
-                <p class="text-muted mb-0">Manage Company Bank Accounts & Ledgers</p>
+                <p class="text-muted mb-0">Manage Company Bank Accounts &amp; Ledgers</p>
             </div>
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill">
-                    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            <div class="page-header-actions d-flex gap-2">
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> <span class="d-none d-sm-inline">Dashboard</span>
                 </a>
-                <a href="{{ url_for('main.export_all_bank_data') }}" class="btn btn-outline-success rounded-pill" target="_blank">
-                    <i class="fas fa-file-excel me-2"></i>Export All Bank Data
+                <a href="{{ url_for('main.export_all_bank_data') }}" class="btn btn-outline-success rounded-pill btn-sm" target="_blank">
+                    <i class="fas fa-file-excel me-1"></i><span class="d-none d-sm-inline">Export</span>
                 </a>
-                <button class="btn btn-primary rounded-pill shadow-sm" onclick="openAddModal()">
-                    <i class="fas fa-plus me-2"></i>Add Bank Account
+                <button class="btn btn-primary rounded-pill shadow-sm btn-sm" onclick="openAddModal()">
+                    <i class="fas fa-plus me-1"></i><span class="d-none d-sm-inline">Add Bank</span><span class="d-sm-none">+</span>
                 </button>
             </div>
         </div>
@@ -30,9 +30,9 @@
             <p class="text-muted">Add a bank account to start tracking transactions.</p>
         </div>
         {% else %}
-        <div class="row g-4">
+        <div class="row g-3">
             {% for bank in banks %}
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-sm-6 col-lg-4">
                 <div class="card border-0 shadow-sm h-100 hover-shadow transition-all">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
