@@ -1511,3 +1511,21 @@
 2026-07-29 17:13:12,399 - INFO - 127.0.0.1 - - [29/Jul/2026 17:13:12] "GET / HTTP/1.1" 200 -
 2026-07-29 17:13:12,412 - INFO - 127.0.0.1 - - [29/Jul/2026 17:13:12] "GET / HTTP/1.1" 200 -
 2026-07-29 17:13:12,834 - INFO - 127.0.0.1 - - [29/Jul/2026 17:13:12] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-07-31 19:47:00,915 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-31 19:47:01,438 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2026-07-31 19:47:01,438 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-31 19:47:01,442 - INFO -  * Restarting with stat
+2026-07-31 19:47:04,325 - INFO - Application starting with data_dir: G:\Personal\Nexus-River-View
+2026-07-31 19:47:04,518 - WARNING -  * Debugger is active!
+2026-07-31 19:47:04,524 - INFO -  * Debugger PIN: 113-660-391
+2026-07-31 19:47:20,914 - INFO - 127.0.0.1 - - [31/Jul/2026 19:47:20] "GET / HTTP/1.1" 200 -
+2026-07-31 19:47:21,337 - INFO - 127.0.0.1 - - [31/Jul/2026 19:47:21] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-07-31 19:47:41,815 - INFO - 127.0.0.1 - - [31/Jul/2026 19:47:41] "GET /manage_transactions/10 HTTP/1.1" 200 -
+2026-07-31 19:47:41,886 - INFO - 127.0.0.1 - - [31/Jul/2026 19:47:41] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-31 19:48:09,495 - INFO - 127.0.0.1 - - [31/Jul/2026 19:48:09] "[32mPOST /manage_transactions/10 HTTP/1.1[0m" 302 -
+2026-07-31 19:48:09,544 - INFO - 127.0.0.1 - - [31/Jul/2026 19:48:09] "GET /manage_transactions/10 HTTP/1.1" 200 -
+2026-07-31 19:48:09,613 - INFO - 127.0.0.1 - - [31/Jul/2026 19:48:09] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-31 19:48:18,638 - INFO - 127.0.0.1 - - [31/Jul/2026 19:48:18] "[32mPOST /delete_transaction/55 HTTP/1.1[0m" 302 -
+2026-07-31 19:48:18,668 - INFO - 127.0.0.1 - - [31/Jul/2026 19:48:18] "GET /manage_transactions/10 HTTP/1.1" 200 -
+2026-07-31 19:48:18,728 - INFO - 127.0.0.1 - - [31/Jul/2026 19:48:18] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -

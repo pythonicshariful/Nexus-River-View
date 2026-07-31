@@ -2002,3 +2002,19 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 [2026-07-29 14:23:02] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260729_142302.db
 [2026-07-29 14:23:02] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
 [2026-07-29 14:23:05] Document sent successfully.
+[2026-07-31 19:48:09] Error processing transaction financials: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(sqlite3.IntegrityError) NOT NULL constraint failed: journal_line.account_code
+[SQL: INSERT INTO journal_line (journal_entry_id, account_code, account_name, debit_amount, credit_amount, narration, party_type, party_id, cost_center) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: (204, None, 'Unknown', 200000.0, 0.0, 'Customer payment - Al Kaium - 1st Instalment for Piling', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-07-31 19:48:09] Starting Background Tasks due to: Database Update
+n progress.
+[2026-07-31 19:48:09] [Added Transaction for Customer: Al Kaium] Sync skipped: A sync is already in progress.
+[2026-07-31 19:48:09] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260731_194809.db
+[2026-07-31 19:48:09] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-31 19:48:13] Document sent successfully.
+[2026-07-31 19:48:18] [Database Update] Sync skipped: A sync is already in progress.
+[2026-07-31 19:48:18] [Deleted Transaction for: Al Kaium] Sync skipped: A sync is already in progress.
+[2026-07-31 19:48:18] DB Backup created: G:\Personal\Nexus-River-View\backups\nexus_db_backup_20260731_194818.db
+[2026-07-31 19:48:18] Attempting to send document: G:\Personal\Nexus-River-View\nexus.db
+[2026-07-31 19:48:35] Document sent successfully.
