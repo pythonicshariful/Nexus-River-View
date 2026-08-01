@@ -3006,23 +3006,6 @@ def format_excel_width(writer, sheet_name):
 
 # --- New Customer Reports ---
 
-def save_and_open_excel(output_bytes, filename):
-    """
-    Saves an Excel BytesIO to the user's Documents/NexusRiverView folder
-    and opens it automatically. This works inside pywebview where send_file downloads don't work.
-    Returns (saved_path, error_msg).
-    """
-    import os, subprocess
-    try:
-        docs_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'NexusRiverView')
-        os.makedirs(docs_dir, exist_ok=True)
-        save_path = os.path.join(docs_dir, filename)
-        with open(save_path, 'wb') as f:
-            f.write(output_bytes.read())
-        os.startfile(save_path)  # Opens with Excel
-        return save_path, None
-    except Exception as e:
-        return None, str(e)
 
 @main.route('/report/customers/all')
 def download_all_customers_report():
@@ -3093,12 +3076,7 @@ def download_all_customers_report():
         safe_company_name = "".join(c for c in company_name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
         filename = f"{safe_company_name}_All_Customers_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
         
-        path, err = save_and_open_excel(output, filename)
-        if err:
-            flash(f"Export failed: {err}", "danger")
-        else:
-            flash(f"Exported! File saved to Documents/NexusRiverView/{filename}", "success")
-        return redirect(url_for('main.index'))
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     except Exception as e:
         from telegram_utils import log_debug
         log_debug(f"Excel Export Error (All Customers): {e}")
@@ -3163,12 +3141,7 @@ def download_director_customers_report(id):
         safe_company_name = "".join(c for c in company_name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
         filename = f"{safe_company_name}_Director_{secure_filename(director.name)}_Customers_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
         
-        path, err = save_and_open_excel(output, filename)
-        if err:
-            flash(f"Export failed: {err}", "danger")
-        else:
-            flash(f"Exported! File saved to Documents/NexusRiverView/{filename}", "success")
-        return redirect(url_for('main.index'))
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     except Exception as e:
         from telegram_utils import log_debug
         log_debug(f"Excel Export Error (Director Customers): {e}")
@@ -3239,12 +3212,7 @@ def download_individual_customer_report(id):
     safe_company_name = "".join(c for c in company_name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
     filename = f"{safe_company_name}_Customer_{secure_filename(c.name)}_Report_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
     
-    path, err = save_and_open_excel(output, filename)
-    if err:
-        flash(f"Export failed: {err}", "danger")
-    else:
-        flash(f"Exported! File saved to Documents/NexusRiverView/{filename}", "success")
-    return redirect(url_for('main.manage_transactions', customer_id=c.id))
+    return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 # --- Bank Management Routes ---
 @main.route('/banks', methods=['GET', 'POST'])
