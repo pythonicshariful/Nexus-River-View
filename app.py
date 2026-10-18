@@ -2,6 +2,7 @@ from flask import Flask, request, redirect, url_for
 from flask_login import LoginManager
 from database import db
 from routes import main
+from api import api as api_blueprint
 import os
 import sys
 import logging
@@ -83,6 +84,7 @@ def create_app():
         return db.session.get(User, int(user_id))
         
     app.register_blueprint(main)
+    app.register_blueprint(api_blueprint)
     # Database Initialization CLI Command
     @app.cli.command("init-db")
     def init_db_command():

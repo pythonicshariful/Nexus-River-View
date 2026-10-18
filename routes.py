@@ -276,6 +276,11 @@ def global_request_processor():
        request.path.startswith('/static/'):
         return
 
+    # 1b. The JSON API authenticates with bearer tokens, not sessions.
+    #     Never redirect API calls to the HTML login page.
+    if request.path.startswith('/api/'):
+        return
+
     # 2. Define Public routes (accessible without login)
     public_endpoints = ['main.login', 'main.forgot_password', 'main.reset_password', 'main.uploaded_file']
     

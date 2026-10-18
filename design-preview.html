@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus River View — UI Preview</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="static/css/style.css">
+<style>
+  .preview-note {
+    position: fixed; right: 1rem; bottom: 1rem; z-index: 2000;
+    background: #0a101f; color: #cbd5e1; border: 1px solid #1c2740;
+    font-size: .72rem; padding: .5rem .8rem; border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  }
+  .bar-row { display: flex; align-items: flex-end; gap: 14px; height: 150px; padding: 0 4px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bar-pair { display: flex; align-items: flex-end; gap: 3px; height: 120px; width: 100%; justify-content: center; }
+  .bar { width: 11px; border-radius: 3px 3px 0 0; }
+  .bar.in  { background: #10b981; }
+  .bar.out { background: #f43f5e; opacity: .85; }
+  .bar-lbl { font-size: .62rem; color: #94a3b8; font-weight: 600; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .mini-spark { width: 64px; height: 22px; }
+  .table-toolbar { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .chip {
+    font-size: .7rem; font-weight: 600; padding: .22rem .6rem; border-radius: 20px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  }
+  .chip.active { background: var(--brand-50); border-color: var(--brand-100); color: var(--brand-700); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <a class="app-sidebar__brand" href="#">
+      <span class="brand-mark"><i class="fas fa-cubes"></i></span>
+      <span class="brand-text">
+        <span class="brand-name">Nexus River View</span>
+        <span class="brand-sub">Accounting Suite</span>
+      </span>
+    </a>
+    <nav class="app-sidebar__nav">
+      <div class="nav-group">Workspace</div>
+      <a class="app-nav-item active" href="#"><i class="fas fa-gauge-high"></i><span>Dashboard</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-list-check"></i><span>Tasks &amp; Reminders</span><span class="nav-count">4</span></a>
+
+      <div class="nav-group">Accounting</div>
+      <a class="app-nav-item" href="#"><i class="fas fa-sitemap"></i><span>Chart of Accounts</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-book-open"></i><span>General Journal</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-scale-balanced"></i><span>Trial Balance</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-chart-line"></i><span>Profit &amp; Loss</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-landmark"></i><span>Balance Sheet</span></a>
+
+      <div class="nav-group">Money</div>
+      <a class="app-nav-item" href="#"><i class="fas fa-receipt"></i><span>Vouchers</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-right-left"></i><span>Contra Transfers</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-coins"></i><span>Petty Cash</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-building-columns"></i><span>Bank Accounts</span></a>
+
+      <div class="nav-group">Receivables</div>
+      <a class="app-nav-item" href="#"><i class="fas fa-user-plus"></i><span>Customers</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-address-book"></i><span>Parties</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-layer-group"></i><span>Installments</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-user-tie"></i><span>Directors</span></a>
+
+      <div class="nav-group">People</div>
+      <a class="app-nav-item" href="#"><i class="fas fa-users"></i><span>Employees</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-calendar-check"></i><span>Attendance</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-money-check-dollar"></i><span>Salary Sheet</span></a>
+
+      <div class="nav-group">Analytics</div>
+      <a class="app-nav-item" href="#"><i class="fas fa-chart-pie"></i><span>Reports Hub</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-arrow-trend-up"></i><span>Money Flow</span></a>
+
+      <div class="nav-group">System</div>
+      <a class="app-nav-item" href="#"><i class="fas fa-wand-magic-sparkles"></i><span>AI Assistant</span></a>
+      <a class="app-nav-item" href="#"><i class="fas fa-sliders"></i><span>Settings</span></a>
+    </nav>
+    <div class="app-sidebar__footer">
+      <a href="#" class="sidebar-user">
+        <span class="sidebar-avatar">A</span>
+        <span class="sidebar-user-meta">
+          <span class="sidebar-user-name d-block">Administrator</span>
+          <span class="sidebar-user-role d-block">Administrator</span>
+        </span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="app-frame">
+    <!-- Topbar -->
+    <header class="app-topbar">
+      <button class="sidebar-toggle"><i class="fas fa-bars-staggered"></i></button>
+      <div class="topbar-context">
+        <div class="topbar-eyebrow">Workspace / Overview</div>
+        <div class="topbar-title">Financial Dashboard</div>
+      </div>
+      <div class="topbar-search">
+        <i class="fas fa-magnifying-glass"></i>
+        <input type="search" placeholder="Search accounts, parties, vouchers…">
+        <span class="search-kbd">Ctrl K</span>
+      </div>
+      <div class="topbar-actions">
+        <a href="#" class="topbar-icon-btn"><i class="fas fa-cloud-arrow-up"></i></a>
+        <a href="#" class="topbar-icon-btn"><i class="fas fa-file-excel"></i></a>
+        <a href="#" class="topbar-icon-btn"><i class="fas fa-bell"></i></a>
+        <a href="#" class="topbar-avatar-btn">
+          <span class="topbar-avatar">A</span>
+          <span class="topbar-avatar-name">Administrator</span>
+          <i class="fas fa-chevron-down" style="font-size:.6rem;color:var(--muted-2);"></i>
+        </a>
+      </div>
+    </header>
+
+    <main class="app-content main-content">
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-header-title">
+          <div class="section-eyebrow">Executive overview</div>
+          <h2>Financial Dashboard</h2>
+          <p>Consolidated position across receivables, cash and bank accounts.</p>
+        </div>
+        <div class="page-header-actions">
+          <a href="#" class="btn btn-outline-secondary btn-sm"><i class="fas fa-download me-1"></i>Export</a>
+          <a href="#" class="btn btn-outline-primary btn-sm"><i class="fas fa-right-left me-1"></i>New Contra</a>
+          <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Voucher</a>
+        </div>
+      </div>
+
+      <!-- Stats row 1 -->
+      <div class="row g-2 mb-2">
+        <div class="col-6 col-md-4 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Project value</span>
+              <span class="stat-icon tone-blue"><i class="fas fa-landmark"></i></span>
+            </div>
+            <div class="stat-value">৳ 48,250,000</div>
+            <div class="stat-sub">Total payable to collect</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Collected</span>
+              <span class="stat-icon tone-green"><i class="fas fa-arrow-down-long"></i></span>
+            </div>
+            <div class="stat-value">৳ 31,840,500</div>
+            <div class="stat-sub"><span class="trend-up">+12.4%</span> vs last month</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Total due</span>
+              <span class="stat-icon tone-amber"><i class="fas fa-clock"></i></span>
+            </div>
+            <div class="stat-value">৳ 16,409,500</div>
+            <div class="stat-sub">Remaining from customers</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Overdue</span>
+              <span class="stat-icon tone-red"><i class="fas fa-circle-exclamation"></i></span>
+            </div>
+            <div class="stat-value">৳ 2,310,000</div>
+            <div class="stat-sub">14 accounts past due</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Bank balance</span>
+              <span class="stat-icon tone-violet"><i class="fas fa-building-columns"></i></span>
+            </div>
+            <div class="stat-value">৳ 9,780,240</div>
+            <div class="stat-sub">Across 4 accounts</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Cash in hand</span>
+              <span class="stat-icon tone-teal"><i class="fas fa-money-bill-wave"></i></span>
+            </div>
+            <div class="stat-value">৳ 412,650</div>
+            <div class="stat-sub">Petty cash balance</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row 2 + chart -->
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Payable to suppliers</span>
+              <span class="stat-icon tone-red"><i class="fas fa-hand-holding-dollar"></i></span>
+            </div>
+            <div class="stat-value">৳ 1,286,400</div>
+            <div class="stat-sub">What we owe parties</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+          <div class="stat-card">
+            <div class="stat-head">
+              <span class="stat-label">Advance / credit</span>
+              <span class="stat-icon tone-slate"><i class="fas fa-piggy-bank"></i></span>
+            </div>
+            <div class="stat-value">৳ 348,900</div>
+            <div class="stat-sub">Overpayments held</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-8">
+          <div class="surface-panel h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <div class="stat-label">Cash flow trend</div>
+                <div style="font-size:.7rem;color:var(--muted);">Monthly income vs expense · last 6 months</div>
+              </div>
+              <div style="font-size:.7rem;color:var(--muted);">
+                <span class="legend-dot" style="background:#10b981;"></span>Income
+                <span class="legend-dot ms-2" style="background:#f43f5e;"></span>Expense
+              </div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-col"><div class="bar-pair"><div class="bar in" style="height:62%"></div><div class="bar out" style="height:38%"></div></div><span class="bar-lbl">May</span></div>
+              <div class="bar-col"><div class="bar-pair"><div class="bar in" style="height:74%"></div><div class="bar out" style="height:44%"></div></div><span class="bar-lbl">Jun</span></div>
+              <div class="bar-col"><div class="bar-pair"><div class="bar in" style="height:58%"></div><div class="bar out" style="height:52%"></div></div><span class="bar-lbl">Jul</span></div>
+              <div class="bar-col"><div class="bar-pair"><div class="bar in" style="height:86%"></div><div class="bar out" style="height:47%"></div></div><span class="bar-lbl">Aug</span></div>
+              <div class="bar-col"><div class="bar-pair"><div class="bar in" style="height:69%"></div><div class="bar out" style="height:40%"></div></div><span class="bar-lbl">Sep</span></div>
+              <div class="bar-col"><div class="bar-pair"><div class="bar in" style="height:94%"></div><div class="bar out" style="height:56%"></div></div><span class="bar-lbl">Oct</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table panel -->
+      <div class="surface-panel p-0 overflow-hidden">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 border-bottom">
+          <div>
+            <div class="stat-label">Recent vouchers</div>
+            <div style="font-size:.72rem;color:var(--muted);">Latest journal-backed transactions</div>
+          </div>
+          <div class="table-toolbar">
+            <span class="chip active">All</span>
+            <span class="chip">Debit</span>
+            <span class="chip">Credit</span>
+            <span class="chip">Contra</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-premium mb-0">
+            <thead>
+              <tr>
+                <th>Voucher</th>
+                <th>Date</th>
+                <th>Account</th>
+                <th>Narration</th>
+                <th class="text-end">Debit</th>
+                <th class="text-end">Credit</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="account-code-badge">VCH-1042</span></td>
+                <td>18 Oct 2026</td>
+                <td class="fw-semibold text-dark">Cash — Petty</td>
+                <td class="text-muted">Site office supplies</td>
+                <td class="currency">12,500.00</td>
+                <td class="currency text-muted">—</td>
+                <td><span class="badge badge-soft-success">Posted</span></td>
+              </tr>
+              <tr>
+                <td><span class="account-code-badge">VCH-1041</span></td>
+                <td>18 Oct 2026</td>
+                <td class="fw-semibold text-dark">Customer Receivable</td>
+                <td class="text-muted">Installment #7 — Plot 22/A</td>
+                <td class="currency text-muted">—</td>
+                <td class="currency">250,000.00</td>
+                <td><span class="badge badge-soft-success">Posted</span></td>
+              </tr>
+              <tr>
+                <td><span class="account-code-badge">CTR-0088</span></td>
+                <td>17 Oct 2026</td>
+                <td class="fw-semibold text-dark">UCB — Current A/C</td>
+                <td class="text-muted">Contra transfer to petty cash</td>
+                <td class="currency">100,000.00</td>
+                <td class="currency text-muted">—</td>
+                <td><span class="badge badge-soft-info">Contra</span></td>
+              </tr>
+              <tr>
+                <td><span class="account-code-badge">VCH-1040</span></td>
+                <td>17 Oct 2026</td>
+                <td class="fw-semibold text-dark">Salary Expense</td>
+                <td class="text-muted">October payroll — 12 staff</td>
+                <td class="currency">486,300.00</td>
+                <td class="currency text-muted">—</td>
+                <td><span class="badge badge-soft-warning">Pending</span></td>
+              </tr>
+              <tr>
+                <td><span class="account-code-badge">VCH-1039</span></td>
+                <td>16 Oct 2026</td>
+                <td class="fw-semibold text-dark">Supplier Payable</td>
+                <td class="text-muted">Cement purchase — invoice 8821</td>
+                <td class="currency text-muted">—</td>
+                <td class="currency">74,800.00</td>
+                <td><span class="badge badge-soft-success">Posted</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="text-end">Period totals</td>
+                <td class="currency">923,600.00</td>
+                <td class="currency">324,800.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <span>&copy; 2026 Nexus River View. All rights reserved.</span>
+      <span>Accounting Suite v2</span>
+    </footer>
+  </div>
+</div>
+
+<div class="preview-note"><i class="fas fa-eye me-1"></i>Design preview — static sample data</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

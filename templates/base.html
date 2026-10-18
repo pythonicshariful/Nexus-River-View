@@ -2,597 +2,442 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <link rel="icon" href="data:,">
-    <title>Nexus River View - Accounting</title>
-    <!-- Bootstrap 5 CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a101f">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>{% block title %}Nexus River View{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Custom CSS -->
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Design system -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    {% block head %}{% endblock %}
 </head>
 <body>
+<div class="app-shell" id="appShell">
 
-    <!-- ====== TOP NAVBAR (Redesigned with UI-UX-PRO-MAX) ====== -->
-    <style>
-      .app-navbar {
-        background: #0f172a;
-        border-bottom: 1px solid #1e293b;
-        min-height: 62px;
-        padding: 0 1.25rem;
-        position: sticky;
-        top: 0;
-        z-index: 1040;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      }
-      .brand-icon {
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, #2563eb, #3b82f6);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 0.9rem;
-        box-shadow: 0 2px 8px rgba(37,99,235,0.3);
-      }
-      .app-nav-link {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #cbd5e1 !important;
-        padding: 0.45rem 0.65rem !important;
-        border-radius: 8px;
-        transition: all 0.18s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        white-space: nowrap;
-      }
-      .app-nav-link:hover, .app-nav-link:focus {
-        color: #fff !important;
-        background: rgba(255, 255, 255, 0.08);
-      }
-      .app-nav-link.active {
-        color: #60a5fa !important;
-        background: rgba(37, 99, 235, 0.15);
-      }
-      .app-nav-dropdown-menu {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-        padding: 0.5rem;
-        min-width: 210px;
-        animation: menuFadeIn 0.15s ease-out;
-      }
-      @keyframes menuFadeIn {
-        from { opacity: 0; transform: translateY(6px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .app-dropdown-item {
-        color: #e2e8f0;
-        font-size: 0.8rem;
-        font-weight: 500;
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        transition: all 0.15s ease;
-      }
-      .app-dropdown-item:hover {
-        background: #2563eb;
-        color: #fff;
-      }
-      .app-dropdown-item i {
-        font-size: 0.85rem;
-        width: 16px;
-        text-align: center;
-        opacity: 0.85;
-      }
-      .nav-search-box {
-        position: relative;
-        min-width: 160px;
-        max-width: 220px;
-      }
-      .nav-search-box input {
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: #fff;
-        font-size: 0.78rem;
-        border-radius: 20px;
-        padding: 0.35rem 0.85rem 0.35rem 2rem;
-        width: 100%;
-        transition: all 0.2s ease;
-      }
-      .nav-search-box input:focus {
-        background: rgba(255, 255, 255, 0.14);
-        border-color: #3b82f6;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
-      }
-      .nav-search-box input::placeholder { color: #94a3b8; }
-      .nav-search-box .search-icon {
-        position: absolute;
-        left: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.75rem;
-        color: #94a3b8;
-      }
-      .nav-action-btn {
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #cbd5e1;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        text-decoration: none;
-        font-size: 0.88rem;
-        transition: all 0.18s ease;
-      }
-      .nav-action-btn:hover {
-        background: rgba(255, 255, 255, 0.12);
-        color: #fff;
-        transform: translateY(-1px);
-      }
-      .ai-assistant-pill {
-        background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
-        border: 1px solid rgba(168,85,247,0.4);
-        color: #c084fc;
-        font-size: 0.76rem;
-        font-weight: 700;
-        padding: 0.35rem 0.75rem;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        text-decoration: none;
-        transition: all 0.2s ease;
-      }
-      .ai-assistant-pill:hover {
-        background: linear-gradient(135deg, #6366f1, #a855f7);
-        color: #fff;
-        border-color: transparent;
-        box-shadow: 0 2px 10px rgba(168,85,247,0.3);
-      }
-      .avatar-badge {
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, #0284c7, #0369a1);
-        border: 1px solid rgba(255,255,255,0.2);
-        color: #fff;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.78rem;
-        font-weight: 700;
-      }
-    </style>
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="app-sidebar" id="appSidebar" aria-label="Primary navigation">
+        <a class="app-sidebar__brand" href="{{ url_for('main.index') }}">
+            <span class="brand-mark"><i class="fas fa-cubes"></i></span>
+            <span class="brand-text">
+                <span class="brand-name">Nexus River View</span>
+                <span class="brand-sub">Accounting Suite</span>
+            </span>
+        </a>
 
-    <nav class="navbar navbar-expand-xl navbar-dark app-navbar mb-3 d-print-none">
-        <div class="container-fluid px-0">
-            <!-- Brand -->
-            <a class="navbar-brand d-flex align-items-center gap-2 me-3" href="{{ url_for('main.index') }}">
-                <div class="brand-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="d-flex flex-column">
-                    <span class="fw-bold text-white lh-1" style="font-size: 0.95rem; letter-spacing: -0.01em;">Nexus River View</span>
-                    <span class="text-muted" style="font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase;">Accounting ERP</span>
-                </div>
+        <nav class="app-sidebar__nav">
+            <div class="nav-group">Workspace</div>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.index' }}" href="{{ url_for('main.index') }}">
+                <i class="fas fa-gauge-high"></i><span>Dashboard</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.manage_todos' }}" href="{{ url_for('main.manage_todos') }}">
+                <i class="fas fa-list-check"></i><span>Tasks &amp; Reminders</span>
             </a>
 
-            <!-- Mobile Toggler -->
-            <button class="navbar-toggler border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMainCollapse">
-                <span class="navbar-toggler-icon"></span>
+            <div class="nav-group">Accounting</div>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.manage_coa' }}" href="{{ url_for('main.manage_coa') }}">
+                <i class="fas fa-sitemap"></i><span>Chart of Accounts</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.view_journal' }}" href="{{ url_for('main.view_journal') }}">
+                <i class="fas fa-book-open"></i><span>General Journal</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.report_trial_balance' }}" href="{{ url_for('main.report_trial_balance') }}">
+                <i class="fas fa-scale-balanced"></i><span>Trial Balance</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.report_pnl' }}" href="{{ url_for('main.report_pnl') }}">
+                <i class="fas fa-chart-line"></i><span>Profit &amp; Loss</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.report_balance_sheet' }}" href="{{ url_for('main.report_balance_sheet') }}">
+                <i class="fas fa-landmark"></i><span>Balance Sheet</span>
+            </a>
+
+            <div class="nav-group">Money</div>
+            <a class="app-nav-item {{ 'active' if request.endpoint in ['main.manage_vouchers', 'main.add_voucher'] }}" href="{{ url_for('main.manage_vouchers') }}">
+                <i class="fas fa-receipt"></i><span>Vouchers</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint in ['main.manage_contra_entries', 'main.add_contra_entry'] }}" href="{{ url_for('main.manage_contra_entries') }}">
+                <i class="fas fa-right-left"></i><span>Contra Transfers</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.manage_petty_cash' }}" href="{{ url_for('main.manage_petty_cash') }}">
+                <i class="fas fa-coins"></i><span>Petty Cash</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.manage_banks' }}" href="{{ url_for('main.manage_banks') }}">
+                <i class="fas fa-building-columns"></i><span>Bank Accounts</span>
+            </a>
+
+            <div class="nav-group">Receivables</div>
+            <a class="app-nav-item {{ 'active' if request.endpoint in ['main.add_customer', 'main.edit_customer', 'main.manage_transactions'] }}" href="{{ url_for('main.add_customer') }}">
+                <i class="fas fa-user-plus"></i><span>Customers</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint in ['main.manage_parties', 'main.party_ledger'] }}" href="{{ url_for('main.manage_parties') }}">
+                <i class="fas fa-address-book"></i><span>Parties</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint in ['main.manage_installments_page', 'main.installment_details'] }}" href="{{ url_for('main.manage_installments_page') }}">
+                <i class="fas fa-layer-group"></i><span>Installments</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.add_director' }}" href="{{ url_for('main.add_director') }}">
+                <i class="fas fa-user-tie"></i><span>Directors</span>
+            </a>
+
+            <div class="nav-group">People</div>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.manage_employees' }}" href="{{ url_for('main.manage_employees') }}">
+                <i class="fas fa-users"></i><span>Employees</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.view_attendance' }}" href="{{ url_for('main.view_attendance') }}">
+                <i class="fas fa-calendar-check"></i><span>Attendance</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.view_leaves' }}" href="{{ url_for('main.view_leaves') }}">
+                <i class="fas fa-plane-departure"></i><span>Leaves</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.view_salary_sheet' }}" href="{{ url_for('main.view_salary_sheet') }}">
+                <i class="fas fa-money-check-dollar"></i><span>Salary Sheet</span>
+            </a>
+
+            <div class="nav-group">Analytics</div>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.reports_dashboard' }}" href="{{ url_for('main.reports_dashboard') }}">
+                <i class="fas fa-chart-pie"></i><span>Reports Hub</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.money_flow_analytics' }}" href="{{ url_for('main.money_flow_analytics') }}">
+                <i class="fas fa-arrow-trend-up"></i><span>Money Flow</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.cash_bank_flow_report' }}" href="{{ url_for('main.cash_bank_flow_report') }}">
+                <i class="fas fa-water"></i><span>Cash &amp; Bank Flow</span>
+            </a>
+
+            <div class="nav-group">System</div>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.ai_assistant' }}" href="{{ url_for('main.ai_assistant') }}">
+                <i class="fas fa-wand-magic-sparkles"></i><span>AI Assistant</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.notifications' }}" href="{{ url_for('main.notifications') }}">
+                <i class="fas fa-clock-rotate-left"></i><span>Activity Logs</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.settings' }}" href="{{ url_for('main.settings') }}">
+                <i class="fas fa-sliders"></i><span>Settings</span>
+            </a>
+            <a class="app-nav-item {{ 'active' if request.endpoint == 'main.help_page' }}" href="{{ url_for('main.help_page') }}">
+                <i class="fas fa-circle-question"></i><span>Help &amp; FAQ</span>
+            </a>
+        </nav>
+
+        <div class="app-sidebar__footer">
+            <div class="dropdown">
+                <a href="#" class="sidebar-user" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="sidebar-avatar">{{ (current_user.username[0] if current_user.is_authenticated else 'A')|upper }}</span>
+                    <span class="sidebar-user-meta">
+                        <span class="sidebar-user-name d-block">{{ current_user.username if current_user.is_authenticated else 'Administrator' }}</span>
+                        <span class="sidebar-user-role d-block">{{ 'Administrator' if current_user.is_authenticated and current_user.is_admin else 'Staff Account' }}</span>
+                    </span>
+                </a>
+                <ul class="dropdown-menu app-menu dropup w-100">
+                    <li><a class="dropdown-item" href="{{ url_for('main.settings') }}"><i class="fas fa-sliders"></i>Settings &amp; .ENV</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.change_password_request') }}"><i class="fas fa-key"></i>Change Password</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.notifications') }}"><i class="fas fa-clock-rotate-left"></i>Activity Logs</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}"><i class="fas fa-arrow-right-from-bracket text-danger"></i>Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ================= FRAME ================= -->
+    <div class="app-frame">
+
+        <!-- ===== TOP BAR ===== -->
+        <header class="app-topbar d-print-none">
+            <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+                <i class="fas fa-bars-staggered"></i>
             </button>
 
-            <!-- Collapsible Menu -->
-            <div class="collapse navbar-collapse" id="navbarMainCollapse">
-                <!-- Grouped Executive Menus -->
-                <ul class="navbar-nav me-auto mb-2 mb-xl-0 align-items-xl-center gap-1">
+            <div class="topbar-context">
+                <div class="topbar-eyebrow">
+                    {% block breadcrumb %}Nexus River View{% endblock %}
+                </div>
+                <div class="topbar-title">{% block page_title %}Workspace{% endblock %}</div>
+            </div>
 
-                    <!-- 1. Dashboard -->
-                    <li class="nav-item">
-                        <a class="app-nav-link" href="{{ url_for('main.index') }}">
-                            <i class="fas fa-home text-primary"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
+            <div class="topbar-search">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="search" id="globalSearch" placeholder="Search accounts, parties, vouchers…" autocomplete="off" aria-label="Global search">
+                <span class="search-kbd">Ctrl K</span>
+            </div>
 
-                    <!-- 2. Parties & CRM Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-users text-info"></i>
-                            <span>Entities</span>
-                        </a>
-                        <ul class="dropdown-menu app-nav-dropdown-menu">
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_parties') }}"><i class="fas fa-address-book text-info"></i>All Parties (Suppliers/Vendors)</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_director') }}"><i class="fas fa-user-tie text-primary"></i>Directors Management</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_customer') }}"><i class="fas fa-user-plus text-success"></i>Customers Register</a></li>
-                        </ul>
-                    </li>
+            <div class="topbar-actions">
+                <a href="{{ url_for('main.manual_backup') }}" class="topbar-icon-btn" title="Back up database to Telegram">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                </a>
+                <a href="{{ url_for('main.download_all_customers_report') }}" class="topbar-icon-btn" title="Export all data to Excel">
+                    <i class="fas fa-file-excel"></i>
+                </a>
+                <a href="{{ url_for('main.notifications') }}" class="topbar-icon-btn" title="Activity logs">
+                    <i class="fas fa-bell"></i>
+                </a>
+                <a href="{{ url_for('main.ai_assistant') }}" class="topbar-icon-btn" title="AI Assistant">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                </a>
 
-                    <!-- 3. Cash & Bank Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-university text-warning"></i>
-                            <span>Cash &amp; Bank</span>
-                        </a>
-                        <ul class="dropdown-menu app-nav-dropdown-menu">
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_petty_cash') }}"><i class="fas fa-coins text-warning"></i>Petty Cash Register</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_banks') }}"><i class="fas fa-university text-info"></i>Bank Accounts &amp; Ledgers</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_contra_entries') }}"><i class="fas fa-exchange-alt text-primary"></i>Contra Transfers</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- 4. Vouchers Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-file-invoice text-danger"></i>
-                            <span>Vouchers</span>
-                        </a>
-                        <ul class="dropdown-menu app-nav-dropdown-menu">
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_voucher', v_type='Debit') }}"><i class="fas fa-minus-circle text-danger"></i>New Debit Voucher (Expense)</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_voucher', v_type='Credit') }}"><i class="fas fa-plus-circle text-success"></i>New Credit Voucher (Income)</a></li>
-                            <li><hr class="dropdown-divider border-secondary my-1"></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_vouchers') }}"><i class="fas fa-history text-muted"></i>Voucher Register / History</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- 5. HR & Payroll Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-users-cog text-success"></i>
-                            <span>HR &amp; Payroll</span>
-                        </a>
-                        <ul class="dropdown-menu app-nav-dropdown-menu">
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_employees') }}"><i class="fas fa-id-badge text-success"></i>Staff &amp; Employees</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_attendance') }}"><i class="fas fa-calendar-check text-info"></i>Daily Attendance</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_leaves') }}"><i class="fas fa-plane-departure text-warning"></i>Leave Applications</a></li>
-                            <li><hr class="dropdown-divider border-secondary my-1"></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_salary_sheet') }}"><i class="fas fa-file-invoice-dollar text-primary"></i>Monthly Salary Sheet</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.individual_report') }}"><i class="fas fa-user-clock text-secondary"></i>Individual Staff Report</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- 6. Accounting Ledger Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-balance-scale text-primary"></i>
-                            <span>Accounting</span>
-                        </a>
-                        <ul class="dropdown-menu app-nav-dropdown-menu">
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_coa') }}"><i class="fas fa-list-ol text-info"></i>Chart of Accounts (COA)</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_journal') }}"><i class="fas fa-book text-primary"></i>General Journal Register</a></li>
-                            <li><hr class="dropdown-divider border-secondary my-1"></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.report_trial_balance') }}"><i class="fas fa-balance-scale text-warning"></i>Trial Balance</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.report_pnl') }}"><i class="fas fa-chart-line text-success"></i>Profit &amp; Loss (P&amp;L)</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.report_balance_sheet') }}"><i class="fas fa-landmark text-primary"></i>Balance Sheet</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- 7. Analytics & Reports Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-chart-pie text-warning"></i>
-                            <span>Reports &amp; Flow</span>
-                        </a>
-                        <ul class="dropdown-menu app-nav-dropdown-menu">
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.money_flow_analytics') }}"><i class="fas fa-chart-pie text-warning"></i>Money In &amp; Out Flow</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.reports_dashboard') }}"><i class="fas fa-analytics text-info"></i>Financial Reports Hub</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_todos') }}"><i class="fas fa-check-square text-primary"></i>Tasks &amp; Reminders</a></li>
-                        </ul>
-                    </li>
-
-                </ul>
-
-                <!-- Right Utility Action Section -->
-                <div class="d-flex align-items-center gap-2 mt-2 mt-xl-0 flex-wrap">
-
-                    <!-- Search Input -->
-                    <div class="nav-search-box d-none d-lg-block">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchBar" placeholder="Search..." autocomplete="off">
-                    </div>
-
-                    <!-- AI Assistant Pill -->
-                    <a href="{{ url_for('main.ai_assistant') }}" class="ai-assistant-pill" title="Open AI Assistant">
-                        <i class="fas fa-robot"></i>
-                        <span>AI Assistant</span>
+                <div class="dropdown">
+                    <a href="#" class="topbar-avatar-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="topbar-avatar">{{ (current_user.username[0] if current_user.is_authenticated else 'A')|upper }}</span>
+                        <span class="topbar-avatar-name d-none d-md-inline">{{ current_user.username if current_user.is_authenticated else 'Administrator' }}</span>
+                        <i class="fas fa-chevron-down" style="font-size:.6rem;color:var(--muted-2);"></i>
                     </a>
-
-                    <!-- Cloud Backup Button -->
-                    <a href="{{ url_for('main.manual_backup') }}" class="nav-action-btn text-info" title="Send DB Backup to Telegram">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </a>
-
-                    <!-- Export Excel -->
-                    <a href="{{ url_for('main.download_all_customers_report') }}" class="nav-action-btn text-success" title="Export All Data to Excel">
-                        <i class="fas fa-file-excel"></i>
-                    </a>
-
-                    <!-- Settings & .ENV Manager -->
-                    <a href="{{ url_for('main.settings') }}" class="nav-action-btn text-light" title="Settings & Environment (.ENV)">
-                        <i class="fas fa-sliders-h"></i>
-                    </a>
-
-                    <!-- User Profile Dropdown -->
-                    <div class="dropdown ms-1">
-                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="avatar-badge">A</div>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end app-nav-dropdown-menu" aria-labelledby="userMenuDropdown">
-                            <li class="px-3 py-2 border-bottom border-secondary mb-1">
-                                <span class="d-block text-white fw-bold" style="font-size: 0.8rem;">Administrator</span>
-                                <span class="text-muted" style="font-size: 0.68rem;">admin@nexus.local</span>
-                            </li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.settings') }}"><i class="fas fa-sliders-h text-primary"></i>Settings &amp; .ENV</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.notifications') }}"><i class="fas fa-bell text-warning"></i>System Activity Logs</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.change_password_request') }}"><i class="fas fa-key text-info"></i>Change Password</a></li>
-                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.help_page') }}"><i class="fas fa-question-circle text-success"></i>Help &amp; FAQ</a></li>
-                            <li><hr class="dropdown-divider border-secondary my-1"></li>
-                            <li><a class="dropdown-item app-dropdown-item text-danger" href="{{ url_for('main.logout') }}"><i class="fas fa-sign-out-alt text-danger"></i>Log Out</a></li>
-                        </ul>
-                    </div>
-
+                    <ul class="dropdown-menu dropdown-menu-end app-menu">
+                        <li class="menu-section-label">Account</li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.settings') }}"><i class="fas fa-sliders"></i>Settings &amp; .ENV</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.change_password_request') }}"><i class="fas fa-key"></i>Change Password</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.help_page') }}"><i class="fas fa-circle-question"></i>Help &amp; FAQ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}"><i class="fas fa-arrow-right-from-bracket text-danger"></i>Sign Out</a></li>
+                    </ul>
                 </div>
             </div>
-        </div>
-    </nav>
+        </header>
 
-    <!-- ====== OFFCANVAS "MORE" MENU (Mobile) ====== -->
-    <div class="offcanvas offcanvas-bottom offcanvas-more-menu d-md-none" tabindex="-1" id="moreMenuOffcanvas" aria-labelledby="moreMenuLabel" style="height: 85vh; border-radius: 20px 20px 0 0;">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title fw-bold" id="moreMenuLabel"><i class="fas fa-building me-2"></i>Nexus River View</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body p-0" style="overflow-y: auto;">
+        <!-- ===== CONTENT ===== -->
+        <main class="app-content main-content" id="mainContent">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-3" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-            <div class="nav-section-title">People</div>
-            <a href="{{ url_for('main.index') }}" class="menu-item"><i class="fas fa-home"></i>Dashboard</a>
-            <a href="{{ url_for('main.manage_parties') }}" class="menu-item"><i class="fas fa-address-book"></i>Parties</a>
-            <a href="{{ url_for('main.add_director') }}" class="menu-item"><i class="fas fa-user-tie"></i>Add Director</a>
-            <a href="{{ url_for('main.add_customer') }}" class="menu-item"><i class="fas fa-user-plus"></i>Add Customer</a>
+            <!-- Print-only global header -->
+            {% block global_print_header %}
+            <div class="d-none d-print-block text-center mb-4 pb-2 border-bottom border-dark">
+                <h1 class="fw-bold mb-1">{{ global_company_name }}</h1>
+                <h5 class="text-muted mb-0">{{ global_company_address }}</h5>
+            </div>
+            {% endblock %}
 
-            <div class="nav-section-title">Accounts</div>
-            <a href="{{ url_for('main.manage_petty_cash') }}" class="menu-item"><i class="fas fa-coins text-warning"></i>Petty Cash</a>
-            <a href="{{ url_for('main.manage_banks') }}" class="menu-item"><i class="fas fa-university text-info"></i>Bank Management</a>
-            <a href="{{ url_for('main.manage_contra_entries') }}" class="menu-item"><i class="fas fa-exchange-alt text-primary"></i>Contra Entries</a>
+            {% block content %}{% endblock %}
+        </main>
 
-            <div class="nav-section-title">Vouchers</div>
-            <a href="{{ url_for('main.add_voucher', v_type='Debit') }}" class="menu-item"><i class="fas fa-file-invoice-dollar text-danger"></i>New Debit Voucher</a>
-            <a href="{{ url_for('main.add_voucher', v_type='Credit') }}" class="menu-item"><i class="fas fa-hand-holding-usd text-success"></i>New Credit Voucher</a>
-            <a href="{{ url_for('main.manage_vouchers') }}" class="menu-item"><i class="fas fa-history"></i>Voucher History</a>
-
-            <div class="nav-section-title">HR & Payroll</div>
-            <a href="{{ url_for('main.manage_employees') }}" class="menu-item"><i class="fas fa-users"></i>Employees</a>
-            <a href="{{ url_for('main.view_attendance') }}" class="menu-item"><i class="fas fa-calendar-check"></i>Attendance</a>
-            <a href="{{ url_for('main.view_leaves') }}" class="menu-item"><i class="fas fa-procedures"></i>Leaves</a>
-            <a href="{{ url_for('main.view_salary_sheet') }}" class="menu-item"><i class="fas fa-file-invoice-dollar"></i>Salary Sheet</a>
-            <a href="{{ url_for('main.individual_report') }}" class="menu-item"><i class="fas fa-user-clock"></i>Individual Report</a>
-
-            <div class="nav-section-title">Reports & Tools</div>
-            <a href="{{ url_for('main.money_flow_analytics') }}" class="menu-item"><i class="fas fa-chart-pie text-warning"></i>Money In &amp; Out</a>
-            <a href="{{ url_for('main.reports_dashboard') }}" class="menu-item"><i class="fas fa-chart-line"></i>Reports</a>
-            <a href="{{ url_for('main.manage_todos') }}" class="menu-item"><i class="fas fa-tasks text-primary"></i>Tasks</a>
-            <a href="{{ url_for('main.ai_assistant') }}" class="menu-item"><i class="fas fa-robot text-info"></i>AI Assistant</a>
-            <a href="{{ url_for('main.notifications') }}" class="menu-item"><i class="fas fa-bell"></i>Logs</a>
-
-            <div class="nav-section-title">Accounting</div>
-            <a href="{{ url_for('main.manage_coa') }}" class="menu-item"><i class="fas fa-list-ol"></i>Chart of Accounts</a>
-            <a href="{{ url_for('main.view_journal') }}" class="menu-item"><i class="fas fa-book"></i>Journal Register</a>
-            <a href="{{ url_for('main.report_trial_balance') }}" class="menu-item"><i class="fas fa-balance-scale"></i>Trial Balance</a>
-            <a href="{{ url_for('main.report_pnl') }}" class="menu-item"><i class="fas fa-file-invoice"></i>Profit & Loss</a>
-            <a href="{{ url_for('main.report_balance_sheet') }}" class="menu-item"><i class="fas fa-university"></i>Balance Sheet</a>
-
-            <div class="nav-section-title">System</div>
-            <a href="{{ url_for('main.download_all_customers_report') }}" class="menu-item"><i class="fas fa-file-excel text-success"></i>Export All Data</a>
-            <a href="{{ url_for('main.manual_backup') }}" class="menu-item"><i class="fas fa-cloud-upload-alt text-info"></i>Backup to Telegram</a>
-            <a href="{{ url_for('main.settings') }}" class="menu-item"><i class="fas fa-sliders-h text-primary"></i>Settings &amp; .ENV Manager</a>
-            <a href="{{ url_for('main.change_password_request') }}" class="menu-item"><i class="fas fa-key text-warning"></i>Change Password</a>
-            <a href="{{ url_for('main.help_page') }}" class="menu-item"><i class="fas fa-question-circle"></i>Help / FAQ</a>
-        </div>
+        <footer class="app-footer d-print-none">
+            <span>&copy; 2026 Nexus River View. All rights reserved.</span>
+            <span>Accounting Suite v2</span>
+        </footer>
     </div>
+</div>
 
-    <!-- ====== MOBILE BOTTOM NAV ====== -->
-    <nav class="mobile-bottom-nav d-md-none d-print-none" role="navigation" aria-label="Mobile navigation">
-        <a href="{{ url_for('main.index') }}" title="Dashboard">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="{{ url_for('main.manage_petty_cash') }}" title="Petty Cash">
-            <i class="fas fa-coins"></i>
-            <span>Cash</span>
-        </a>
-        <a href="{{ url_for('main.manage_banks') }}" title="Banks">
-            <i class="fas fa-university"></i>
-            <span>Banks</span>
-        </a>
-        <a href="{{ url_for('main.manage_vouchers') }}" title="Vouchers">
-            <i class="fas fa-file-invoice-dollar"></i>
-            <span>Vouchers</span>
-        </a>
-        <a href="#" data-bs-toggle="offcanvas" data-bs-target="#moreMenuOffcanvas" aria-controls="moreMenuOffcanvas" title="More">
-            <i class="fas fa-grip-horizontal"></i>
-            <span>More</span>
-        </a>
-    </nav>
+<!-- ================= MOBILE BOTTOM NAV ================= -->
+<nav class="mobile-bottom-nav d-md-none d-print-none" role="navigation" aria-label="Mobile navigation">
+    <a href="{{ url_for('main.index') }}" title="Dashboard" class="{{ 'active' if request.endpoint == 'main.index' }}">
+        <i class="fas fa-gauge-high"></i><span>Dashboard</span>
+    </a>
+    <a href="{{ url_for('main.manage_vouchers') }}" title="Vouchers" class="{{ 'active' if request.endpoint in ['main.manage_vouchers', 'main.add_voucher'] }}">
+        <i class="fas fa-receipt"></i><span>Vouchers</span>
+    </a>
+    <a href="{{ url_for('main.manage_petty_cash') }}" title="Petty Cash" class="{{ 'active' if request.endpoint == 'main.manage_petty_cash' }}">
+        <i class="fas fa-coins"></i><span>Cash</span>
+    </a>
+    <a href="{{ url_for('main.manage_banks') }}" title="Banks" class="{{ 'active' if request.endpoint == 'main.manage_banks' }}">
+        <i class="fas fa-building-columns"></i><span>Banks</span>
+    </a>
+    <a href="#" title="More" id="mobileNavToggle">
+        <i class="fas fa-bars-staggered"></i><span>More</span>
+    </a>
+</nav>
 
-    <!-- ====== MAIN CONTENT ====== -->
-    <div class="container main-content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-3" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <!-- Print Only Global Header -->
-        {% block global_print_header %}
-        <div class="d-none d-print-block text-center mb-4 pb-2 border-bottom border-dark">
-            <h1 class="fw-bold mb-1">{{ global_company_name }}</h1>
-            <h5 class="text-muted mb-0">{{ global_company_address }}</h5>
-        </div>
-        {% endblock %}
-
-        {% block content %}{% endblock %}
-    </div>
-
-    <footer class="text-center mt-4 py-3 text-muted border-top d-print-none" style="font-size: 0.8rem;">
-        <p class="mb-0">&copy; 2026 Nexus River View. All rights reserved.</p>
-    </footer>
-
-    <!-- Auth Modal -->
-    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-danger text-white border-0 py-2">
-                    <h6 class="modal-title fw-bold"><i class="fas fa-lock me-2"></i>Admin Password Required</h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="small text-muted mb-3">Please enter the master password to perform this action.</p>
-                    <input type="password" id="adminPasswordInput" class="form-control text-center fw-bold" placeholder="****" autofocus autocomplete="new-password">
-                    <div class="invalid-feedback" id="authErrorMsg">Password required.</div>
-                </div>
-                <div class="modal-footer border-0 p-3 pt-0">
-                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger btn-sm fw-bold px-4" onclick="submitAuth()">Confirm</button>
-                </div>
+<!-- ================= ADMIN PASSWORD MODAL ================= -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold"><i class="fas fa-shield-halved me-2 text-danger"></i>Authorization Required</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">Enter the administrator password to continue.</p>
+                <input type="password" id="adminPasswordInput" class="form-control text-center fw-bold" placeholder="••••••••" autofocus autocomplete="new-password">
+                <div class="invalid-feedback" id="authErrorMsg">Password required.</div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm fw-semibold px-4" onclick="submitAuth()">Confirm</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center" style="z-index: 9999;">
-        <div class="text-center text-white">
-            <div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-            <h5 class="fw-bold">Processing...</h5>
-            <p class="small text-white-50">Please wait while we save your data.</p>
-        </div>
+<!-- ================= LOADING OVERLAY ================= -->
+<div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 9999; background: rgba(10,16,31,.65); backdrop-filter: blur(2px);">
+    <div class="text-center text-white">
+        <div class="spinner-border mb-3" role="status" style="width: 2.6rem; height: 2.6rem;"></div>
+        <h6 class="fw-bold mb-1">Processing…</h6>
+        <p class="small mb-0" style="color: rgba(255,255,255,.6);">Please wait while we save your data.</p>
     </div>
+</div>
 
-    <!-- Hidden Global Delete Form -->
-    <form id="globalDeleteForm" method="POST" style="display: none;">
-        <input type="hidden" name="admin_password" id="globalDeletePassword">
-    </form>
+<!-- Hidden global delete form -->
+<form id="globalDeleteForm" method="POST" style="display: none;">
+    <input type="hidden" name="admin_password" id="globalDeletePassword">
+</form>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        let pendingFormId = null;
-        let pendingDeleteUrl = null;
-        let authModal = null;
+<script>
+(function () {
+    var shell = document.getElementById('appShell');
+    var toggle = document.getElementById('sidebarToggle');
+    var backdrop = document.getElementById('sidebarBackdrop');
+    var mobileToggle = document.getElementById('mobileNavToggle');
+    var MOBILE = '(max-width: 991.98px)';
 
-        document.addEventListener("DOMContentLoaded", function(){
-            authModal = new bootstrap.Modal(document.getElementById('authModal'));
+    function isMobile() { return window.matchMedia(MOBILE).matches; }
 
-            // Allow Enter key to submit
-            document.getElementById('adminPasswordInput').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') submitAuth();
-            });
+    // Restore desktop collapse preference
+    try {
+        if (!isMobile() && localStorage.getItem('nrv.sidebar') === 'collapsed') {
+            shell.classList.add('is-collapsed');
+        }
+    } catch (e) {}
 
-            // Focus input when modal opens
-            document.getElementById('authModal').addEventListener('shown.bs.modal', function () {
-                document.getElementById('adminPasswordInput').focus();
-            });
+    function toggleSidebar() {
+        if (isMobile()) {
+            shell.classList.toggle('sidebar-open');
+            backdrop.classList.toggle('show', shell.classList.contains('sidebar-open'));
+        } else {
+            shell.classList.toggle('is-collapsed');
+            try {
+                localStorage.setItem('nrv.sidebar', shell.classList.contains('is-collapsed') ? 'collapsed' : 'expanded');
+            } catch (e) {}
+        }
+    }
 
-            // Highlight active bottom nav item
-            const currentPath = window.location.pathname;
-            document.querySelectorAll('.mobile-bottom-nav a[href]').forEach(function(link) {
-                const href = link.getAttribute('href');
-                if (href && href !== '#' && currentPath === href) {
-                    link.classList.add('active');
-                }
-            });
-
-            // Filter panel toggles
-            document.querySelectorAll('.filter-panel-toggle').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const target = document.getElementById(btn.getAttribute('data-target'));
-                    if (target) {
-                        const isOpen = target.classList.toggle('show');
-                        btn.classList.toggle('open', isOpen);
-                    }
-                });
-            });
+    if (toggle) toggle.addEventListener('click', toggleSidebar);
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function (e) { e.preventDefault(); toggleSidebar(); });
+    }
+    if (backdrop) {
+        backdrop.addEventListener('click', function () {
+            shell.classList.remove('sidebar-open');
+            backdrop.classList.remove('show');
         });
+    }
 
-        // Intercept Form Submit
-        function confirmAction(event, formId) {
-            event.preventDefault();
-            pendingFormId = formId;
-            pendingDeleteUrl = null;
-            document.getElementById('adminPasswordInput').value = '';
-            authModal.show();
-            return false;
+    // Ctrl/Cmd + K focuses global search
+    var search = document.getElementById('globalSearch');
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && search) {
+            e.preventDefault();
+            search.focus();
         }
+    });
 
-        // Intercept Link Click (Delete) -> Convert to POST
-        function confirmDelete(event, url) {
-            event.preventDefault();
-            pendingDeleteUrl = url;
-            pendingFormId = null;
-            document.getElementById('adminPasswordInput').value = '';
-            authModal.show();
-            return false;
-        }
-
-        function submitAuth() {
-            const password = document.getElementById('adminPasswordInput').value;
-            if (!password) {
-                document.getElementById('adminPasswordInput').classList.add('is-invalid');
-                return;
-            }
-
-            if (pendingFormId) {
-                const form = document.getElementById(pendingFormId);
-
-                let pwInput = form.querySelector('input[name="admin_password"]');
-                if (!pwInput) {
-                    pwInput = document.createElement('input');
-                    pwInput.type = 'hidden';
-                    pwInput.name = 'admin_password';
-                    form.appendChild(pwInput);
+    // Enter in global search → dashboard search (when available), else user search route
+    if (search) {
+        search.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && search.value.trim()) {
+                var local = document.getElementById('searchBar');
+                if (local) {
+                    local.value = search.value;
+                    local.dispatchEvent(new Event('keyup'));
+                    local.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-                pwInput.value = password;
-
-                authModal.hide();
-
-                const parentModal = form.closest('.modal');
-                if (parentModal) {
-                    const modalInstance = bootstrap.Modal.getInstance(parentModal);
-                    if (modalInstance) modalInstance.hide();
-                }
-
-                document.getElementById('loadingOverlay').classList.remove('d-none');
-                form.submit();
-
-            } else if (pendingDeleteUrl) {
-                const form = document.getElementById('globalDeleteForm');
-                form.action = pendingDeleteUrl;
-                document.getElementById('globalDeletePassword').value = password;
-
-                authModal.hide();
-                document.getElementById('loadingOverlay').classList.remove('d-none');
-                form.submit();
             }
+        });
+    }
+})();
+
+// ================= AUTH / ACTION GUARDS =================
+var pendingFormId = null;
+var pendingDeleteUrl = null;
+var authModal = null;
+
+document.addEventListener('DOMContentLoaded', function () {
+    authModal = new bootstrap.Modal(document.getElementById('authModal'));
+
+    var pw = document.getElementById('adminPasswordInput');
+    if (pw) {
+        pw.addEventListener('keypress', function (e) { if (e.key === 'Enter') submitAuth(); });
+    }
+
+    document.getElementById('authModal').addEventListener('shown.bs.modal', function () {
+        pw.focus();
+    });
+
+    document.querySelectorAll('.filter-panel-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var target = document.getElementById(btn.getAttribute('data-target'));
+            if (target) {
+                var isOpen = target.classList.toggle('show');
+                btn.classList.toggle('open', isOpen);
+            }
+        });
+    });
+});
+
+function confirmAction(event, formId) {
+    event.preventDefault();
+    pendingFormId = formId;
+    pendingDeleteUrl = null;
+    document.getElementById('adminPasswordInput').value = '';
+    authModal.show();
+    return false;
+}
+
+function confirmDelete(event, url) {
+    event.preventDefault();
+    pendingDeleteUrl = url;
+    pendingFormId = null;
+    document.getElementById('adminPasswordInput').value = '';
+    authModal.show();
+    return false;
+}
+
+function submitAuth() {
+    var password = document.getElementById('adminPasswordInput').value;
+    if (!password) {
+        document.getElementById('adminPasswordInput').classList.add('is-invalid');
+        return;
+    }
+
+    if (pendingFormId) {
+        var form = document.getElementById(pendingFormId);
+        var pwInput = form.querySelector('input[name="admin_password"]');
+        if (!pwInput) {
+            pwInput = document.createElement('input');
+            pwInput.type = 'hidden';
+            pwInput.name = 'admin_password';
+            form.appendChild(pwInput);
         }
-    </script>
-    {% block scripts %}{% endblock %}
+        pwInput.value = password;
+
+        authModal.hide();
+
+        var parentModal = form.closest('.modal');
+        if (parentModal) {
+            var modalInstance = bootstrap.Modal.getInstance(parentModal);
+            if (modalInstance) modalInstance.hide();
+        }
+
+        document.getElementById('loadingOverlay').classList.remove('d-none');
+        form.submit();
+    } else if (pendingDeleteUrl) {
+        var form = document.getElementById('globalDeleteForm');
+        form.action = pendingDeleteUrl;
+        document.getElementById('globalDeletePassword').value = password;
+
+        authModal.hide();
+        document.getElementById('loadingOverlay').classList.remove('d-none');
+        form.submit();
+    }
+}
+</script>
+{% block scripts %}{% endblock %}
 </body>
 </html>
