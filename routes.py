@@ -2839,7 +2839,12 @@ def export_petty_cash_report():
         filename = f"{safe_company_name}_Petty_Cash_Report.xlsx"
         
         output.seek(0)
-        return send_file(output, download_name=filename, as_attachment=True)
+        return send_file(
+            output,
+            download_name=filename,
+            as_attachment=True,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
     except Exception as e:
         from telegram_utils import log_debug
         log_debug(f"Excel Export Error (Petty Cash): {e}")
@@ -2978,7 +2983,12 @@ def download_report():
 
         output.seek(0)
         
-        return send_file(output, download_name=filename, as_attachment=True)
+        return send_file(
+            output,
+            download_name=filename,
+            as_attachment=True,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
     except Exception as e:
         from telegram_utils import log_debug
         log_debug(f"Excel Export Error (Summary Report): {e}")
@@ -2989,20 +2999,29 @@ def download_report():
 
 # --- Excel Helper ---
 def format_excel_width(writer, sheet_name):
-    """Helper to auto-adjust column width for Excel sheets."""
+    """Helper to auto-adjust column width for Excel sheets safely across openpyxl versions."""
+    from openpyxl.utils import get_column_letter
     if sheet_name in writer.sheets:
         worksheet = writer.sheets[sheet_name]
         for column in worksheet.columns:
+            column_cells = [cell for cell in column]
+            if not column_cells:
+                continue
             max_length = 0
-            column = [cell for cell in column]
-            for cell in column:
+            for cell in column_cells:
                 try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(cell.value)
-                except:
+                    val = cell.value
+                    if val is not None:
+                        val_str = str(val)
+                        if len(val_str) > max_length:
+                            max_length = len(val_str)
+                except Exception:
                     pass
-            adjusted_width = (max_length + 2)
-            worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+            adjusted_width = max(max_length + 3, 10)
+            col_letter = getattr(column_cells[0], 'column_letter', None)
+            if not col_letter:
+                col_letter = get_column_letter(column_cells[0].column)
+            worksheet.column_dimensions[col_letter].width = adjusted_width
 
 # --- New Customer Reports ---
 
@@ -3042,7 +3061,7 @@ def download_all_customers_report():
                 'Present Address': c.present_address,
                 'Permanent Address': c.permanent_address,
                 'Plot No': c.plot_no,
-                'Shares': int(c.shares) if c.shares == int(c.shares) else c.shares,
+                'Shares': int(float(c.shares)) if (c.shares is not None and float(c.shares).is_integer()) else (float(c.shares) if c.shares is not None else 0),
             }
             # Add per-installment columns
             for inst in installments:
@@ -3108,7 +3127,7 @@ def download_director_customers_report(id):
                 'Present Address': c.present_address,
                 'Permanent Address': c.permanent_address,
                 'Plot No': c.plot_no,
-                'Shares': int(c.shares) if c.shares == int(c.shares) else c.shares,
+                'Shares': int(float(c.shares)) if (c.shares is not None and float(c.shares).is_integer()) else (float(c.shares) if c.shares is not None else 0),
             }
             for inst in installments:
                 ci = ci_map.get(inst.id)
@@ -4223,33 +4242,213 @@ def export_all_bank_data():
         as_attachment=True
     )
 
-# --- Settings & Restore ---
+# --- Settings, Environment & Restore ---
 @main.route('/settings')
+@login_required
 def settings():
-    # Load company settings
-    company_name = "Company Name"
-    company_address = ""
-    data_dir = current_app.config.get('DATA_FOLDER', '.')
-    company_name = os.environ.get('COMPANY_NAME', 'NEXUS RIVER VIEW')
-    company_address = os.environ.get('COMPANY_ADDRESS', '')
+    from env_manager import read_env_file, get_env_file_path
+    raw_env_content, env_dict = read_env_file()
+    
+    # Load available backups
+    data_folder = current_app.config.get('DATA_FOLDER', os.path.dirname(os.path.abspath(__file__)))
+    backup_dir = os.path.join(data_folder, 'backups')
+    backups = []
+    if os.path.exists(backup_dir):
+        try:
+            for f in sorted(os.listdir(backup_dir), reverse=True):
+                if f.endswith('.db') or f.endswith('.xlsx'):
+                    f_path = os.path.join(backup_dir, f)
+                    size_kb = round(os.path.getsize(f_path) / 1024, 1)
+                    mtime = datetime.fromtimestamp(os.path.getmtime(f_path)).strftime('%Y-%m-%d %I:%M %p')
+                    backups.append({'filename': f, 'size_kb': size_kb, 'mtime': mtime})
+        except Exception as e:
+            print(f"Error listing backups: {e}")
 
-    return render_template('settings.html', company_name=company_name, company_address=company_address)
+    # Standard known keys
+    standard_keys = {
+        'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID',
+        'GEMINI_API_KEY',
+        'COMPANY_NAME', 'COMPANY_ADDRESS',
+        'ADMIN_PASSWORD', 'NEXUS_DATA_PATH'
+    }
+    custom_envs = {k: v for k, v in env_dict.items() if k not in standard_keys}
+
+    has_telegram = bool(env_dict.get('TELEGRAM_BOT_TOKEN') and env_dict.get('TELEGRAM_CHAT_ID'))
+    has_gemini = bool(env_dict.get('GEMINI_API_KEY') and env_dict.get('GEMINI_API_KEY') != "YOUR_GEMINI_API_KEY_HERE")
+    admin_pw = env_dict.get('ADMIN_PASSWORD', current_app.config.get('ADMIN_PASSWORD', '1234'))
+    
+    return render_template(
+        'settings.html',
+        env_dict=env_dict,
+        custom_envs=custom_envs,
+        raw_env_content=raw_env_content,
+        backups=backups,
+        has_telegram=has_telegram,
+        has_gemini=has_gemini,
+        admin_pw=admin_pw,
+        env_file_path=get_env_file_path(),
+        company_name=env_dict.get('COMPANY_NAME', 'NEXUS RIVER VIEW'),
+        company_address=env_dict.get('COMPANY_ADDRESS', '')
+    )
+
+@main.route('/settings/env/save', methods=['POST'])
+@login_required
+def save_env_settings():
+    from env_manager import read_env_file, save_env_file
+    _, existing_dict = read_env_file()
+    
+    # Collect core fields
+    existing_dict['TELEGRAM_BOT_TOKEN'] = request.form.get('TELEGRAM_BOT_TOKEN', '').strip()
+    existing_dict['TELEGRAM_CHAT_ID'] = request.form.get('TELEGRAM_CHAT_ID', '').strip()
+    existing_dict['GEMINI_API_KEY'] = request.form.get('GEMINI_API_KEY', '').strip()
+    existing_dict['COMPANY_NAME'] = request.form.get('COMPANY_NAME', 'NEXUS RIVER VIEW').strip()
+    existing_dict['COMPANY_ADDRESS'] = request.form.get('COMPANY_ADDRESS', '').strip()
+    
+    admin_password = request.form.get('ADMIN_PASSWORD', '').strip()
+    if admin_password:
+        existing_dict['ADMIN_PASSWORD'] = admin_password
+        current_app.config['ADMIN_PASSWORD'] = admin_password
+
+    data_path = request.form.get('NEXUS_DATA_PATH', '').strip()
+    if data_path:
+        existing_dict['NEXUS_DATA_PATH'] = data_path
+
+    # Collect custom keys
+    custom_keys = request.form.getlist('custom_key[]')
+    custom_vals = request.form.getlist('custom_val[]')
+    for k, v in zip(custom_keys, custom_vals):
+        k = k.strip()
+        if k:
+            existing_dict[k] = v.strip()
+
+    # Handle single key deletion if submitted
+    delete_key = request.form.get('delete_key')
+    if delete_key and delete_key in existing_dict:
+        del existing_dict[delete_key]
+        if delete_key in os.environ:
+            del os.environ[delete_key]
+
+    success, msg = save_env_file(existing_dict)
+    if success:
+        flash(msg, 'success')
+    else:
+        flash(msg, 'danger')
+        
+    return redirect(url_for('main.settings'))
+
+@main.route('/settings/env/save-raw', methods=['POST'])
+@login_required
+def save_raw_env():
+    from env_manager import save_env_file
+    raw_content = request.form.get('raw_env_content', '')
+    success, msg = save_env_file({}, raw_content=raw_content)
+    if success:
+        if 'ADMIN_PASSWORD' in os.environ:
+            current_app.config['ADMIN_PASSWORD'] = os.environ['ADMIN_PASSWORD']
+        flash(msg, 'success')
+    else:
+        flash(msg, 'danger')
+    return redirect(url_for('main.settings'))
 
 @main.route('/settings/company', methods=['POST'])
+@login_required
 def save_company_settings():
     company_name = request.form.get('company_name', '')
     company_address = request.form.get('company_address', '')
     
+    from env_manager import read_env_file, save_env_file
+    _, env_dict = read_env_file()
+    env_dict['COMPANY_NAME'] = company_name
+    env_dict['COMPANY_ADDRESS'] = company_address
+    save_env_file(env_dict)
+
     data_dir = current_app.config.get('DATA_FOLDER', '.')
     settings_path = os.path.join(data_dir, 'company_settings.json')
     try:
-        with open(settings_path, 'w') as f:
+        with open(settings_path, 'w', encoding='utf-8') as f:
             json.dump({'company_name': company_name, 'company_address': company_address}, f)
         flash('Company settings updated successfully!', 'success')
     except Exception as e:
         flash(f'Failed to save company settings: {e}', 'danger')
         
     return redirect(url_for('main.settings'))
+
+@main.route('/settings/restore', methods=['POST'])
+@login_required
+def restore_data():
+    if not verify_password():
+        flash('Invalid Admin Password for restore operation!', 'danger')
+        return redirect(url_for('main.settings'))
+        
+    backup_filename = request.form.get('backup_filename')
+    data_folder = current_app.config.get('DATA_FOLDER', os.path.dirname(os.path.abspath(__file__)))
+    backup_dir = os.path.join(data_folder, 'backups')
+    db_path = current_app.config.get('DATABASE_PATH')
+
+    if backup_filename and db_path:
+        target_backup = os.path.join(backup_dir, os.path.basename(backup_filename))
+        if os.path.exists(target_backup) and target_backup.endswith('.db'):
+            try:
+                import shutil
+                shutil.copy2(target_backup, db_path)
+                flash(f'Database restored successfully from {backup_filename}!', 'success')
+            except Exception as e:
+                flash(f'Failed to restore backup: {e}', 'danger')
+        else:
+            flash('Backup file not found or unsupported format.', 'danger')
+    return redirect(url_for('main.settings'))
+
+# --- AJAX APIs for Live Testing Environment Integrations ---
+@main.route('/api/env/test-telegram', methods=['POST'])
+@login_required
+def api_test_telegram():
+    from env_manager import test_telegram_message
+    data = request.get_json(silent=True) or {}
+    bot_token = data.get('bot_token')
+    chat_id = data.get('chat_id')
+    success, msg = test_telegram_message(bot_token, chat_id)
+    return jsonify({'success': success, 'message': msg})
+
+@main.route('/api/env/test-telegram-backup', methods=['POST'])
+@login_required
+def api_test_telegram_backup():
+    from env_manager import test_telegram_backup_document
+    data = request.get_json(silent=True) or {}
+    bot_token = data.get('bot_token')
+    chat_id = data.get('chat_id')
+    success, msg = test_telegram_backup_document(bot_token, chat_id)
+    return jsonify({'success': success, 'message': msg})
+
+@main.route('/api/env/test-gemini', methods=['POST'])
+@login_required
+def api_test_gemini():
+    from env_manager import test_gemini_api
+    data = request.get_json(silent=True) or {}
+    api_key = data.get('api_key')
+    success, msg = test_gemini_api(api_key)
+    return jsonify({'success': success, 'message': msg})
+
+@main.route('/api/env/test-path', methods=['POST'])
+@login_required
+def api_test_path():
+    data = request.get_json(silent=True) or {}
+    path = data.get('data_path', '').strip()
+    if not path:
+        data_dir = current_app.config.get('DATA_FOLDER', os.path.dirname(os.path.abspath(__file__)))
+        db_path = current_app.config.get('DATABASE_PATH', os.path.join(data_dir, 'nexus.db'))
+        has_db = os.path.exists(db_path)
+        return jsonify({'success': True, 'message': f"Default storage active at: {data_dir}. Database {'exists' if has_db else 'will be initialized'}."})
+    try:
+        os.makedirs(path, exist_ok=True)
+        test_file = os.path.join(path, '.perm_test')
+        with open(test_file, 'w', encoding='utf-8') as f:
+            f.write("ok")
+        os.remove(test_file)
+        db_file = os.path.join(path, 'nexus.db')
+        has_db = os.path.exists(db_file)
+        return jsonify({'success': True, 'message': f"Valid & writable folder! Database {'found at ' + db_file if has_db else 'will be stored here'}."})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f"Inaccessible folder path: {e}"})
 
 
 
@@ -4416,16 +4615,19 @@ def export_monthly_in_out_report():
         
     df = pd.DataFrame(export_data)
     
-    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'static/uploads')
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder)
-        
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Monthly Flow')
+        format_excel_width(writer, 'Monthly Flow')
+    output.seek(0)
+    
     filename = 'Monthly_Cash_and_Bank_Flow_Report.xlsx'
-    filepath = os.path.join(upload_folder, filename)
-    
-    df.to_excel(filepath, index=False, sheet_name='Monthly Flow')
-    
-    return send_file(filepath, as_attachment=True, download_name=filename)
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
 
 @main.route('/reports/cash-bank-flow')
@@ -4971,6 +5173,338 @@ def export_income_expense():
     output.seek(0)
     
     filename = f"Income_Expense_Statement_{start_date}_to_{end_date}.xlsx"
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
+
+
+@main.route('/reports/money-flow')
+@login_required
+def money_flow_analytics():
+    from logic import get_money_in_out_analytics
+    today = datetime.now()
+    first_day = today.replace(day=1).strftime('%Y-%m-%d')
+    last_day = today.strftime('%Y-%m-%d')
+
+    start_date = request.args.get('start_date', first_day)
+    end_date = request.args.get('end_date', last_day)
+
+    try:
+        data = get_money_in_out_analytics(start_date, end_date)
+    except Exception as e:
+        from telegram_utils import log_debug
+        import traceback
+        log_debug(f"Error in money_flow_analytics: {e}")
+        log_debug(traceback.format_exc())
+        flash(f"Error generating money flow report: {e}", "danger")
+        data = {
+            'start_date': start_date, 'end_date': end_date,
+            'all_transactions': [], 'incomes': [], 'expenses': [],
+            'total_income': 0, 'total_cost': 0, 'net_flow': 0,
+            'cash_in': 0, 'bank_in': 0, 'cash_out': 0, 'bank_out': 0,
+            'income_breakdown': [], 'cost_breakdown': [],
+            'income_pie': {'labels': [], 'data': [], 'colors': []},
+            'cost_pie': {'labels': [], 'data': [], 'colors': []}
+        }
+
+    return render_template('reports_money_flow.html', data=data)
+
+
+@main.route('/reports/money-flow/export', methods=['GET', 'POST'])
+@login_required
+def export_money_flow():
+    from logic import get_money_in_out_analytics
+    import io
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    if request.method == 'POST':
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+    else:
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+
+    today = datetime.now()
+    if not start_date:
+        start_date = today.replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = today.strftime('%Y-%m-%d')
+
+    data = get_money_in_out_analytics(start_date, end_date)
+
+    wb = openpyxl.Workbook()
+    default_sheet = wb.active
+
+    # Styles
+    navy_fill = PatternFill(start_color="1B365D", end_color="1B365D", fill_type="solid")
+    green_fill = PatternFill(start_color="065F46", end_color="065F46", fill_type="solid")
+    red_fill = PatternFill(start_color="991B1B", end_color="991B1B", fill_type="solid")
+    zebra_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+
+    header_font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+    title_font = Font(name="Calibri", size=14, bold=True, color="1B365D")
+    sub_font = Font(name="Calibri", size=10, italic=True, color="475569")
+    data_font = Font(name="Calibri", size=10, color="000000")
+    bold_data_font = Font(name="Calibri", size=10, bold=True, color="000000")
+
+    thin_border_side = Side(border_style="thin", color="CBD5E1")
+    thin_border = Border(left=thin_border_side, right=thin_border_side, top=thin_border_side, bottom=thin_border_side)
+    double_bottom_border = Border(top=Side(border_style="thin", color="1B365D"), bottom=Side(border_style="double", color="1B365D"))
+
+    # ==========================================
+    # SHEET 1: ALL MONEY IN & OUT (Detailed Register)
+    # ==========================================
+    ws1 = wb.create_sheet(title="All_Money_In_Out")
+    ws1.views.sheetView[0].showGridLines = True
+
+    ws1['A1'] = "NEXUS RIVER VIEW"
+    ws1['A1'].font = title_font
+    ws1['A2'] = f"Consolidated Money In & Out Statement — Period: {start_date} to {end_date}"
+    ws1['A2'].font = sub_font
+
+    headers1 = [
+        "Date", "Type", "Category / Field", "Channel", "Source",
+        "Customer / Party", "Ref / Voucher #", "Description", "Money In (৳)", "Money Out (৳)"
+    ]
+    h_row = 4
+    for idx, h in enumerate(headers1, 1):
+        c = ws1.cell(row=h_row, column=idx, value=h)
+        c.font = header_font
+        c.fill = navy_fill
+        c.alignment = Alignment(horizontal="right" if idx in (9, 10) else "left", vertical="center")
+        c.border = thin_border
+
+    cur_row = h_row + 1
+    tot_in = 0
+    tot_out = 0
+    for r_idx, tx in enumerate(data['all_transactions']):
+        row_fill = zebra_fill if r_idx % 2 == 1 else None
+        is_in = tx['type'] == 'In'
+        amt = float(tx['amount'])
+        in_val = amt if is_in else ''
+        out_val = amt if not is_in else ''
+        if is_in:
+            tot_in += amt
+        else:
+            tot_out += amt
+
+        row_vals = [
+            tx['date'],
+            "Money In" if is_in else "Money Out",
+            tx['category'],
+            tx['channel'],
+            tx['source'],
+            tx['party_name'],
+            tx['ref'],
+            tx['description'],
+            in_val,
+            out_val
+        ]
+        for col_idx, val in enumerate(row_vals, 1):
+            cell = ws1.cell(row=cur_row, column=col_idx, value=val)
+            cell.font = data_font
+            cell.border = thin_border
+            if row_fill:
+                cell.fill = row_fill
+            if col_idx in (9, 10):
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+                if isinstance(val, (int, float)):
+                    cell.number_format = '#,##0.00'
+                    if col_idx == 9:
+                        cell.font = Font(name="Calibri", size=10, bold=True, color="065F46")
+                    else:
+                        cell.font = Font(name="Calibri", size=10, bold=True, color="991B1B")
+            else:
+                cell.alignment = Alignment(horizontal="left", vertical="center")
+        cur_row += 1
+
+    # Totals Row
+    ws1.cell(row=cur_row, column=1, value="TOTAL").font = bold_data_font
+    ws1.cell(row=cur_row, column=1).border = double_bottom_border
+    for c_i in range(2, 9):
+        ws1.cell(row=cur_row, column=c_i, value="").border = double_bottom_border
+
+    cin_cell = ws1.cell(row=cur_row, column=9, value=tot_in)
+    cin_cell.font = Font(name="Calibri", size=10, bold=True, color="065F46")
+    cin_cell.border = double_bottom_border
+    cin_cell.number_format = '#,##0.00'
+    cin_cell.alignment = Alignment(horizontal="right", vertical="center")
+
+    cout_cell = ws1.cell(row=cur_row, column=10, value=tot_out)
+    cout_cell.font = Font(name="Calibri", size=10, bold=True, color="991B1B")
+    cout_cell.border = double_bottom_border
+    cout_cell.number_format = '#,##0.00'
+    cout_cell.alignment = Alignment(horizontal="right", vertical="center")
+
+    # ==========================================
+    # SHEET 2: COST BREAKDOWN BY CATEGORY
+    # ==========================================
+    ws2 = wb.create_sheet(title="Cost_By_Category")
+    ws2.views.sheetView[0].showGridLines = True
+    ws2['A1'] = "NEXUS RIVER VIEW"
+    ws2['A1'].font = title_font
+    ws2['A2'] = f"Cost & Expense Breakdown by Category — Period: {start_date} to {end_date}"
+    ws2['A2'].font = sub_font
+
+    headers2 = ["Category / Cost Field", "Total Cost (৳)", "Share of Total Cost (%)"]
+    h_row = 4
+    for idx, h in enumerate(headers2, 1):
+        c = ws2.cell(row=h_row, column=idx, value=h)
+        c.font = header_font
+        c.fill = red_fill
+        c.alignment = Alignment(horizontal="right" if idx in (2, 3) else "left", vertical="center")
+        c.border = thin_border
+
+    cur_row = h_row + 1
+    for r_idx, item in enumerate(data['cost_breakdown']):
+        row_fill = zebra_fill if r_idx % 2 == 1 else None
+        vals = [item['category'], item['amount'], item['percentage'] / 100.0]
+        for c_idx, val in enumerate(vals, 1):
+            cell = ws2.cell(row=cur_row, column=c_idx, value=val)
+            cell.font = data_font
+            cell.border = thin_border
+            if row_fill:
+                cell.fill = row_fill
+            if c_idx == 2:
+                cell.number_format = '#,##0.00'
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+            elif c_idx == 3:
+                cell.number_format = '0.0%'
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+        cur_row += 1
+
+    # Total Cost Row
+    ws2.cell(row=cur_row, column=1, value="TOTAL COST").font = bold_data_font
+    ws2.cell(row=cur_row, column=1).border = double_bottom_border
+    tot_cost_cell = ws2.cell(row=cur_row, column=2, value=data['total_cost'])
+    tot_cost_cell.font = Font(name="Calibri", size=10, bold=True, color="991B1B")
+    tot_cost_cell.border = double_bottom_border
+    tot_cost_cell.number_format = '#,##0.00'
+    tot_cost_cell.alignment = Alignment(horizontal="right")
+    pct_cell = ws2.cell(row=cur_row, column=3, value=1.0 if data['total_cost'] > 0 else 0.0)
+    pct_cell.font = bold_data_font
+    pct_cell.border = double_bottom_border
+    pct_cell.number_format = '0.0%'
+    pct_cell.alignment = Alignment(horizontal="right")
+
+    # ==========================================
+    # SHEET 3: INCOME BREAKDOWN BY CATEGORY
+    # ==========================================
+    ws3 = wb.create_sheet(title="Income_By_Category")
+    ws3.views.sheetView[0].showGridLines = True
+    ws3['A1'] = "NEXUS RIVER VIEW"
+    ws3['A1'].font = title_font
+    ws3['A2'] = f"Income & Revenue Breakdown by Category — Period: {start_date} to {end_date}"
+    ws3['A2'].font = sub_font
+
+    headers3 = ["Category / Revenue Field", "Total Income (৳)", "Share of Total Income (%)"]
+    h_row = 4
+    for idx, h in enumerate(headers3, 1):
+        c = ws3.cell(row=h_row, column=idx, value=h)
+        c.font = header_font
+        c.fill = green_fill
+        c.alignment = Alignment(horizontal="right" if idx in (2, 3) else "left", vertical="center")
+        c.border = thin_border
+
+    cur_row = h_row + 1
+    for r_idx, item in enumerate(data['income_breakdown']):
+        row_fill = zebra_fill if r_idx % 2 == 1 else None
+        vals = [item['category'], item['amount'], item['percentage'] / 100.0]
+        for c_idx, val in enumerate(vals, 1):
+            cell = ws3.cell(row=cur_row, column=c_idx, value=val)
+            cell.font = data_font
+            cell.border = thin_border
+            if row_fill:
+                cell.fill = row_fill
+            if c_idx == 2:
+                cell.number_format = '#,##0.00'
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+            elif c_idx == 3:
+                cell.number_format = '0.0%'
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+        cur_row += 1
+
+    # Total Income Row
+    ws3.cell(row=cur_row, column=1, value="TOTAL INCOME").font = bold_data_font
+    ws3.cell(row=cur_row, column=1).border = double_bottom_border
+    tot_inc_cell = ws3.cell(row=cur_row, column=2, value=data['total_income'])
+    tot_inc_cell.font = Font(name="Calibri", size=10, bold=True, color="065F46")
+    tot_inc_cell.border = double_bottom_border
+    tot_inc_cell.number_format = '#,##0.00'
+    tot_inc_cell.alignment = Alignment(horizontal="right")
+    pct_cell3 = ws3.cell(row=cur_row, column=3, value=1.0 if data['total_income'] > 0 else 0.0)
+    pct_cell3.font = bold_data_font
+    pct_cell3.border = double_bottom_border
+    pct_cell3.number_format = '0.0%'
+    pct_cell3.alignment = Alignment(horizontal="right")
+
+    # ==========================================
+    # SHEET 4: EXECUTIVE SUMMARY
+    # ==========================================
+    ws4 = wb.create_sheet(title="Summary_Statement")
+    ws4.views.sheetView[0].showGridLines = True
+    ws4['A1'] = "NEXUS RIVER VIEW"
+    ws4['A1'].font = title_font
+    ws4['A2'] = f"Consolidated Financial Summary — Period: {start_date} to {end_date}"
+    ws4['A2'].font = sub_font
+
+    summary_rows = [
+        ("Total Money In (Income & Receipts)", data['total_income'], "065F46"),
+        ("Total Money Out (Costs & Payments)", data['total_cost'], "991B1B"),
+        ("Net Cash Flow (Surplus / Deficit)", data['net_flow'], "065F46" if data['net_flow'] >= 0 else "DC2626"),
+        ("", "", ""),
+        ("Cash Inflow (Physical Cash)", data['cash_in'], "1B365D"),
+        ("Bank Inflow (Bank Transfers / Deposits)", data['bank_in'], "1B365D"),
+        ("Cash Outflow (Cash Payments)", data['cash_out'], "2D3748"),
+        ("Bank Outflow (Bank Payments / Transfers)", data['bank_out'], "2D3748"),
+        ("", "", ""),
+        ("Total Recorded Inflow Transactions", len(data['incomes']), "1B365D"),
+        ("Total Recorded Outflow Transactions", len(data['expenses']), "2D3748"),
+        ("Total Combined Transactions", len(data['all_transactions']), "1B365D")
+    ]
+
+    r_idx = 4
+    for label, val, color in summary_rows:
+        if not label:
+            r_idx += 1
+            continue
+        c1 = ws4.cell(row=r_idx, column=1, value=label)
+        c1.font = bold_data_font
+        c1.border = thin_border
+        c2 = ws4.cell(row=r_idx, column=2, value=val)
+        c2.font = Font(name="Calibri", size=10, bold=True, color=color)
+        c2.border = thin_border
+        if isinstance(val, float):
+            c2.number_format = '#,##0.00'
+        c2.alignment = Alignment(horizontal="right")
+        r_idx += 1
+
+    # Remove the blank initial default sheet
+    if default_sheet in wb.worksheets:
+        wb.remove(default_sheet)
+
+    # Auto-adjust column widths for all sheets
+    for ws in wb.worksheets:
+        for col in ws.columns:
+            col_letter = get_column_letter(col[0].column)
+            max_len = 0
+            for cell in col:
+                val_str = str(cell.value or '')
+                if getattr(cell, 'number_format', '') == '#,##0.00' and isinstance(cell.value, (int, float)):
+                    val_str = f"{cell.value:,.2f}"
+                max_len = max(max_len, len(val_str))
+            ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Nexus_Money_In_Out_Analytics_{start_date}_to_{end_date}.xlsx"
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

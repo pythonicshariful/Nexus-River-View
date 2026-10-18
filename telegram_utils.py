@@ -54,8 +54,16 @@ def get_cert_path():
 
 def send_telegram_message(text):
     """Sends a text message to the configured Telegram Chat ID."""
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if not bot_token or not chat_id:
+        try:
+            from env_manager import read_env_file
+            _, env_dict = read_env_file()
+            bot_token = bot_token or env_dict.get("TELEGRAM_BOT_TOKEN", "").strip()
+            chat_id = chat_id or env_dict.get("TELEGRAM_CHAT_ID", "").strip()
+        except Exception:
+            pass
     if not bot_token or not chat_id:
         log_debug("Telegram config missing, skipping message.")
         return False
@@ -78,8 +86,16 @@ def send_telegram_message(text):
 
 def send_telegram_document(file_path, caption=None):
     """Sends a document (file) to the configured Telegram Chat ID."""
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if not bot_token or not chat_id:
+        try:
+            from env_manager import read_env_file
+            _, env_dict = read_env_file()
+            bot_token = bot_token or env_dict.get("TELEGRAM_BOT_TOKEN", "").strip()
+            chat_id = chat_id or env_dict.get("TELEGRAM_CHAT_ID", "").strip()
+        except Exception:
+            pass
     if not bot_token or not chat_id:
         log_debug("Telegram config missing, skipping document upload.")
         return False

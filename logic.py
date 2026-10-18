@@ -519,10 +519,16 @@ def export_party_ledger_to_excel(party_id):
         workbook = writer.book
         worksheet = writer.sheets['Ledger']
         
-        # Adjust column widths
-        for i, col in enumerate(df.columns):
-            column_len = max(df[col].astype(str).str.len().max(), len(col)) + 2
-            worksheet.column_dimensions[openpyxl.utils.get_column_letter(i+1)].width = column_len
+        # Adjust column widths safely
+        if not df.empty:
+            for i, col in enumerate(df.columns):
+                series_len = df[col].astype(str).str.len().max()
+                max_len = 0 if pd.isna(series_len) else int(series_len)
+                column_len = max(max_len, len(str(col))) + 3
+                worksheet.column_dimensions[openpyxl.utils.get_column_letter(i+1)].width = max(column_len, 12)
+        else:
+            for i, col in enumerate(df.columns):
+                worksheet.column_dimensions[openpyxl.utils.get_column_letter(i+1)].width = max(len(str(col)) + 3, 12)
 
     output.seek(0)
     # Get company info
@@ -1960,4 +1966,304 @@ def get_income_expense_data(start_date_str, end_date_str):
         'total_income': total_income,
         'total_expense': total_expense,
         'net_profit': net_profit
+    }
+
+def get_money_in_out_analytics(start_date_str=None, end_date_str=None):
+    """
+    Comprehensive Money In & Out Analytics:
+    Gathers all financial inflows (Income / Receipts) and outflows (Expenses / Costs)
+    with clean categorization, channel (Cash/Bank), party details, reference numbers,
+    and calculates totals and category breakdowns for interactive Pie Charts and tables.
+    """
+    from models import Voucher, Transaction, PettyCash, BankTransaction
+    from datetime import datetime
+    from decimal import Decimal
+
+    def parse_tx_date(date_str):
+        if not date_str:
+            return datetime.min.date()
+        for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%Y/%m/%d', '%d/%m/%Y'):
+            try:
+                return datetime.strptime(str(date_str).strip(), fmt).date()
+            except ValueError:
+                pass
+        return datetime.min.date()
+
+    today = datetime.now().date()
+    if not start_date_str:
+        start_date_str = today.replace(day=1).strftime('%Y-%m-%d')
+    if not end_date_str:
+        end_date_str = today.strftime('%Y-%m-%d')
+
+    start_date = parse_tx_date(start_date_str)
+    end_date = parse_tx_date(end_date_str)
+
+    incomes = []
+    expenses = []
+
+    # 1. Incomes: Customer Payments
+    all_txs = Transaction.query.all()
+    for tx in all_txs:
+        tx_dt = parse_tx_date(tx.date)
+        if start_date <= tx_dt <= end_date:
+            amt = Decimal(str(tx.amount or 0))
+            if amt > 0:
+                cat = (tx.installment_type or '').strip()
+                if not cat or cat.lower() in ('none', 'installment'):
+                    cat = 'Customer Installment'
+                party = tx.customer.name if tx.customer else 'Customer'
+                bank_str = (tx.bank_name or '').strip()
+                channel = 'Cash' if (not bank_str or 'cash' in bank_str.lower()) else 'Bank'
+                incomes.append({
+                    'date': str(tx.date),
+                    'date_obj': tx_dt,
+                    'type': 'In',
+                    'category': cat,
+                    'channel': channel,
+                    'source': f"Customer Payment ({bank_str or 'Cash'})",
+                    'party_name': party,
+                    'ref': tx.transaction_id or f"TX-{tx.id}",
+                    'description': tx.remarks or f"Collection from {party}",
+                    'amount': amt
+                })
+
+    # 2. Incomes: Credit Vouchers (non-customer, non-payment-only to avoid double-counting)
+    cv_vouchers = Voucher.query.filter(
+        Voucher.type == 'Credit',
+        Voucher.customer_id == None,
+        (Voucher.is_payment == False) | (Voucher.is_payment == None)
+    ).all()
+    for v in cv_vouchers:
+        v_dt = parse_tx_date(v.date)
+        if start_date <= v_dt <= end_date:
+            amt = Decimal(str(v.amount_paid or v.total_amount or 0))
+            if amt > 0:
+                cat = (v.category or '').strip() or 'Other Income'
+                party = v.party_obj.name if v.party_obj else 'Party'
+                channel = v.payment_method or 'Cash'
+                incomes.append({
+                    'date': str(v.date),
+                    'date_obj': v_dt,
+                    'type': 'In',
+                    'category': cat,
+                    'channel': channel,
+                    'source': f"Credit Voucher ({channel})",
+                    'party_name': party,
+                    'ref': f"V-{v.voucher_no}",
+                    'description': v.description or f"Credit voucher from {party}",
+                    'amount': amt
+                })
+
+    # 3. Incomes: Petty Cash (type == 'Income', not linked to voucher or contra)
+    pc_incomes = PettyCash.query.filter(
+        PettyCash.type == 'Income',
+        PettyCash.voucher_id == None,
+        PettyCash.contra_entry_id == None
+    ).all()
+    for pc in pc_incomes:
+        pc_dt = parse_tx_date(pc.date)
+        if start_date <= pc_dt <= end_date:
+            amt = Decimal(str(pc.amount or 0))
+            if amt > 0:
+                cat = (pc.category or '').strip() or 'Petty Cash Income'
+                incomes.append({
+                    'date': str(pc.date),
+                    'date_obj': pc_dt,
+                    'type': 'In',
+                    'category': cat,
+                    'channel': 'Cash',
+                    'source': 'Petty Cash',
+                    'party_name': 'Cash Office',
+                    'ref': f"PC-{pc.id}",
+                    'description': pc.description or 'Cash inflow',
+                    'amount': amt
+                })
+
+    # 4. Incomes: Bank Direct Credit / Deposits (not linked to voucher or contra)
+    bank_credits = BankTransaction.query.filter(
+        BankTransaction.credit > 0,
+        BankTransaction.voucher_id == None,
+        BankTransaction.contra_entry_id == None
+    ).all()
+    for bt in bank_credits:
+        bt_dt = parse_tx_date(bt.date)
+        if start_date <= bt_dt <= end_date:
+            amt = Decimal(str(bt.credit or 0))
+            if amt > 0:
+                cat = (bt.category or '').strip() or 'Bank Deposit / Interest'
+                bank_name = bt.bank.bank_name if bt.bank else 'Bank'
+                incomes.append({
+                    'date': str(bt.date),
+                    'date_obj': bt_dt,
+                    'type': 'In',
+                    'category': cat,
+                    'channel': 'Bank',
+                    'source': f"Bank Credit ({bank_name})",
+                    'party_name': bank_name,
+                    'ref': bt.cheque_no or bt.ref_no or f"BT-{bt.id}",
+                    'description': bt.narration or bt.transaction_details or 'Bank direct credit',
+                    'amount': amt
+                })
+
+    # 5. Expenses / Costs: Debit Vouchers
+    dv_vouchers = Voucher.query.filter(
+        Voucher.type == 'Debit'
+    ).all()
+    for v in dv_vouchers:
+        v_dt = parse_tx_date(v.date)
+        if start_date <= v_dt <= end_date:
+            amt = Decimal(str(v.amount_paid or v.total_amount or 0))
+            if amt > 0:
+                cat = (v.category or '').strip() or 'General Expense'
+                party = v.party_obj.name if v.party_obj else (v.customer_obj.name if v.customer_obj else 'Expense')
+                channel = v.payment_method or 'Cash'
+                expenses.append({
+                    'date': str(v.date),
+                    'date_obj': v_dt,
+                    'type': 'Out',
+                    'category': cat,
+                    'channel': channel,
+                    'source': f"Debit Voucher ({channel})",
+                    'party_name': party,
+                    'ref': f"V-{v.voucher_no}",
+                    'description': v.description or f"Payment to {party}",
+                    'amount': amt
+                })
+
+    # 6. Expenses / Costs: Petty Cash (type == 'Expense', not linked to voucher or contra)
+    pc_expenses = PettyCash.query.filter(
+        PettyCash.type == 'Expense',
+        PettyCash.voucher_id == None,
+        PettyCash.contra_entry_id == None
+    ).all()
+    for pc in pc_expenses:
+        pc_dt = parse_tx_date(pc.date)
+        if start_date <= pc_dt <= end_date:
+            amt = Decimal(str(pc.amount or 0))
+            if amt > 0:
+                cat = (pc.category or '').strip() or 'Petty Cash Expense'
+                expenses.append({
+                    'date': str(pc.date),
+                    'date_obj': pc_dt,
+                    'type': 'Out',
+                    'category': cat,
+                    'channel': 'Cash',
+                    'source': 'Petty Cash',
+                    'party_name': 'Cash Office',
+                    'ref': f"PC-{pc.id}",
+                    'description': pc.description or 'Cash expense',
+                    'amount': amt
+                })
+
+    # 7. Expenses / Costs: Bank Direct Debits / Withdrawals (not linked to voucher or contra)
+    bank_debits = BankTransaction.query.filter(
+        BankTransaction.debit > 0,
+        BankTransaction.voucher_id == None,
+        BankTransaction.contra_entry_id == None
+    ).all()
+    for bt in bank_debits:
+        bt_dt = parse_tx_date(bt.date)
+        if start_date <= bt_dt <= end_date:
+            amt = Decimal(str(bt.debit or 0))
+            if amt > 0:
+                cat = (bt.category or '').strip() or 'Bank Charges / Debit'
+                bank_name = bt.bank.bank_name if bt.bank else 'Bank'
+                expenses.append({
+                    'date': str(bt.date),
+                    'date_obj': bt_dt,
+                    'type': 'Out',
+                    'category': cat,
+                    'channel': 'Bank',
+                    'source': f"Bank Debit ({bank_name})",
+                    'party_name': bank_name,
+                    'ref': bt.cheque_no or bt.ref_no or f"BT-{bt.id}",
+                    'description': bt.narration or bt.transaction_details or 'Bank direct debit',
+                    'amount': amt
+                })
+
+    # Sort
+    incomes.sort(key=lambda x: (x['date_obj'], x['date']), reverse=True)
+    expenses.sort(key=lambda x: (x['date_obj'], x['date']), reverse=True)
+
+    all_transactions = incomes + expenses
+    all_transactions.sort(key=lambda x: (x['date_obj'], x['date']), reverse=True)
+
+    total_income = sum(x['amount'] for x in incomes)
+    total_cost = sum(x['amount'] for x in expenses)
+    net_flow = total_income - total_cost
+
+    # Category aggregations for Incomes
+    income_categories = {}
+    for item in incomes:
+        c = item['category']
+        income_categories[c] = income_categories.get(c, Decimal('0.00')) + item['amount']
+
+    income_breakdown = []
+    for c, val in sorted(income_categories.items(), key=lambda x: x[1], reverse=True):
+        pct = (float(val) / float(total_income) * 100) if total_income > 0 else 0
+        income_breakdown.append({
+            'category': c,
+            'amount': float(val),
+            'percentage': round(pct, 1)
+        })
+
+    # Category aggregations for Costs / Expenses
+    cost_categories = {}
+    for item in expenses:
+        c = item['category']
+        cost_categories[c] = cost_categories.get(c, Decimal('0.00')) + item['amount']
+
+    cost_breakdown = []
+    for c, val in sorted(cost_categories.items(), key=lambda x: x[1], reverse=True):
+        pct = (float(val) / float(total_cost) * 100) if total_cost > 0 else 0
+        cost_breakdown.append({
+            'category': c,
+            'amount': float(val),
+            'percentage': round(pct, 1)
+        })
+
+    # Palette for Pie Charts
+    income_colors = [
+        '#10B981', '#06B6D4', '#3B82F6', '#6366F1', '#8B5CF6', 
+        '#14B8A6', '#84CC16', '#22C55E', '#0EA5E9', '#A855F7'
+    ]
+    cost_colors = [
+        '#EF4444', '#F97316', '#F59E0B', '#EC4899', '#DC2626', 
+        '#D97706', '#E11D48', '#BE185D', '#B45309', '#991B1B'
+    ]
+
+    income_pie = {
+        'labels': [x['category'] for x in income_breakdown],
+        'data': [x['amount'] for x in income_breakdown],
+        'colors': income_colors[:len(income_breakdown)]
+    }
+
+    cost_pie = {
+        'labels': [x['category'] for x in cost_breakdown],
+        'data': [x['amount'] for x in cost_breakdown],
+        'colors': cost_colors[:len(cost_breakdown)]
+    }
+
+    cash_in = sum(x['amount'] for x in incomes if x['channel'] == 'Cash')
+    bank_in = sum(x['amount'] for x in incomes if x['channel'] == 'Bank')
+    cash_out = sum(x['amount'] for x in expenses if x['channel'] == 'Cash')
+    bank_out = sum(x['amount'] for x in expenses if x['channel'] == 'Bank')
+
+    return {
+        'start_date': start_date_str,
+        'end_date': end_date_str,
+        'all_transactions': all_transactions,
+        'incomes': incomes,
+        'expenses': expenses,
+        'total_income': float(total_income),
+        'total_cost': float(total_cost),
+        'net_flow': float(net_flow),
+        'cash_in': float(cash_in),
+        'bank_in': float(bank_in),
+        'cash_out': float(cash_out),
+        'bank_out': float(bank_out),
+        'income_breakdown': income_breakdown,
+        'cost_breakdown': cost_breakdown,
+        'income_pie': income_pie,
+        'cost_pie': cost_pie
     }

@@ -1,16 +1,61 @@
-# Byte-compiled / optimized / DLL files
+# =====================================================
+# NEXUS RIVER VIEW — GITIGNORE CONFIGURATION
+# =====================================================
+
+# --- Environment & Secret Configuration ---
+.env
+.env.*
+.env.local
+!.env.example
+
+# --- Python Bytecode & Cache ---
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
 
-# C extensions
-*.so
+# --- Virtual Environments ---
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 
-# Distribution / packaging
-.Python
+# --- Databases & Backup Snapshots ---
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+backups/
+instance/
+C:/NRV/
+NRV/
+
+# --- Logs & Diagnostics ---
+*.log
+nexus_debug.log
+nexus_startup.log
+
+# --- User Uploads & Media Files ---
+uploads/*
+!uploads/.gitkeep
+
+# --- Generated Spreadsheets & Exports ---
+*.xlsx
+*.xls
+*.csv
+
+# --- PyInstaller & Executable Build Artifacts ---
 build/
-develop-eggs/
 dist/
+*.spec
+.Python
+develop-eggs/
 downloads/
 eggs/
 .eggs/
@@ -26,27 +71,30 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Environment
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# --- IDEs & Code Editors ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-*.bak
-C:/NRV/
+# --- AI Assistants & Agent Tool Directories ---
+.agent/
+.claude/
+.codebuddy/
+.codex/
+.continue/
+.cursor/
+.gemini/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.windsurf/
 
-# Flask stuff:
-instance/
-.webassets-cache
-
-# OS generated files
+# --- Operating System Artifacts ---
 .DS_Store
 .DS_Store?
 ._*
@@ -54,4 +102,9 @@ instance/
 .Trashes
 ehthumbs.db
 Thumbs.db
+Desktop.ini
+
+# --- Test Scripts & Temp Files ---
 test_*.py
+scratch/
+npx

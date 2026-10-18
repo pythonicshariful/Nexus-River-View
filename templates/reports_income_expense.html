@@ -16,10 +16,13 @@
             <input type="date" name="end_date" class="form-control form-control-sm" value="{{ data.end_date }}" style="max-width: 130px;">
             <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">Go</button>
         </form>
+        <a href="{{ url_for('main.money_flow_analytics', start_date=data.start_date, end_date=data.end_date) }}" class="btn btn-warning btn-sm rounded-pill px-2.5 shadow-sm text-dark fw-bold" title="View Interactive Pie Charts & Analytics">
+            <i class="fas fa-chart-pie me-1"></i>Charts
+        </a>
         <form method="POST" action="{{ url_for('main.export_income_expense') }}" class="d-inline-flex">
             <input type="hidden" name="start_date" value="{{ data.start_date }}">
             <input type="hidden" name="end_date" value="{{ data.end_date }}">
-            <button type="submit" class="btn btn-success btn-sm rounded-pill px-2">
+            <button type="submit" class="btn btn-success btn-sm rounded-pill px-2" title="Export Excel">
                 <i class="fas fa-file-excel"></i>
             </button>
         </form>

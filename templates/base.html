@@ -15,132 +15,336 @@
 </head>
 <body>
 
-    <!-- ====== TOP NAVBAR ====== -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-gradient mb-3 shadow-lg d-print-none" style="padding: 8px 16px;">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}" style="font-size: 1rem;">
-                <i class="fas fa-building me-2"></i>Nexus River View
+    <!-- ====== TOP NAVBAR (Redesigned with UI-UX-PRO-MAX) ====== -->
+    <style>
+      .app-navbar {
+        background: #0f172a;
+        border-bottom: 1px solid #1e293b;
+        min-height: 62px;
+        padding: 0 1.25rem;
+        position: sticky;
+        top: 0;
+        z-index: 1040;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+      .brand-icon {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+      }
+      .app-nav-link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #cbd5e1 !important;
+        padding: 0.45rem 0.65rem !important;
+        border-radius: 8px;
+        transition: all 0.18s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+      }
+      .app-nav-link:hover, .app-nav-link:focus {
+        color: #fff !important;
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .app-nav-link.active {
+        color: #60a5fa !important;
+        background: rgba(37, 99, 235, 0.15);
+      }
+      .app-nav-dropdown-menu {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        padding: 0.5rem;
+        min-width: 210px;
+        animation: menuFadeIn 0.15s ease-out;
+      }
+      @keyframes menuFadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .app-dropdown-item {
+        color: #e2e8f0;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        transition: all 0.15s ease;
+      }
+      .app-dropdown-item:hover {
+        background: #2563eb;
+        color: #fff;
+      }
+      .app-dropdown-item i {
+        font-size: 0.85rem;
+        width: 16px;
+        text-align: center;
+        opacity: 0.85;
+      }
+      .nav-search-box {
+        position: relative;
+        min-width: 160px;
+        max-width: 220px;
+      }
+      .nav-search-box input {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 0.78rem;
+        border-radius: 20px;
+        padding: 0.35rem 0.85rem 0.35rem 2rem;
+        width: 100%;
+        transition: all 0.2s ease;
+      }
+      .nav-search-box input:focus {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+      }
+      .nav-search-box input::placeholder { color: #94a3b8; }
+      .nav-search-box .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        color: #94a3b8;
+      }
+      .nav-action-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #cbd5e1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-decoration: none;
+        font-size: 0.88rem;
+        transition: all 0.18s ease;
+      }
+      .nav-action-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        transform: translateY(-1px);
+      }
+      .ai-assistant-pill {
+        background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
+        border: 1px solid rgba(168,85,247,0.4);
+        color: #c084fc;
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+      .ai-assistant-pill:hover {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 2px 10px rgba(168,85,247,0.3);
+      }
+      .avatar-badge {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+    </style>
+
+    <nav class="navbar navbar-expand-xl navbar-dark app-navbar mb-3 d-print-none">
+        <div class="container-fluid px-0">
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center gap-2 me-3" href="{{ url_for('main.index') }}">
+                <div class="brand-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold text-white lh-1" style="font-size: 0.95rem; letter-spacing: -0.01em;">Nexus River View</span>
+                    <span class="text-muted" style="font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase;">Accounting ERP</span>
+                </div>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="padding: 4px 8px;">
+
+            <!-- Mobile Toggler -->
+            <button class="navbar-toggler border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMainCollapse">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Search Bar -->
-                <div id="searchBar-container" class="flex-grow-1 px-lg-4 pb-2 pb-lg-0" style="max-width: 380px; min-width: 140px;">
-                    <div class="input-group input-group-sm rounded-pill overflow-hidden border bg-white">
-                        <span class="input-group-text bg-white border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" class="form-control border-0" id="searchBar" placeholder="Search..." autocomplete="off">
-                    </div>
-                </div>
 
-                <ul class="navbar-nav ms-auto align-items-center gap-1 flex-wrap">
-                    <!-- People -->
+            <!-- Collapsible Menu -->
+            <div class="collapse navbar-collapse" id="navbarMainCollapse">
+                <!-- Grouped Executive Menus -->
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0 align-items-xl-center gap-1">
+
+                    <!-- 1. Dashboard -->
                     <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_parties') }}" title="Parties">
-                            <i class="fas fa-address-book mb-1"></i><span style="font-size: 0.68rem;">Parties</span>
+                        <a class="app-nav-link" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home text-primary"></i>
+                            <span>Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.add_director') }}" title="Add Director"><i class="fas fa-user-tie mb-1"></i><span style="font-size: 0.68rem;">Director</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.add_customer') }}" title="Add Customer"><i class="fas fa-user-plus mb-1"></i><span style="font-size: 0.68rem;">Customer</span></a>
-                    </li>
 
-                    <!-- Accounts -->
-                    <li class="nav-item border-start border-secondary ms-1 ps-1">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_petty_cash') }}" title="Petty Cash"><i class="fas fa-coins mb-1 text-warning"></i><span style="font-size: 0.68rem;">Petty Cash</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_banks') }}" title="Bank"><i class="fas fa-university mb-1 text-info"></i><span style="font-size: 0.68rem;">Bank</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_contra_entries') }}" title="Contra"><i class="fas fa-exchange-alt mb-1 text-primary"></i><span style="font-size: 0.68rem;">Contra</span></a>
-                    </li>
-
-                    <!-- Vouchers -->
-                    <li class="nav-item border-start border-secondary ms-1 ps-1">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.add_voucher', v_type='Debit') }}" title="Debit Voucher"><i class="fas fa-file-invoice-dollar mb-1"></i><span style="font-size: 0.68rem;">Debit</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.add_voucher', v_type='Credit') }}" title="Credit Voucher"><i class="fas fa-hand-holding-usd mb-1"></i><span style="font-size: 0.68rem;">Credit</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_vouchers') }}" title="History"><i class="fas fa-history mb-1"></i><span style="font-size: 0.68rem;">History</span></a>
-                    </li>
-
-                    <!-- HR & Payroll -->
-                    <li class="nav-item dropdown border-start border-secondary ms-1 ps-1 d-flex flex-column align-items-center justify-content-center">
-                        <a class="nav-link dropdown-toggle d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="#" id="hrDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="HR & Payroll">
-                            <i class="fas fa-users-cog mb-1 text-success"></i>
-                            <span style="font-size: 0.68rem;">HR & Payroll</span>
+                    <!-- 2. Parties & CRM Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-users text-info"></i>
+                            <span>Entities</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="hrDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('main.manage_employees') }}"><i class="fas fa-users fa-fw me-2"></i>Employees</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.view_attendance') }}"><i class="fas fa-calendar-check fa-fw me-2"></i>Attendance</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.view_leaves') }}"><i class="fas fa-procedures fa-fw me-2"></i>Leaves</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.view_salary_sheet') }}"><i class="fas fa-file-invoice-dollar fa-fw me-2"></i>Salary</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.individual_report') }}"><i class="fas fa-user-clock fa-fw me-2"></i>Individual Report</a></li>
+                        <ul class="dropdown-menu app-nav-dropdown-menu">
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_parties') }}"><i class="fas fa-address-book text-info"></i>All Parties (Suppliers/Vendors)</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_director') }}"><i class="fas fa-user-tie text-primary"></i>Directors Management</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_customer') }}"><i class="fas fa-user-plus text-success"></i>Customers Register</a></li>
                         </ul>
                     </li>
 
-                    <!-- System -->
-                    <li class="nav-item border-start border-secondary ms-1 ps-1">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.reports_dashboard') }}" title="Reports"><i class="fas fa-chart-line mb-1"></i><span style="font-size: 0.68rem;">Reports</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.manage_todos') }}" title="Tasks"><i class="fas fa-tasks mb-1 text-primary"></i><span style="font-size: 0.68rem;">Tasks</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.ai_assistant') }}" title="AI"><i class="fas fa-robot mb-1 text-info"></i><span style="font-size: 0.68rem;">AI</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="{{ url_for('main.notifications') }}" title="Logs"><i class="fas fa-bell mb-1"></i><span style="font-size: 0.68rem;">Logs</span></a>
-                    </li>
-
-                    <!-- Accounting -->
-                    <li class="nav-item dropdown border-start border-secondary ms-1 ps-1 d-flex flex-column align-items-center justify-content-center">
-                        <a class="nav-link dropdown-toggle d-flex flex-column align-items-center justify-content-center text-nowrap px-2" href="#" id="accDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Accounting">
-                            <i class="fas fa-calculator mb-1 text-info"></i>
-                            <span style="font-size: 0.68rem;">Accounting</span>
+                    <!-- 3. Cash & Bank Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-university text-warning"></i>
+                            <span>Cash &amp; Bank</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="accDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('main.manage_coa') }}"><i class="fas fa-list-ol fa-fw me-2"></i>Chart of Accounts</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.view_journal') }}"><i class="fas fa-book fa-fw me-2"></i>Journal Register</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.report_trial_balance') }}"><i class="fas fa-balance-scale fa-fw me-2"></i>Trial Balance</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.report_pnl') }}"><i class="fas fa-file-invoice fa-fw me-2"></i>Profit & Loss</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('main.report_balance_sheet') }}"><i class="fas fa-university fa-fw me-2"></i>Balance Sheet</a></li>
+                        <ul class="dropdown-menu app-nav-dropdown-menu">
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_petty_cash') }}"><i class="fas fa-coins text-warning"></i>Petty Cash Register</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_banks') }}"><i class="fas fa-university text-info"></i>Bank Accounts &amp; Ledgers</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_contra_entries') }}"><i class="fas fa-exchange-alt text-primary"></i>Contra Transfers</a></li>
                         </ul>
                     </li>
 
-                    <li class="nav-item ms-2 d-flex align-items-center border-start border-secondary ps-2">
-                        <a href="{{ url_for('main.download_all_customers_report') }}" class="btn btn-sm btn-success text-white px-2 rounded-pill shadow-sm text-nowrap d-flex align-items-center gap-1" title="Export All Data">
-                            <i class="fas fa-file-excel"></i> <span class="d-none d-xl-inline">Export</span>
+                    <!-- 4. Vouchers Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-invoice text-danger"></i>
+                            <span>Vouchers</span>
                         </a>
+                        <ul class="dropdown-menu app-nav-dropdown-menu">
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_voucher', v_type='Debit') }}"><i class="fas fa-minus-circle text-danger"></i>New Debit Voucher (Expense)</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.add_voucher', v_type='Credit') }}"><i class="fas fa-plus-circle text-success"></i>New Credit Voucher (Income)</a></li>
+                            <li><hr class="dropdown-divider border-secondary my-1"></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_vouchers') }}"><i class="fas fa-history text-muted"></i>Voucher Register / History</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item ms-1">
-                        <a href="{{ url_for('main.change_password_request') }}" class="nav-link p-0 px-1" title="Change Password">
-                            <i class="fas fa-key text-warning"></i>
+
+                    <!-- 5. HR & Payroll Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-users-cog text-success"></i>
+                            <span>HR &amp; Payroll</span>
                         </a>
+                        <ul class="dropdown-menu app-nav-dropdown-menu">
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_employees') }}"><i class="fas fa-id-badge text-success"></i>Staff &amp; Employees</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_attendance') }}"><i class="fas fa-calendar-check text-info"></i>Daily Attendance</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_leaves') }}"><i class="fas fa-plane-departure text-warning"></i>Leave Applications</a></li>
+                            <li><hr class="dropdown-divider border-secondary my-1"></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_salary_sheet') }}"><i class="fas fa-file-invoice-dollar text-primary"></i>Monthly Salary Sheet</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.individual_report') }}"><i class="fas fa-user-clock text-secondary"></i>Individual Staff Report</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('main.manual_backup') }}" class="nav-link p-0 px-1" title="Backup Database to Telegram">
-                            <i class="fas fa-cloud-upload-alt text-info"></i>
+
+                    <!-- 6. Accounting Ledger Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-balance-scale text-primary"></i>
+                            <span>Accounting</span>
                         </a>
+                        <ul class="dropdown-menu app-nav-dropdown-menu">
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_coa') }}"><i class="fas fa-list-ol text-info"></i>Chart of Accounts (COA)</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.view_journal') }}"><i class="fas fa-book text-primary"></i>General Journal Register</a></li>
+                            <li><hr class="dropdown-divider border-secondary my-1"></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.report_trial_balance') }}"><i class="fas fa-balance-scale text-warning"></i>Trial Balance</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.report_pnl') }}"><i class="fas fa-chart-line text-success"></i>Profit &amp; Loss (P&amp;L)</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.report_balance_sheet') }}"><i class="fas fa-landmark text-primary"></i>Balance Sheet</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('main.settings') }}" class="nav-link p-0 px-1" title="Settings">
-                            <i class="fas fa-cog text-light"></i>
+
+                    <!-- 7. Analytics & Reports Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="app-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-chart-pie text-warning"></i>
+                            <span>Reports &amp; Flow</span>
                         </a>
+                        <ul class="dropdown-menu app-nav-dropdown-menu">
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.money_flow_analytics') }}"><i class="fas fa-chart-pie text-warning"></i>Money In &amp; Out Flow</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.reports_dashboard') }}"><i class="fas fa-analytics text-info"></i>Financial Reports Hub</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.manage_todos') }}"><i class="fas fa-check-square text-primary"></i>Tasks &amp; Reminders</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('main.help_page') }}" class="nav-link p-0 px-1" title="Help/FAQ">
-                            <i class="fas fa-question-circle text-white"></i>
-                        </a>
-                    </li>
+
                 </ul>
+
+                <!-- Right Utility Action Section -->
+                <div class="d-flex align-items-center gap-2 mt-2 mt-xl-0 flex-wrap">
+
+                    <!-- Search Input -->
+                    <div class="nav-search-box d-none d-lg-block">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchBar" placeholder="Search..." autocomplete="off">
+                    </div>
+
+                    <!-- AI Assistant Pill -->
+                    <a href="{{ url_for('main.ai_assistant') }}" class="ai-assistant-pill" title="Open AI Assistant">
+                        <i class="fas fa-robot"></i>
+                        <span>AI Assistant</span>
+                    </a>
+
+                    <!-- Cloud Backup Button -->
+                    <a href="{{ url_for('main.manual_backup') }}" class="nav-action-btn text-info" title="Send DB Backup to Telegram">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </a>
+
+                    <!-- Export Excel -->
+                    <a href="{{ url_for('main.download_all_customers_report') }}" class="nav-action-btn text-success" title="Export All Data to Excel">
+                        <i class="fas fa-file-excel"></i>
+                    </a>
+
+                    <!-- Settings & .ENV Manager -->
+                    <a href="{{ url_for('main.settings') }}" class="nav-action-btn text-light" title="Settings & Environment (.ENV)">
+                        <i class="fas fa-sliders-h"></i>
+                    </a>
+
+                    <!-- User Profile Dropdown -->
+                    <div class="dropdown ms-1">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="avatar-badge">A</div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end app-nav-dropdown-menu" aria-labelledby="userMenuDropdown">
+                            <li class="px-3 py-2 border-bottom border-secondary mb-1">
+                                <span class="d-block text-white fw-bold" style="font-size: 0.8rem;">Administrator</span>
+                                <span class="text-muted" style="font-size: 0.68rem;">admin@nexus.local</span>
+                            </li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.settings') }}"><i class="fas fa-sliders-h text-primary"></i>Settings &amp; .ENV</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.notifications') }}"><i class="fas fa-bell text-warning"></i>System Activity Logs</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.change_password_request') }}"><i class="fas fa-key text-info"></i>Change Password</a></li>
+                            <li><a class="dropdown-item app-dropdown-item" href="{{ url_for('main.help_page') }}"><i class="fas fa-question-circle text-success"></i>Help &amp; FAQ</a></li>
+                            <li><hr class="dropdown-divider border-secondary my-1"></li>
+                            <li><a class="dropdown-item app-dropdown-item text-danger" href="{{ url_for('main.logout') }}"><i class="fas fa-sign-out-alt text-danger"></i>Log Out</a></li>
+                        </ul>
+                    </div>
+
+                </div>
             </div>
         </div>
     </nav>
@@ -177,6 +381,7 @@
             <a href="{{ url_for('main.individual_report') }}" class="menu-item"><i class="fas fa-user-clock"></i>Individual Report</a>
 
             <div class="nav-section-title">Reports & Tools</div>
+            <a href="{{ url_for('main.money_flow_analytics') }}" class="menu-item"><i class="fas fa-chart-pie text-warning"></i>Money In &amp; Out</a>
             <a href="{{ url_for('main.reports_dashboard') }}" class="menu-item"><i class="fas fa-chart-line"></i>Reports</a>
             <a href="{{ url_for('main.manage_todos') }}" class="menu-item"><i class="fas fa-tasks text-primary"></i>Tasks</a>
             <a href="{{ url_for('main.ai_assistant') }}" class="menu-item"><i class="fas fa-robot text-info"></i>AI Assistant</a>
@@ -192,7 +397,7 @@
             <div class="nav-section-title">System</div>
             <a href="{{ url_for('main.download_all_customers_report') }}" class="menu-item"><i class="fas fa-file-excel text-success"></i>Export All Data</a>
             <a href="{{ url_for('main.manual_backup') }}" class="menu-item"><i class="fas fa-cloud-upload-alt text-info"></i>Backup to Telegram</a>
-            <a href="{{ url_for('main.settings') }}" class="menu-item"><i class="fas fa-cog"></i>Settings</a>
+            <a href="{{ url_for('main.settings') }}" class="menu-item"><i class="fas fa-sliders-h text-primary"></i>Settings &amp; .ENV Manager</a>
             <a href="{{ url_for('main.change_password_request') }}" class="menu-item"><i class="fas fa-key text-warning"></i>Change Password</a>
             <a href="{{ url_for('main.help_page') }}" class="menu-item"><i class="fas fa-question-circle"></i>Help / FAQ</a>
         </div>

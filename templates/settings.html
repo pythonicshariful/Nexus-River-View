@@ -1,125 +1,772 @@
 {% extends 'base.html' %}
 
+{% block title %}Environment Variables (.ENV) & System Settings — Nexus River View{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold text-dark-blue">System Settings</h2>
-                <p class="text-muted mb-0">Manage Backups and Data Restoration</p>
-            </div>
-            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary rounded-pill"><i
-                    class="fas fa-arrow-left me-1"></i> Back to Dashboard</a>
-        </div>
+<style>
+  .settings-container {
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+  .settings-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  .settings-hero h2 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
+  }
+  .settings-hero p {
+    font-size: 0.84rem;
+    color: #94a3b8;
+    margin-bottom: 0;
+  }
 
-        <!-- Warning Alert -->
-        <div class="alert alert-warning border-0 shadow-sm mb-4">
-            <div class="d-flex">
-                <div class="me-3"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
-                <div>
-                    <h5 class="alert-heading fw-bold">Warning: Data Overwrite</h5>
-                    <p class="mb-0">Restoring data will <strong>permanently replace</strong> all current data in the
-                        database. Ensure you have backed up your current data if needed.</p>
-                </div>
-            </div>
-        </div>
+  /* ── Variable Row Card ── */
+  .env-var-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .env-var-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  }
+  .env-var-card.highlight {
+    border-left: 4px solid #2563eb;
+  }
 
-        <!-- Company Print Settings -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                <h5 class="fw-bold text-dark"><i class="fas fa-building me-2"></i>Company Print Settings</h5>
-            </div>
-            <div class="card-body p-4">
-                <form action="{{ url_for('main.save_company_settings') }}" method="POST">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Company Name</label>
-                        <input type="text" name="company_name" class="form-control" value="{{ company_name }}" required placeholder="e.g. Nexus River View">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Company Address</label>
-                        <textarea name="company_address" class="form-control" rows="2" required placeholder="e.g. 123 Main St, City">{{ company_address }}</textarea>
-                    </div>
-                    <div class="text-end">
-                        <button class="btn btn-primary fw-bold" type="submit">Save Print Settings</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Accounting Synchronization -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                <h5 class="fw-bold text-dark"><i class="fas fa-sync-alt me-2 text-info"></i>Accounting System Sync</h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="alert alert-info border-0 mb-3">
-                    <p class="small mb-0"><i class="fas fa-info-circle me-1"></i> Use this tool to migrate all existing legacy transactions (Vouchers, Contras, Payments) into the new Double-Entry Accounting Ledger. This will ensure your Trial Balance and P&L reports are accurate.</p>
-                </div>
-                <form onsubmit="return confirmAction(event, 'syncForm')" id="syncForm" action="{{ url_for('main.admin_sync_accounting') }}" method="POST">
-                    <div class="text-end">
-                        <button class="btn btn-info text-white fw-bold px-4" type="submit">
-                            <i class="fas fa-magic me-2"></i>Sync to Double-Entry Now
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+  .var-key-badge {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 0.28rem 0.65rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .var-tag {
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.18rem 0.5rem;
+    border-radius: 20px;
+  }
+  .var-tag.tg { background: rgba(37,99,235,0.12); color: #1d4ed8; }
+  .var-tag.ai { background: rgba(168,85,247,0.14); color: #7e22ce; }
+  .var-tag.sec { background: rgba(245,158,11,0.15); color: #b45309; }
+  .var-tag.sys { background: rgba(100,116,139,0.15); color: #334155; }
 
-        <!-- Restore from File -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                <h5 class="fw-bold text-dark"><i class="fas fa-file-upload me-2"></i>Restore from External File</h5>
-            </div>
-            <div class="card-body p-4">
-                <form action="{{ url_for('main.restore_data') }}" method="POST" enctype="multipart/form-data">
-                    <label class="form-label small fw-bold text-muted">Upload Excel Backup (*.xlsx)</label>
-                    <div class="input-group">
-                        <input type="file" name="backup_file" class="form-control" accept=".xlsx" required>
-                        <button class="btn btn-primary fw-bold" type="submit">Restore Now</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+  .var-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-top: 0.35rem;
+    margin-bottom: 0.1rem;
+  }
+  .var-desc {
+    font-size: 0.74rem;
+    color: #64748b;
+    margin-bottom: 0.65rem;
+    line-height: 1.4;
+  }
 
-        <!-- Available Backups -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                <h5 class="fw-bold text-dark"><i class="fas fa-history me-2"></i>Available Auto-Backups</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th class="ps-4">Backup Filename</th>
-                                <th class="text-end pe-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for backup in backups %}
-                            <tr>
-                                <td class="ps-4 fw-medium text-secondary">{{ backup }}</td>
-                                <td class="text-end pe-4">
-                                    <form action="{{ url_for('main.restore_data') }}" method="POST" class="d-inline"
-                                        onsubmit="return confirm('Are you sure you want to restore to {{ backup }}? Current data will be lost.');">
-                                        <input type="hidden" name="backup_filename" value="{{ backup }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="fas fa-undo-alt me-1"></i> Restore
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="2" class="text-center py-4 text-muted">No backups found yet. Make some
-                                    changes to generate one.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+  /* ── In-Row Test Alert ── */
+  .in-row-alert {
+    display: none;
+    font-size: 0.8rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: 8px;
+    margin-top: 0.65rem;
+    animation: fadeIn 0.2s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Tab Controls ── */
+  .nav-pills-custom .nav-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    padding: 0.65rem 1.15rem;
+    border-radius: 10px;
+    border: none;
+    transition: all 0.15s ease;
+  }
+  .nav-pills-custom .nav-link:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+  }
+  .nav-pills-custom .nav-link.active {
+    color: #1d4ed8;
+    background: #dbeafe;
+    box-shadow: 0 2px 6px rgba(37,99,235,0.12);
+  }
+
+  .sticky-save-bar {
+    position: sticky;
+    bottom: 1rem;
+    z-index: 1020;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 0.85rem 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    color: #fff;
+  }
+</style>
+
+<div class="settings-container py-3">
+
+  <!-- ===== HERO HEADER ===== -->
+  <div class="settings-hero d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2><i class="fas fa-sliders-h text-primary me-2"></i>Environment Variables &amp; System Configuration</h2>
+      </div>
+      <p>Configure all your system variables in one place, just enter the value and use the instant test buttons.</p>
     </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="badge bg-light text-dark px-3 py-2 rounded-pill font-monospace" style="font-size: 0.72rem;">
+        <i class="fas fa-file-code text-primary me-1"></i> {{ env_file_path }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ===== NAVIGATION TABS ===== -->
+  <ul class="nav nav-pills nav-pills-custom mb-3 gap-2 bg-white p-2 rounded-4 shadow-sm border" id="settingsTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="variables-tab" data-bs-toggle="pill" data-bs-target="#tab-variables" type="button" role="tab">
+        <i class="fas fa-list-check me-2 text-primary"></i>All Environment Variables (.ENV) &amp; Tests
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="backups-tab" data-bs-toggle="pill" data-bs-target="#tab-backups" type="button" role="tab">
+        <i class="fas fa-database me-2 text-warning"></i>Database Backups &amp; Sync
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="raw-tab" data-bs-toggle="pill" data-bs-target="#tab-raw" type="button" role="tab">
+        <i class="fas fa-code me-2 text-success"></i>Raw .env Text Editor
+      </button>
+    </li>
+  </ul>
+
+  <!-- ===== TAB CONTENT ===== -->
+  <div class="tab-content" id="settingsTabContent">
+
+    <!-- ── TAB 1: ALL VARIABLES & LIVE IN-LINE TESTS ── -->
+    <div class="tab-pane fade show active" id="tab-variables" role="tabpanel">
+
+      <form id="mainEnvForm" action="{{ url_for('main.save_env_settings') }}" method="POST">
+
+        <!-- ========================================== -->
+        <!-- 1. TELEGRAM BOT TOKEN -->
+        <!-- ========================================== -->
+        <div class="env-var-card highlight" id="card_TELEGRAM_BOT_TOKEN">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="var-key-badge">
+                <i class="fab fa-telegram text-primary"></i> TELEGRAM_BOT_TOKEN
+              </span>
+              <span class="var-tag tg">Telegram Bot</span>
+            </div>
+            <a href="https://t.me/BotFather" target="_blank" class="small text-muted text-decoration-none">
+              Get from @BotFather <i class="fas fa-external-link-alt ms-1"></i>
+            </a>
+          </div>
+
+          <div class="var-label">Telegram Bot API Token</div>
+          <div class="var-desc">The authentication token generated by Telegram's @BotFather used to send notifications and backups.</div>
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-8">
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-key"></i></span>
+                <input type="password" id="input_TELEGRAM_BOT_TOKEN" name="TELEGRAM_BOT_TOKEN" class="form-control font-monospace"
+                       value="{{ env_dict.get('TELEGRAM_BOT_TOKEN', '') }}" placeholder="e.g. 7123456789:AAHk1_xyz..." style="font-size: 0.85rem;">
+                <button class="btn btn-outline-secondary border" type="button" onclick="toggleSecretVisibility('input_TELEGRAM_BOT_TOKEN', this)">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <button type="button" class="btn btn-outline-primary btn-sm fw-bold w-100 py-2 rounded-3" id="btnTestTgMsg" onclick="runTelegramMsgTest()">
+                <i class="fas fa-paper-plane me-1"></i> Test Telegram Bot
+              </button>
+            </div>
+          </div>
+
+          <div id="alert_TELEGRAM_BOT_TOKEN" class="in-row-alert"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 2. TELEGRAM CHAT ID -->
+        <!-- ========================================== -->
+        <div class="env-var-card highlight" id="card_TELEGRAM_CHAT_ID">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="var-key-badge">
+                <i class="fas fa-hashtag text-info"></i> TELEGRAM_CHAT_ID
+              </span>
+              <span class="var-tag tg">Backup Target</span>
+            </div>
+            <a href="https://t.me/userinfobot" target="_blank" class="small text-muted text-decoration-none">
+              Find ID via @userinfobot <i class="fas fa-external-link-alt ms-1"></i>
+            </a>
+          </div>
+
+          <div class="var-label">Telegram Chat or Channel ID</div>
+          <div class="var-desc">Your personal User ID or private Channel/Group ID (e.g. -100xxxxxxxxxx) where database backups and reset OTPs are sent.</div>
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-8">
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-id-badge"></i></span>
+                <input type="text" id="input_TELEGRAM_CHAT_ID" name="TELEGRAM_CHAT_ID" class="form-control font-monospace"
+                       value="{{ env_dict.get('TELEGRAM_CHAT_ID', '') }}" placeholder="e.g. 987654321 or -1001234567890" style="font-size: 0.85rem;">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <button type="button" class="btn btn-outline-info btn-sm fw-bold w-100 py-2 rounded-3" id="btnTestTgBackup" onclick="runTelegramBackupTest()">
+                <i class="fas fa-cloud-upload-alt me-1"></i> Test DB Backup Upload
+              </button>
+            </div>
+          </div>
+
+          <div id="alert_TELEGRAM_CHAT_ID" class="in-row-alert"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 3. GEMINI AI API KEY -->
+        <!-- ========================================== -->
+        <div class="env-var-card highlight" id="card_GEMINI_API_KEY">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="var-key-badge">
+                <i class="fas fa-robot text-purple" style="color: #9333ea;"></i> GEMINI_API_KEY
+              </span>
+              <span class="var-tag ai">AI Integration</span>
+            </div>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small text-muted text-decoration-none">
+              Free Key from Google AI Studio <i class="fas fa-external-link-alt ms-1"></i>
+            </a>
+          </div>
+
+          <div class="var-label">Google Gemini AI API Key</div>
+          <div class="var-desc">API key enabling the real-time AI Assistant to answer accounting questions and analyze financial database queries.</div>
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-8">
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-brain"></i></span>
+                <input type="password" id="input_GEMINI_API_KEY" name="GEMINI_API_KEY" class="form-control font-monospace"
+                       value="{{ env_dict.get('GEMINI_API_KEY', '') }}" placeholder="e.g. AIzaSy..." style="font-size: 0.85rem;">
+                <button class="btn btn-outline-secondary border" type="button" onclick="toggleSecretVisibility('input_GEMINI_API_KEY', this)">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <button type="button" class="btn btn-outline-secondary btn-sm fw-bold w-100 py-2 rounded-3" id="btnTestGemini" onclick="runGeminiTest()">
+                <i class="fas fa-vial me-1"></i> Test AI Integration
+              </button>
+            </div>
+          </div>
+
+          <div id="alert_GEMINI_API_KEY" class="in-row-alert"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 4. ADMIN PASSWORD -->
+        <!-- ========================================== -->
+        <div class="env-var-card" id="card_ADMIN_PASSWORD">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="var-key-badge">
+                <i class="fas fa-lock text-warning"></i> ADMIN_PASSWORD
+              </span>
+              <span class="var-tag sec">Security</span>
+            </div>
+            <span class="small text-muted">Default: <code>1234</code></span>
+          </div>
+
+          <div class="var-label">Admin Master Password / PIN</div>
+          <div class="var-desc">Authorization password required before performing critical operations (Double-entry sync, Log deletion, DB restore).</div>
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-12">
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-shield-alt"></i></span>
+                <input type="password" id="input_ADMIN_PASSWORD" name="ADMIN_PASSWORD" class="form-control font-monospace"
+                       value="{{ admin_pw }}" placeholder="Enter Admin Password" style="font-size: 0.85rem;">
+                <button class="btn btn-outline-secondary border" type="button" onclick="toggleSecretVisibility('input_ADMIN_PASSWORD', this)">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 5. COMPANY NAME -->
+        <!-- ========================================== -->
+        <div class="env-var-card" id="card_COMPANY_NAME">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="var-key-badge">
+                <i class="fas fa-building text-info"></i> COMPANY_NAME
+              </span>
+              <span class="var-tag sys">Profile</span>
+            </div>
+          </div>
+
+          <div class="var-label">Company Display Name</div>
+          <div class="var-desc">Official company title printed on Vouchers, Money Flow Reports, Salary Sheets, and Invoices.</div>
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-12">
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-heading"></i></span>
+                <input type="text" name="COMPANY_NAME" class="form-control"
+                       value="{{ env_dict.get('COMPANY_NAME', 'NEXUS RIVER VIEW') }}" placeholder="e.g. Nexus River View Limited" style="font-size: 0.85rem;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 6. COMPANY ADDRESS -->
+        <!-- ========================================== -->
+        <div class="env-var-card" id="card_COMPANY_ADDRESS">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="var-key-badge">
+                <i class="fas fa-map-marker-alt text-secondary"></i> COMPANY_ADDRESS
+              </span>
+              <span class="var-tag sys">Profile</span>
+            </div>
+          </div>
+
+          <div class="var-label">Company Official Address</div>
+          <div class="var-desc">Office or project location address printed on official documents.</div>
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-12">
+              <textarea name="COMPANY_ADDRESS" class="form-control" rows="2" placeholder="e.g. Plot 12, Riverview Road, Dhaka" style="font-size: 0.85rem;">{{ env_dict.get('COMPANY_ADDRESS', '') }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 7. NEXUS DATA PATH -->
+        <!-- ========================================== -->
+        <div class="env-var-card" id="card_NEXUS_DATA_PATH">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="var-key-badge">
+                <i class="fas fa-folder-open text-warning"></i> NEXUS_DATA_PATH
+              </span>
+              <span class="var-tag sys">Storage Path</span>
+            </div>
+            <span class="small text-muted">Leave blank for default</span>
+          </div>
+
+          <div class="var-label">Data Directory Path (Optional)</div>
+          <div class="var-desc">Custom directory where <code>nexus.db</code> and automatic backups are stored.</div>
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-8">
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="fas fa-hdd"></i></span>
+                <input type="text" id="input_NEXUS_DATA_PATH" name="NEXUS_DATA_PATH" class="form-control font-monospace"
+                       value="{{ env_dict.get('NEXUS_DATA_PATH', '') }}" placeholder="Default: application folder" style="font-size: 0.85rem;">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <button type="button" class="btn btn-outline-secondary btn-sm fw-bold w-100 py-2 rounded-3" id="btnTestPath" onclick="runPathTest()">
+                <i class="fas fa-folder-check me-1"></i> Verify Storage Path
+              </button>
+            </div>
+          </div>
+
+          <div id="alert_NEXUS_DATA_PATH" class="in-row-alert"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 8. CUSTOM / ADDITIONAL VARIABLES -->
+        <!-- ========================================== -->
+        <div class="env-var-card">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div>
+              <div class="var-label mb-0"><i class="fas fa-plus-circle text-primary me-1"></i> Additional Custom Variables</div>
+              <div class="var-desc mb-0">Add any custom key-value pairs needed for your specific deployment.</div>
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill px-3" onclick="addNewCustomEnvRow()">
+              <i class="fas fa-plus me-1"></i> Add Variable
+            </button>
+          </div>
+
+          <div class="table-responsive mt-3">
+            <table class="table table-sm align-middle mb-0" id="customEnvTable">
+              <thead class="table-light">
+                <tr style="font-size: 0.72rem; text-transform: uppercase;">
+                  <th style="width: 40%;">VARIABLE NAME (KEY)</th>
+                  <th>VALUE</th>
+                  <th style="width: 50px;"></th>
+                </tr>
+              </thead>
+              <tbody id="customEnvTableBody">
+                {% for key, val in custom_envs.items() %}
+                <tr>
+                  <td>
+                    <input type="text" name="custom_key[]" class="form-control form-control-sm font-monospace fw-bold" value="{{ key }}" required>
+                  </td>
+                  <td>
+                    <input type="text" name="custom_val[]" class="form-control form-control-sm font-monospace" value="{{ val }}">
+                  </td>
+                  <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeCustomEnvRow(this)" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% else %}
+                <tr id="emptyCustomRow">
+                  <td colspan="3" class="text-center py-3 text-muted small">
+                    No custom variables added yet. Click "Add Variable" above if needed.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ===== STICKY SAVE BAR ===== -->
+        <div class="sticky-save-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-check-circle text-success fa-lg"></i>
+            <div>
+              <div class="fw-bold" style="font-size: 0.85rem;">Ready to Apply</div>
+              <div class="text-white-50" style="font-size: 0.72rem;">Changes save immediately to .env and running memory.</div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow">
+            <i class="fas fa-save me-1"></i> Save All Environment Settings
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- ── TAB 2: DATABASE BACKUPS & SYNC ── -->
+    <div class="tab-pane fade" id="tab-backups" role="tabpanel">
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h6 class="fw-bold text-dark mb-0"><i class="fas fa-cloud-upload-alt text-info me-2"></i>Send Backup to Telegram</h6>
+              <span class="badge bg-info-subtle text-info">Instant</span>
+            </div>
+            <p class="text-muted small mb-3">Creates an instant snapshot of your active SQLite database and uploads it to your configured Telegram chat.</p>
+            <a href="{{ url_for('main.manual_backup') }}" class="btn btn-info text-white fw-bold rounded-3 mt-auto">
+              <i class="fas fa-paper-plane me-1"></i> Backup to Telegram Now
+            </a>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card h-100 border-0 shadow-sm rounded-4 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h6 class="fw-bold text-dark mb-0"><i class="fas fa-sync-alt text-success me-2"></i>Double-Entry Sync</h6>
+              <span class="badge bg-success-subtle text-success">Accounting</span>
+            </div>
+            <p class="text-muted small mb-3">Syncs all historical entries into the double-entry accounting ledger to ensure your Trial Balance and P&amp;L reports match.</p>
+            <form onsubmit="return confirmAction(event, 'syncForm')" id="syncForm" action="{{ url_for('main.admin_sync_accounting') }}" method="POST" class="mt-auto">
+              <button class="btn btn-success fw-bold rounded-3 w-100" type="submit">
+                <i class="fas fa-magic me-1"></i> Run Accounting Sync
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup Table -->
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold text-dark mb-0"><i class="fas fa-history text-secondary me-2"></i>Available Local Auto-Backups</h6>
+          <span class="badge bg-secondary-subtle text-secondary">{{ backups|length }} Backups</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="bg-light text-muted small text-uppercase">
+                <tr>
+                  <th class="ps-4">Filename</th>
+                  <th>Created</th>
+                  <th>Size</th>
+                  <th class="text-end pe-4">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for backup in backups %}
+                <tr>
+                  <td class="ps-4 fw-medium text-dark font-monospace">
+                    <i class="fas fa-database text-primary me-2"></i>{{ backup.filename }}
+                  </td>
+                  <td class="text-secondary small">{{ backup.mtime }}</td>
+                  <td class="text-secondary small">{{ backup.size_kb }} KB</td>
+                  <td class="text-end pe-4">
+                    <form action="{{ url_for('main.restore_data') }}" method="POST" class="d-inline"
+                          onsubmit="return confirm('WARNING: Are you sure you want to restore to {{ backup.filename }}? Current database will be overwritten.');">
+                      <input type="hidden" name="backup_filename" value="{{ backup.filename }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                        <i class="fas fa-undo-alt me-1"></i> Restore
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted">
+                    No backup files found yet. Click "Backup to Telegram Now" to generate one.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── TAB 3: RAW .ENV EDITOR ── -->
+    <div class="tab-pane fade" id="tab-raw" role="tabpanel">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-terminal me-2"></i>Direct .env Text File Editor</h6>
+            <small class="text-muted">Directly inspect and update the raw .env file.</small>
+          </div>
+        </div>
+        <form action="{{ url_for('main.save_raw_env') }}" method="POST">
+          <textarea name="raw_env_content" class="form-control font-monospace p-3 bg-dark text-light rounded-3" rows="14" style="font-size: 0.85rem; line-height: 1.5;" spellcheck="false">{{ raw_env_content }}</textarea>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-muted small"><i class="fas fa-info-circle me-1"></i> Changes take effect immediately without restarting the application.</span>
+            <button type="submit" class="btn btn-dark fw-bold px-4 py-2 rounded-3">
+              <i class="fas fa-save me-1"></i> Save Raw .env
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
 </div>
+
+<!-- ===== JAVASCRIPT FOR TESTING & DYNAMIC BEHAVIOR ===== -->
+<script>
+  // Password Visibility Toggle
+  function toggleSecretVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+
+  // Display In-Row Result Helper
+  function renderAlert(alertId, success, message) {
+    const el = document.getElementById(alertId);
+    el.style.display = 'block';
+    if (success) {
+      el.className = 'in-row-alert alert alert-success border-success-subtle shadow-sm mb-0';
+      el.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + message;
+    } else {
+      el.className = 'in-row-alert alert alert-danger border-danger-subtle shadow-sm mb-0';
+      el.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + message;
+    }
+  }
+
+  // 1. Live Test Telegram Bot Message
+  async function runTelegramMsgTest() {
+    const token = document.getElementById('input_TELEGRAM_BOT_TOKEN').value.trim();
+    const chat = document.getElementById('input_TELEGRAM_CHAT_ID').value.trim();
+    const btn = document.getElementById('btnTestTgMsg');
+    const alertId = 'alert_TELEGRAM_BOT_TOKEN';
+
+    if (!token) {
+      renderAlert(alertId, false, "Please enter TELEGRAM_BOT_TOKEN before testing.");
+      return;
+    }
+    if (!chat) {
+      renderAlert(alertId, false, "Please also enter TELEGRAM_CHAT_ID so the bot knows where to send the test message.");
+      return;
+    }
+
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Testing Bot...';
+    document.getElementById(alertId).style.display = 'none';
+
+    try {
+      const res = await fetch("{{ url_for('main.api_test_telegram') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bot_token: token, chat_id: chat })
+      });
+      const data = await res.json();
+      renderAlert(alertId, data.success, data.message);
+    } catch (e) {
+      renderAlert(alertId, false, "Network error: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  }
+
+  // 2. Live Test Telegram DB Backup Upload
+  async function runTelegramBackupTest() {
+    const token = document.getElementById('input_TELEGRAM_BOT_TOKEN').value.trim();
+    const chat = document.getElementById('input_TELEGRAM_CHAT_ID').value.trim();
+    const btn = document.getElementById('btnTestTgBackup');
+    const alertId = 'alert_TELEGRAM_CHAT_ID';
+
+    if (!token || !chat) {
+      renderAlert(alertId, false, "Both TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required to test backup upload.");
+      return;
+    }
+
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Uploading Test Backup...';
+    document.getElementById(alertId).style.display = 'none';
+
+    try {
+      const res = await fetch("{{ url_for('main.api_test_telegram_backup') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bot_token: token, chat_id: chat })
+      });
+      const data = await res.json();
+      renderAlert(alertId, data.success, data.message);
+    } catch (e) {
+      renderAlert(alertId, false, "Network error: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  }
+
+  // 3. Live Test Gemini AI Key
+  async function runGeminiTest() {
+    const key = document.getElementById('input_GEMINI_API_KEY').value.trim();
+    const btn = document.getElementById('btnTestGemini');
+    const alertId = 'alert_GEMINI_API_KEY';
+
+    if (!key) {
+      renderAlert(alertId, false, "Please enter GEMINI_API_KEY before testing.");
+      return;
+    }
+
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Verifying AI...';
+    document.getElementById(alertId).style.display = 'none';
+
+    try {
+      const res = await fetch("{{ url_for('main.api_test_gemini') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: key })
+      });
+      const data = await res.json();
+      renderAlert(alertId, data.success, data.message);
+    } catch (e) {
+      renderAlert(alertId, false, "Network error: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  }
+
+  // 4. Live Test Storage Path
+  async function runPathTest() {
+    const path = document.getElementById('input_NEXUS_DATA_PATH').value.trim();
+    const btn = document.getElementById('btnTestPath');
+    const alertId = 'alert_NEXUS_DATA_PATH';
+
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Checking Path...';
+    document.getElementById(alertId).style.display = 'none';
+
+    try {
+      const res = await fetch("{{ url_for('main.api_test_path') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data_path: path })
+      });
+      const data = await res.json();
+      renderAlert(alertId, data.success, data.message);
+    } catch (e) {
+      renderAlert(alertId, false, "Network error: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  }
+
+  // Dynamic Custom Row Add / Remove
+  function addNewCustomEnvRow() {
+    const emptyRow = document.getElementById('emptyCustomRow');
+    if (emptyRow) emptyRow.remove();
+
+    const tbody = document.getElementById('customEnvTableBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" name="custom_key[]" class="form-control form-control-sm font-monospace fw-bold" placeholder="VARIABLE_NAME" required></td>
+      <td><input type="text" name="custom_val[]" class="form-control form-control-sm font-monospace" placeholder="value"></td>
+      <td class="text-end">
+        <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeCustomEnvRow(this)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  function removeCustomEnvRow(btn) {
+    btn.closest('tr').remove();
+  }
+</script>
 {% endblock %}
