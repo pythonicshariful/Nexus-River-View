@@ -1,0 +1,1 @@
+cd /var/www/Nexus-River-View && git pull && venv/bin/pip install -r requirements.txt -q && chown -R www-data:www-data . && systemctl restart nexus && sleep 3 && systemctl is-active nexus && curl -sI http://127.0.0.1:8001 | head -1
