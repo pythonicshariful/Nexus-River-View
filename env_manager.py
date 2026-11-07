@@ -68,7 +68,7 @@ def read_env_file():
     # Fallback/merge known environment variables currently active in os.environ
     known_keys = [
         'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID',
-        'GEMINI_API_KEY',
+        'GEMINI_API_KEY', 'AION_API_KEY', 'AION_MODEL',
         'COMPANY_NAME', 'COMPANY_ADDRESS',
         'ADMIN_PASSWORD', 'NEXUS_DATA_PATH'
     ]
@@ -109,7 +109,7 @@ def save_env_file(env_dict, raw_content=None):
     try:
         # Categorize keys
         telegram_keys = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']
-        ai_keys = ['GEMINI_API_KEY']
+        ai_keys = ['GEMINI_API_KEY', 'AION_API_KEY', 'AION_MODEL']
         company_keys = ['COMPANY_NAME', 'COMPANY_ADDRESS']
         system_keys = ['ADMIN_PASSWORD', 'NEXUS_DATA_PATH']
         
@@ -130,8 +130,8 @@ def save_env_file(env_dict, raw_content=None):
             lines.append(f"{k}={val}")
         lines.append("")
 
-        # Gemini AI
-        lines.append("# --- Google Gemini AI API ---")
+        # AI (Gemini + Aion Labs)
+        lines.append("# --- AI APIs (Aion Labs primary, Google Gemini fallback) ---")
         for k in ai_keys:
             val = env_dict.get(k, '')
             lines.append(f"{k}={val}")
@@ -305,3 +305,50 @@ def test_gemini_api(api_key=None):
         return False, f"Gemini API connection error: {e}"
     except Exception as e:
         return False, f"Error testing Gemini key: {e}"
+
+
+def test_aion_api(api_key=None, model=None):
+    """
+    Tests an Aion Labs API key with a tiny authenticated chat request.
+    (GET /v1/models is public, so it cannot validate a key — a minimal
+    chat completion is the reliable check. Costs a few tokens.)
+    Returns (success: bool, detail: str)
+    """
+    key = (api_key or os.environ.get("AION_API_KEY", "")).strip()
+    if not key or key == "YOUR_AION_API_KEY_HERE":
+        return False, "Aion API Key is missing. Please provide your Aion Labs API Key."
+
+    model_id = (model or os.environ.get("AION_MODEL", "")).strip() or "aion-labs/aion-3.0-mini"
+    base_url = (os.environ.get("AION_BASE_URL", "")).strip() or "https://api.aionlabs.ai/v1"
+    url = base_url.rstrip('/') + "/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+        # Cloudflare rejects default Python user-agents (403 / error 1010)
+        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/126.0 Safari/537.36"),
+    }
+    payload = {
+        "model": model_id,
+        "messages": [{"role": "user", "content": "Reply with exactly: OK"}],
+        "max_tokens": 200,
+    }
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code == 200:
+            return True, f"Aion Labs API Key is valid and active! (model: {model_id})"
+        if response.status_code == 401:
+            return False, "Aion API Error (401): Invalid API key."
+        if response.status_code == 429:
+            return False, "Aion API Error (429): Rate limit / daily quota reached — the key itself may be valid."
+        try:
+            err = response.json()
+            msg = err.get('detail') or err.get('error', {}).get('message', response.text[:200])
+        except Exception:
+            msg = response.text[:200]
+        return False, f"Aion API Error ({response.status_code}): {msg}"
+    except requests.exceptions.RequestException as e:
+        return False, f"Aion API connection error: {e}"
+    except Exception as e:
+        return False, f"Error testing Aion key: {e}"

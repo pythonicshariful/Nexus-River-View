@@ -4272,7 +4272,7 @@ def settings():
     # Standard known keys
     standard_keys = {
         'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID',
-        'GEMINI_API_KEY',
+        'GEMINI_API_KEY', 'AION_API_KEY', 'AION_MODEL',
         'COMPANY_NAME', 'COMPANY_ADDRESS',
         'ADMIN_PASSWORD', 'NEXUS_DATA_PATH'
     }
@@ -4280,6 +4280,7 @@ def settings():
 
     has_telegram = bool(env_dict.get('TELEGRAM_BOT_TOKEN') and env_dict.get('TELEGRAM_CHAT_ID'))
     has_gemini = bool(env_dict.get('GEMINI_API_KEY') and env_dict.get('GEMINI_API_KEY') != "YOUR_GEMINI_API_KEY_HERE")
+    has_aion = bool(env_dict.get('AION_API_KEY') and env_dict.get('AION_API_KEY') != "YOUR_AION_API_KEY_HERE")
     admin_pw = env_dict.get('ADMIN_PASSWORD', current_app.config.get('ADMIN_PASSWORD', '1234'))
     
     return render_template(
@@ -4290,6 +4291,7 @@ def settings():
         backups=backups,
         has_telegram=has_telegram,
         has_gemini=has_gemini,
+        has_aion=has_aion,
         admin_pw=admin_pw,
         env_file_path=get_env_file_path(),
         company_name=env_dict.get('COMPANY_NAME', 'NEXUS RIVER VIEW'),
@@ -4306,6 +4308,8 @@ def save_env_settings():
     existing_dict['TELEGRAM_BOT_TOKEN'] = request.form.get('TELEGRAM_BOT_TOKEN', '').strip()
     existing_dict['TELEGRAM_CHAT_ID'] = request.form.get('TELEGRAM_CHAT_ID', '').strip()
     existing_dict['GEMINI_API_KEY'] = request.form.get('GEMINI_API_KEY', '').strip()
+    existing_dict['AION_API_KEY'] = request.form.get('AION_API_KEY', '').strip()
+    existing_dict['AION_MODEL'] = request.form.get('AION_MODEL', '').strip()
     existing_dict['COMPANY_NAME'] = request.form.get('COMPANY_NAME', 'NEXUS RIVER VIEW').strip()
     existing_dict['COMPANY_ADDRESS'] = request.form.get('COMPANY_ADDRESS', '').strip()
     
@@ -4433,6 +4437,16 @@ def api_test_gemini():
     success, msg = test_gemini_api(api_key)
     return jsonify({'success': success, 'message': msg})
 
+@main.route('/api/env/test-aion', methods=['POST'])
+@login_required
+def api_test_aion():
+    from env_manager import test_aion_api
+    data = request.get_json(silent=True) or {}
+    api_key = data.get('api_key')
+    model = data.get('model')
+    success, msg = test_aion_api(api_key, model)
+    return jsonify({'success': success, 'message': msg})
+
 @main.route('/api/env/test-path', methods=['POST'])
 @login_required
 def api_test_path():
@@ -4508,6 +4522,11 @@ def favicon():
 
 @main.route('/api/chat', methods=['POST'])
 def api_ai_chat():
+    # The chatbot can read the whole database, so it must never be
+    # reachable without a logged-in session. (The global request
+    # processor skips '/api/' paths, so check explicitly here.)
+    if not current_user.is_authenticated:
+        return {"error": "Login required"}, 401
     from ai_chat import chat_with_db
     data = request.get_json()
     if not data or 'message' not in data:
