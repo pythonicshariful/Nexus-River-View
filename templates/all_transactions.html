@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header mb-3">
+    <div class="page-header-title">
+        <h3 class="fw-bold text-dark-blue mb-0">
+            <i class="fas fa-arrow-right-arrow-left me-2 text-primary"></i>All Transactions
+        </h3>
+        <p class="text-muted small mb-0">Every money movement in one place — credit &amp; debit vouchers, customer payments, contra transfers, bank entries, petty cash and party bills/payments. Entries created by a voucher, contra or customer payment are shown once, under that document.</p>
+    </div>
+    <div class="page-header-actions">
+        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm" data-export-url="{{ url_for('main.export_all_transactions') }}">
+            <i class="fas fa-file-excel me-1"></i> Export Excel
+        </button>
+    </div>
+</div>
+
+<!-- Totals -->
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 h-100"><div class="card-body py-2 px-3">
+            <div class="small text-muted fw-bold text-uppercase" style="font-size:0.65rem;">Transactions</div>
+            <div class="fw-bold fs-5">{{ totals.count }}</div>
+            <div class="small text-muted">Showing {{ shown_count }} rows</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 h-100"><div class="card-body py-2 px-3">
+            <div class="small text-success fw-bold text-uppercase" style="font-size:0.65rem;">Total In</div>
+            <div class="fw-bold fs-5 text-success">৳{{ "{:,.2f}".format(totals.total_in) }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 h-100"><div class="card-body py-2 px-3">
+            <div class="small text-danger fw-bold text-uppercase" style="font-size:0.65rem;">Total Out</div>
+            <div class="fw-bold fs-5 text-danger">৳{{ "{:,.2f}".format(totals.total_out) }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 h-100"><div class="card-body py-2 px-3">
+            <div class="small text-primary fw-bold text-uppercase" style="font-size:0.65rem;">Net (In − Out)</div>
+            <div class="fw-bold fs-5 {% if totals.total_in - totals.total_out >= 0 %}text-success{% else %}text-danger{% endif %}">৳{{ "{:,.2f}".format(totals.total_in - totals.total_out) }}</div>
+            <div class="small text-muted">Transfers ৳{{ "{:,.0f}".format(totals.total_transfer) }} • Bills ৳{{ "{:,.0f}".format(totals.total_bill) }}</div>
+        </div></div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-3 rounded-3 overflow-hidden">
+    <div class="card-body p-3 bg-light bg-opacity-50">
+        <button class="filter-panel-toggle" data-target="allTxFilterPanel" id="allTxFilterToggle">
+            <span><i class="fas fa-filter me-1"></i> Filters</span>
+            <i class="fas fa-chevron-down toggle-arrow"></i>
+        </button>
+        <div id="allTxFilterPanel" class="filter-collapsible d-md-block">
+            <form method="GET" action="{{ url_for('main.all_transactions') }}" class="row g-2">
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted mb-1">Transaction Types</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for key, label in sources %}
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="checkbox" name="src" value="{{ key }}" id="src_{{ key }}"
+                                   {% if not selected_sources or key in selected_sources %}checked{% endif %}>
+                            <label class="form-check-label small" for="src_{{ key }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Date Range</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" name="start_date" class="form-control" value="{{ f.get('start_date', '') }}">
+                        <span class="input-group-text bg-white px-1 text-muted small">to</span>
+                        <input type="date" name="end_date" class="form-control" value="{{ f.get('end_date', '') }}">
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="Ref, name, description..." value="{{ f.get('search', '') }}" autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Party</label>
+                    <select name="party_id" class="form-select form-select-sm">
+                        <option value="">All Parties</option>
+                        {% for p in parties %}
+                        <option value="{{ p.id }}" {% if f.get('party_id', '')|string == p.id|string %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Customer</label>
+                    <select name="customer_id" class="form-select form-select-sm">
+                        <option value="">All Customers</option>
+                        {% for c in customers %}
+                        <option value="{{ c.id }}" {% if f.get('customer_id', '')|string == c.id|string %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Bank</label>
+                    <select name="bank_id" class="form-select form-select-sm">
+                        <option value="">All Banks</option>
+                        {% for b in banks %}
+                        <option value="{{ b.id }}" {% if f.get('bank_id', '')|string == b.id|string %}selected{% endif %}>{{ b.bank_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Account</label>
+                    <select name="method" class="form-select form-select-sm">
+                        <option value="">Cash &amp; Bank</option>
+                        <option value="Cash" {% if f.get('method') == 'Cash' %}selected{% endif %}>Cash</option>
+                        <option value="Bank" {% if f.get('method') == 'Bank' %}selected{% endif %}>Bank</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Category</label>
+                    <select name="category" class="form-select form-select-sm">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if f.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Amount Range</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" step="any" name="min_amount" class="form-control" placeholder="Min" value="{{ f.get('min_amount', '') }}">
+                        <span class="input-group-text bg-white px-1 text-muted small">-</span>
+                        <input type="number" step="any" name="max_amount" class="form-control" placeholder="Max" value="{{ f.get('max_amount', '') }}">
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Sort By</label>
+                    <select name="sort" class="form-select form-select-sm">
+                        <option value="date_desc" {% if f.get('sort', 'date_desc') == 'date_desc' %}selected{% endif %}>Date (newest)</option>
+                        <option value="date_asc" {% if f.get('sort') == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
+                        <option value="amount_desc" {% if f.get('sort') == 'amount_desc' %}selected{% endif %}>Amount (high → low)</option>
+                        <option value="amount_asc" {% if f.get('sort') == 'amount_asc' %}selected{% endif %}>Amount (low → high)</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Show Rows</label>
+                    <select name="limit" class="form-select form-select-sm">
+                        {% for n in ['100', '250', '500', '1000', 'all'] %}
+                        <option value="{{ n }}" {% if f.get('limit', '250') == n %}selected{% endif %}>{{ 'All' if n == 'all' else n }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1 shadow-sm">Filter</button>
+                    <a href="{{ url_for('main.all_transactions') }}" class="btn btn-light btn-sm rounded-pill px-2 text-muted border shadow-sm">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle table-mobile-stack" style="min-width: 760px;">
+                <thead class="bg-white text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-3 py-3" style="font-size:0.7rem;">Date</th>
+                        <th style="font-size:0.7rem;">Type</th>
+                        <th style="font-size:0.7rem;">Ref</th>
+                        <th style="font-size:0.7rem;">Party / Customer</th>
+                        <th style="font-size:0.7rem;">Description</th>
+                        <th style="font-size:0.7rem;">Account</th>
+                        <th class="text-end" style="font-size:0.7rem;">Money In</th>
+                        <th class="text-end" style="font-size:0.7rem;">Money Out</th>
+                        <th class="text-end pe-3" style="font-size:0.7rem;">Transfer / Bill</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rows %}
+                    <tr>
+                        <td class="ps-3" data-label="Date" style="font-size:0.8rem; white-space:nowrap;">{{ r.date }}</td>
+                        <td data-label="Type">
+                            {% if r.source_key == 'credit_voucher' %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill" style="font-size:0.66rem;">Credit Voucher</span>
+                            {% elif r.source_key == 'debit_voucher' %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill" style="font-size:0.66rem;">Debit Voucher</span>
+                            {% elif r.source_key == 'customer_payment' %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size:0.66rem;">Customer Payment</span>
+                            {% elif r.source_key == 'contra' %}
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill" style="font-size:0.66rem;">Contra</span>
+                            {% elif r.source_key == 'bank' %}
+                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill" style="font-size:0.66rem;">{{ r.source_label }}</span>
+                            {% elif r.source_key == 'petty_cash' %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill" style="font-size:0.66rem;">{{ r.source_label }}</span>
+                            {% elif r.source_key == 'party_bill' %}
+                            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 rounded-pill" style="font-size:0.66rem;">Party Bill</span>
+                            {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill" style="font-size:0.66rem;">Party Payment</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Ref" style="font-size:0.8rem;">
+                            {% if r.detail_url %}<a href="{{ r.detail_url }}" class="fw-semibold text-decoration-none">{{ r.ref }}</a>{% else %}{{ r.ref }}{% endif %}
+                        </td>
+                        <td data-label="Party / Customer" style="font-size:0.82rem;">{{ r.name }}</td>
+                        <td data-label="Description" style="font-size:0.8rem;">
+                            <span class="text-muted">{{ r.description }}</span>
+                            {% if r.category %}<span class="badge bg-light text-dark border ms-1" style="font-size:0.62rem;">{{ r.category }}</span>{% endif %}
+                        </td>
+                        <td data-label="Account" style="font-size:0.78rem;">{{ r.account }}</td>
+                        <td class="text-end" data-label="Money In" style="font-size:0.82rem;">
+                            {% if r.money_in %} <span class="fw-bold text-success">৳{{ "{:,.2f}".format(r.money_in) }}</span>{% endif %}
+                        </td>
+                        <td class="text-end" data-label="Money Out" style="font-size:0.82rem;">
+                            {% if r.money_out %}<span class="fw-bold text-danger">৳{{ "{:,.2f}".format(r.money_out) }}</span>{% endif %}
+                        </td>
+                        <td class="text-end pe-3" data-label="Transfer / Bill" style="font-size:0.82rem;">
+                            {% if r.neutral_amount %}<span class="fw-semibold text-primary">৳{{ "{:,.2f}".format(r.neutral_amount) }}</span> <span class="small text-muted">{{ r.neutral_label }}</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <h5 class="text-muted fw-bold">No Transactions Found</h5>
+                            <p class="text-muted small">Try adjusting your filters.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if rows %}
+                <tfoot class="bg-light">
+                    <tr>
+                        <td colspan="6" class="ps-3 fw-bold small">TOTAL ({{ totals.count }} transactions)</td>
+                        <td class="text-end fw-bold text-success">৳{{ "{:,.2f}".format(totals.total_in) }}</td>
+                        <td class="text-end fw-bold text-danger">৳{{ "{:,.2f}".format(totals.total_out) }}</td>
+                        <td class="text-end pe-3 fw-bold text-primary">৳{{ "{:,.2f}".format(totals.total_transfer + totals.total_bill) }}</td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

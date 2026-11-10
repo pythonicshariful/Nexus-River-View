@@ -22,6 +22,9 @@
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="fas fa-filter me-2"></i>Filter</button>
                 </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-success w-100 rounded-pill" data-export-url="{{ url_for('main.export_pnl') }}"><i class="fas fa-file-excel me-2"></i>Excel</button>
+                </div>
             </form>
         </div>
 

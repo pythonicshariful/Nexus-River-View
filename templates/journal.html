@@ -8,19 +8,32 @@
             <p class="text-muted small mb-0">Daily chronological record of all financial events</p>
         </div>
         
-        <form method="GET" action="{{ url_for('main.view_journal') }}" class="d-flex align-items-center gap-2 bg-white p-2 rounded-pill shadow-sm border">
-            <div class="input-group input-group-sm border-0">
+        <form method="GET" action="{{ url_for('main.view_journal') }}" class="d-flex align-items-center gap-2 bg-white p-2 rounded-3 shadow-sm border flex-wrap">
+            <div class="input-group input-group-sm border-0" style="width:auto;">
                 <span class="input-group-text bg-transparent border-0 text-muted small">From</span>
                 <input type="date" name="start_date" class="form-control border-0 bg-transparent" value="{{ start_date }}" style="width: 130px;">
                 <span class="input-group-text bg-transparent border-0 text-muted small">To</span>
                 <input type="date" name="end_date" class="form-control border-0 bg-transparent" value="{{ end_date }}" style="width: 130px;">
             </div>
+            <select name="reference_type" class="form-select form-select-sm" style="width:auto;">
+                <option value="">All Ref Types</option>
+                {% for rt in ref_types %}
+                <option value="{{ rt }}" {% if f_reference_type == rt %}selected{% endif %}>{{ rt }}</option>
+                {% endfor %}
+            </select>
+            <select name="account_code" class="form-select form-select-sm" style="width:auto; max-width:220px;">
+                <option value="">All Accounts</option>
+                {% for a in accounts %}
+                <option value="{{ a.account_code }}" {% if f_account_code == a.account_code %}selected{% endif %}>{{ a.account_code }} — {{ a.account_name }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="search" class="form-control form-control-sm" style="width:170px;" placeholder="Search entry # / desc..." value="{{ f_search }}" autocomplete="off">
             <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">Filter</button>
             <a href="{{ url_for('main.view_journal') }}" class="btn btn-light btn-sm rounded-pill px-2 border-0 text-muted" title="Reset"><i class="fas fa-sync-alt"></i></a>
         </form>
 
         <div class="d-flex gap-2">
-            <button class="btn btn-premium px-3"><i class="fas fa-download me-2"></i>Export</button>
+            <button class="btn btn-premium px-3" data-export-url="{{ url_for('main.export_journal') }}"><i class="fas fa-file-excel me-2"></i>Export Excel</button>
         </div>
     </div>
 

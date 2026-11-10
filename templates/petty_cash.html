@@ -79,6 +79,16 @@
                                         {% endfor %}
                                     </select>
                                 </div>
+                                <div class="col-6 col-md-auto">
+                                    <select name="type" class="form-select form-select-sm" title="Type">
+                                        <option value="All">All Types</option>
+                                        <option value="Income" {% if request.args.get('type') == 'Income' %}selected{% endif %}>Income</option>
+                                        <option value="Expense" {% if request.args.get('type') == 'Expense' %}selected{% endif %}>Expense</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-auto">
+                                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Search description..." value="{{ request.args.get('search', '') }}" autocomplete="off" title="Search">
+                                </div>
                                 <div class="col-4 col-md-auto d-flex gap-1">
                                     <button type="submit" class="btn btn-sm btn-outline-primary"><i class="fas fa-filter"></i></button>
                                     <a href="{{ url_for('main.manage_petty_cash') }}" class="btn btn-sm btn-outline-secondary" title="Clear"><i class="fas fa-times"></i></a>

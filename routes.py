@@ -476,8 +476,11 @@ def verify_otp_page():
 # --- Employee Routes ---
 @main.route('/employees')
 def manage_employees():
-    employees = Employee.query.order_by(db.cast(Employee.employee_id, db.Integer)).all()
-    return render_template('employees.html', employees=employees)
+    employees = _employee_filtered_query(request.args).all()
+    departments = [d[0] for d in db.session.query(Employee.department).distinct().all() if d[0]]
+    return render_template('employees.html', employees=employees, departments=departments,
+                           f_search=request.args.get('search') or '',
+                           f_department=request.args.get('department') or '')
 
 @main.route('/employee/add', methods=['GET', 'POST'])
 def add_employee():
@@ -1149,7 +1152,17 @@ def delete_attendance(id):
 
 @main.route('/leaves')
 def view_leaves():
-    leaves = Leave.query.order_by(Leave.created_at.desc()).all()
+    leave_query = Leave.query
+    f_status = request.args.get('status') or ''
+    f_employee = request.args.get('employee_id') or ''
+    f_type = request.args.get('leave_type') or ''
+    if f_status and f_status != 'All':
+        leave_query = leave_query.filter(Leave.status == f_status)
+    if f_employee:
+        leave_query = leave_query.filter(Leave.employee_id == f_employee)
+    if f_type and f_type != 'All':
+        leave_query = leave_query.filter(Leave.leave_type == f_type)
+    leaves = leave_query.order_by(Leave.created_at.desc()).all()
     employees = Employee.query.all()
     
     # Calculate Leave Balances
@@ -1170,7 +1183,9 @@ def view_leaves():
         }
         leave_stats.append(stat)
         
-    return render_template('leaves.html', leaves=leaves, leave_stats=leave_stats)
+    return render_template('leaves.html', leaves=leaves, leave_stats=leave_stats,
+                           employees=employees, f_status=f_status,
+                           f_employee=f_employee, f_type=f_type)
 
 @main.route('/leave/apply', methods=['GET', 'POST'])
 def apply_leave():
@@ -2123,8 +2138,9 @@ def delete_installment(id):
 
 @main.route('/installments')
 def manage_installments_page():
-    installments = Installment.query.order_by(Installment.created_at).all()
-    return render_template('installments.html', installments=installments)
+    installments = _installment_filtered_query(request.args).all()
+    return render_template('installments.html', installments=installments,
+                           f_search=request.args.get('search') or '')
 
 @main.route('/installment/<int:id>/details')
 def installment_details(id):
@@ -2179,9 +2195,12 @@ def manage_parties():
             db.session.add(PartyCategory(name=d))
         db.session.commit()
 
-    parties = Party.query.order_by(Party.name).all()
+    parties = _party_filtered_list(request.args)
     party_categories = PartyCategory.query.order_by(PartyCategory.name).all()
-    return render_template('parties.html', parties=parties, party_categories=party_categories)
+    return render_template('parties.html', parties=parties, party_categories=party_categories,
+                           f_search=request.args.get('search') or '',
+                           f_category=request.args.get('category') or '',
+                           f_balance=request.args.get('balance') or '')
 
 @main.route('/party/add', methods=['GET', 'POST'])
 def add_party():
@@ -2503,6 +2522,23 @@ def manage_transactions(customer_id):
         return redirect(url_for('main.manage_transactions', customer_id=customer_id))
         
     transactions = Transaction.query.filter_by(customer_id=customer_id).all()
+    # Optional history filters (date range / method / search)
+    _hs, _he = _date_filter_bounds(request.args)
+    _hm = request.args.get('method') or ''
+    _hq = (request.args.get('q') or '').strip().lower()
+    if _hs or _he or _hm or _hq:
+        def _tx_keep(t):
+            d = _parse_any_date(t.date)
+            if _hs and (d is None or d < _hs):
+                return False
+            if _he and (d is None or d > _he):
+                return False
+            if _hm and _hm != 'All' and (t.payment_method or '') != _hm:
+                return False
+            if _hq and _hq not in f"{t.remarks or ''} {t.transaction_id or ''} {t.installment_type or ''} {t.bank_name or ''}".lower():
+                return False
+            return True
+        transactions = [t for t in transactions if _tx_keep(t)]
     # Fetch active installments for this customer
     customer_installments = CustomerInstallment.query.filter_by(customer_id=customer_id).all()
     banks = Bank.query.filter_by(status='Active').all()
@@ -2683,6 +2719,8 @@ def manage_petty_cash():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     filter_category = request.args.get('category')
+    filter_type = request.args.get('type')
+    filter_search = (request.args.get('search') or '').strip()
     
     if not start_date:
         start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
@@ -2697,7 +2735,11 @@ def manage_petty_cash():
         query = query.filter(PettyCash.date <= end_date)
     if filter_category and filter_category != 'All':
         query = query.filter(PettyCash.category == filter_category)
-        
+    if filter_type and filter_type != 'All':
+        query = query.filter(PettyCash.type == filter_type)
+    if filter_search:
+        query = query.filter(PettyCash.description.contains(filter_search))
+
     entries = query.order_by(PettyCash.date.desc()).all()
 
     # Use managed PettyCashCategory table; seed defaults if empty
@@ -2723,7 +2765,10 @@ def manage_petty_cash():
                          available_categories=available_categories,
                          pc_categories=pc_categories,
                          start_date=start_date,
-                         end_date=end_date)
+                         end_date=end_date,
+                         filter_category=filter_category or 'All',
+                         filter_type=filter_type or 'All',
+                         filter_search=filter_search)
 
 # --- Petty Cash Category CRUD ---
 @main.route('/petty_cash/category/add', methods=['POST'])
@@ -2773,15 +2818,21 @@ def export_petty_cash_report():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     filter_category = request.args.get('category')
-    
+    filter_type = request.args.get('type')
+    filter_search = (request.args.get('search') or '').strip()
+
     query = PettyCash.query
-    
+
     if start_date:
         query = query.filter(PettyCash.date >= start_date)
     if end_date:
         query = query.filter(PettyCash.date <= end_date)
     if filter_category and filter_category != 'All':
         query = query.filter(PettyCash.category == filter_category)
+    if filter_type and filter_type != 'All':
+        query = query.filter(PettyCash.type == filter_type)
+    if filter_search:
+        query = query.filter(PettyCash.description.contains(filter_search))
         
     entries = query.order_by(PettyCash.date.desc()).all()
     
@@ -3433,10 +3484,24 @@ def bank_ledger(id):
                 
         transactions = filtered_transactions
 
+    # --- Extra filters: type / category / search ---
+    lf_type = request.args.get('tx_type') or 'All'
+    lf_category = request.args.get('category') or 'All'
+    lf_search = (request.args.get('search') or '').strip().lower()
+    if lf_type == 'credit':
+        transactions = [t for t in transactions if _num(t.credit) > 0]
+    elif lf_type == 'debit':
+        transactions = [t for t in transactions if _num(t.debit) > 0]
+    if lf_category != 'All':
+        transactions = [t for t in transactions if (t.category or '') == lf_category]
+    if lf_search:
+        transactions = [t for t in transactions
+                        if lf_search in f"{t.narration or ''} {t.transaction_details or ''} {t.cheque_no or ''} {t.ref_no or ''}".lower()]
 
     categories = PettyCashCategory.query.order_by(PettyCashCategory.name).all()
-    return render_template('bank_ledger.html', bank=bank, transactions=transactions, 
-                           start_date=start_date_str, end_date=end_date_str, categories=categories)
+    return render_template('bank_ledger.html', bank=bank, transactions=transactions,
+                           start_date=start_date_str, end_date=end_date_str, categories=categories,
+                           lf_type=lf_type, lf_category=lf_category, lf_search=request.args.get('search') or '')
 
 @main.route('/bank/transaction/delete/<int:id>', methods=['POST'])
 def delete_bank_transaction(id):
@@ -3507,36 +3572,31 @@ def manage_vouchers():
     end_date = request.args.get('end_date') or ""
     search = request.args.get('search') or ""
     date_type = request.args.get('date_type', 'voucher_date')
-    
+
     # Handle string literal "None" sent by browser/template quirks
     if search == "None":
         search = ""
     if v_type == "None":
         v_type = ""
 
-    query = Voucher.query
-    if v_type:
-        query = query.filter_by(type=v_type)
-        
-    # Determine the date expression to filter and sort by (coalescing to main date if payment_date is NULL)
-    if date_type == 'payment_date':
-        date_expr = db.func.coalesce(Voucher.payment_date, Voucher.date)
-    else:
-        date_expr = Voucher.date
-        
-    if start_date:
-        query = query.filter(date_expr >= start_date)
-    if end_date:
-        query = query.filter(date_expr <= end_date)
-    if search:
-        query = query.filter(
-            (Voucher.voucher_no.contains(search)) | 
-            (Voucher.description.contains(search))
-        )
-        
-    vouchers = query.order_by(date_expr.desc(), Voucher.id.desc()).all()
-        
-    return render_template('vouchers.html', vouchers=vouchers, v_type=v_type, start_date=start_date, end_date=end_date, search=search, date_type=date_type)
+    vouchers = _voucher_filtered_query(request.args).all()
+
+    parties = Party.query.order_by(Party.name).all()
+    customers = Customer.query.order_by(Customer.name).all()
+    banks = Bank.query.order_by(Bank.bank_name).all()
+    categories = [c[0] for c in db.session.query(Voucher.category).distinct().all() if c[0]]
+    return render_template('vouchers.html', vouchers=vouchers, v_type=v_type,
+                           start_date=start_date, end_date=end_date, search=search,
+                           date_type=date_type, parties=parties, customers=customers,
+                           banks=banks, voucher_categories=categories,
+                           f_party_id=request.args.get('party_id') or '',
+                           f_customer_id=request.args.get('customer_id') or '',
+                           f_category=request.args.get('category') or '',
+                           f_payment_method=request.args.get('payment_method') or '',
+                           f_bank_id=request.args.get('bank_id') or '',
+                           f_due_only=request.args.get('due_only') or '',
+                           f_min_amount=request.args.get('min_amount') or '',
+                           f_max_amount=request.args.get('max_amount') or '')
 
 @main.route('/vouchers/add/<v_type>', methods=['GET', 'POST'])
 def add_voucher(v_type):
@@ -3711,8 +3771,17 @@ def print_voucher(id):
 
 @main.route('/contra')
 def manage_contra_entries():
-    contra_entries = ContraEntry.query.order_by(ContraEntry.date.desc(), ContraEntry.id.desc()).all()
-    return render_template('contra_list.html', contra_entries=contra_entries)
+    contra_entries = _contra_filtered_query(request.args).all()
+    banks = Bank.query.order_by(Bank.bank_name).all()
+    return render_template('contra_list.html', contra_entries=contra_entries, banks=banks,
+                           f_start_date=request.args.get('start_date') or '',
+                           f_end_date=request.args.get('end_date') or '',
+                           f_from_account=request.args.get('from_account') or '',
+                           f_to_account=request.args.get('to_account') or '',
+                           f_bank_id=request.args.get('bank_id') or '',
+                           f_search=request.args.get('search') or '',
+                           f_min_amount=request.args.get('min_amount') or '',
+                           f_max_amount=request.args.get('max_amount') or '')
 
 @main.route('/contra/add', methods=['GET', 'POST'])
 def add_contra_entry():
@@ -3828,29 +3897,34 @@ def delete_contra_entry(id):
 
 @main.route('/accounting/coa')
 def manage_coa():
-    accounts = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
+    accounts = _coa_filtered_query(request.args).all()
     categories = db.session.query(ChartOfAccounts.account_category).distinct().all()
     categories = [c[0] for c in categories if c[0]]
-    return render_template('coa.html', accounts=accounts, categories=categories)
+    account_types = [t[0] for t in db.session.query(ChartOfAccounts.account_type).distinct().all() if t[0]]
+    return render_template('coa.html', accounts=accounts, categories=categories,
+                           account_types=account_types,
+                           f_account_type=request.args.get('account_type') or '',
+                           f_account_category=request.args.get('account_category') or '',
+                           f_search=request.args.get('search') or '')
 
 @main.route('/accounting/journal')
 def view_journal():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
-    
+
     if not start_date:
         start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
     if not end_date:
         end_date = datetime.now().strftime('%Y-%m-%d')
-        
-    query = JournalEntry.query
-    if start_date:
-        query = query.filter(JournalEntry.entry_date >= start_date)
-    if end_date:
-        query = query.filter(JournalEntry.entry_date <= end_date)
-        
-    entries = query.order_by(JournalEntry.entry_date.desc(), JournalEntry.posted_at.desc()).all()
-    return render_template('journal.html', entries=entries, start_date=start_date, end_date=end_date)
+
+    entries = _journal_filtered_query(request.args).all()
+    ref_types = [r[0] for r in db.session.query(JournalEntry.reference_type).distinct().all() if r[0]]
+    accounts = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
+    return render_template('journal.html', entries=entries, start_date=start_date,
+                           end_date=end_date, ref_types=ref_types, accounts=accounts,
+                           f_reference_type=request.args.get('reference_type') or '',
+                           f_search=request.args.get('search') or '',
+                           f_account_code=request.args.get('account_code') or '')
 
 @main.route('/accounting/reports/trial-balance')
 def report_trial_balance():
@@ -4150,8 +4224,30 @@ def bank_report(bank_id):
 @main.route('/bank/<int:id>/export')
 def export_bank_ledger(id):
     bank = Bank.query.get_or_404(id)
-    # Raw query: no sorting
     transactions = BankTransaction.query.filter_by(bank_id=id).all()
+
+    # Respect the ledger page filters when present (dates are DD-MM-YYYY)
+    _start, _end = _date_filter_bounds(request.args)
+    _type = request.args.get('tx_type') or 'All'
+    _cat = request.args.get('category') or 'All'
+    _search = (request.args.get('search') or '').strip().lower()
+    if _start or _end or _type != 'All' or _cat != 'All' or _search:
+        def _keep(t):
+            d = _parse_any_date(t.date)
+            if _start and (d is None or d < _start):
+                return False
+            if _end and (d is None or d > _end):
+                return False
+            if _type == 'credit' and _num(t.credit) <= 0:
+                return False
+            if _type == 'debit' and _num(t.debit) <= 0:
+                return False
+            if _cat != 'All' and (t.category or '') != _cat:
+                return False
+            if _search and _search not in f"{t.narration or ''} {t.transaction_details or ''} {t.cheque_no or ''} {t.ref_no or ''}".lower():
+                return False
+            return True
+        transactions = [t for t in transactions if _keep(t)]
     
     from sync_manager import sync_manager
     data = [sync_manager._model_to_dict('bank_transaction', tx) for tx in transactions]
@@ -5536,3 +5632,905 @@ def export_money_flow():
         download_name=filename
     )
 
+
+
+# ======================================================================
+# --- Excel exports, extra filters & All Transactions (added 2026-11-10) ---
+# ======================================================================
+
+def _xlsx_download(rows, filename, sheet_name='Report'):
+    """Build an .xlsx download from a list of dict rows (pandas/openpyxl,
+    same pattern as the existing export routes)."""
+    df = pd.DataFrame(rows)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name=sheet_name[:31], index=False)
+    output.seek(0)
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+def _num(v):
+    """Decimal/None-safe float for exports and feed maths."""
+    try:
+        return float(v or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _parse_any_date(raw):
+    """Parse the mixed date strings stored across tables
+    (YYYY-MM-DD, DD-MM-YYYY, slashes) into a date; None when unparseable."""
+    if raw is None:
+        return None
+    s = str(raw).strip()
+    if not s:
+        return None
+    for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%Y/%m/%d', '%d/%m/%Y', '%Y-%m-%d %H:%M:%S'):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+    try:
+        return datetime.fromisoformat(s).date()
+    except ValueError:
+        return None
+
+
+def _date_filter_bounds(args):
+    start = _parse_any_date(args.get('start_date'))
+    end = _parse_any_date(args.get('end_date'))
+    return start, end
+
+
+# ----------------------------------------------------------------------
+# Vouchers: shared filter set (page + export)
+# ----------------------------------------------------------------------
+def _voucher_filtered_query(args):
+    v_type = args.get('type') or ''
+    start_date = args.get('start_date') or ''
+    end_date = args.get('end_date') or ''
+    search = args.get('search') or ''
+    date_type = args.get('date_type', 'voucher_date')
+    if search == 'None':
+        search = ''
+    if v_type == 'None':
+        v_type = ''
+
+    query = Voucher.query
+    if v_type:
+        query = query.filter_by(type=v_type)
+
+    if date_type == 'payment_date':
+        date_expr = db.func.coalesce(Voucher.payment_date, Voucher.date)
+    else:
+        date_expr = Voucher.date
+
+    if start_date:
+        query = query.filter(date_expr >= start_date)
+    if end_date:
+        query = query.filter(date_expr <= end_date)
+    if search:
+        query = query.filter(
+            (Voucher.voucher_no.contains(search)) |
+            (Voucher.description.contains(search))
+        )
+    party_id = args.get('party_id')
+    if party_id:
+        query = query.filter(Voucher.party_id == party_id)
+    customer_id = args.get('customer_id')
+    if customer_id:
+        query = query.filter(Voucher.customer_id == customer_id)
+    category = args.get('category') or ''
+    if category and category != 'All':
+        query = query.filter(Voucher.category == category)
+    payment_method = args.get('payment_method') or ''
+    if payment_method and payment_method != 'All':
+        query = query.filter(Voucher.payment_method == payment_method)
+    bank_id = args.get('bank_id')
+    if bank_id:
+        query = query.filter(Voucher.bank_id == bank_id)
+    if args.get('due_only'):
+        query = query.filter(Voucher.due_amount > 0)
+    min_amount = args.get('min_amount')
+    if min_amount:
+        try:
+            query = query.filter(Voucher.total_amount >= float(min_amount))
+        except ValueError:
+            pass
+    max_amount = args.get('max_amount')
+    if max_amount:
+        try:
+            query = query.filter(Voucher.total_amount <= float(max_amount))
+        except ValueError:
+            pass
+    return query.order_by(date_expr.desc(), Voucher.id.desc())
+
+
+@main.route('/vouchers/export')
+@login_required
+def export_vouchers():
+    vouchers = _voucher_filtered_query(request.args).all()
+    rows = []
+    for v in vouchers:
+        rows.append({
+            'Voucher No': v.voucher_no,
+            'Type': v.type,
+            'Date': v.date,
+            'Payment Date': v.payment_date or '',
+            'Party': v.party_obj.name if v.party_obj else '',
+            'Customer': v.customer_obj.name if v.customer_obj else '',
+            'Category': v.category or '',
+            'Description': v.description or '',
+            'Payment Method': v.payment_method or '',
+            'Bank': v.bank_obj.bank_name if v.bank_obj else '',
+            'Total Amount': _num(v.total_amount),
+            'Amount Paid': _num(v.amount_paid),
+            'Due Amount': _num(v.due_amount),
+            'Paid %': _num(v.payment_percentage),
+            'Is Payment': 'Yes' if v.is_payment else 'No',
+            'Notes': v.notes or '',
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Vouchers_{stamp}.xlsx', 'Vouchers')
+
+
+# ----------------------------------------------------------------------
+# All Transactions — every money movement on one page
+# ----------------------------------------------------------------------
+ALL_TX_SOURCES = [
+    ('credit_voucher', 'Credit Voucher'),
+    ('debit_voucher', 'Debit Voucher'),
+    ('customer_payment', 'Customer Payment'),
+    ('contra', 'Contra Transfer'),
+    ('bank', 'Bank Entry'),
+    ('petty_cash', 'Petty Cash'),
+    ('party_bill', 'Party Bill'),
+    ('party_payment', 'Party Payment'),
+]
+
+
+def _collect_all_transactions():
+    """Normalised feed of money movements. Rows that are side-effects of a
+    primary document (voucher / contra / customer payment) are skipped so
+    nothing is double-counted: the primary document represents them."""
+    rows = []
+
+    def add(date_raw, source_key, source_label, ref, name, description,
+            category, account, money_in=0.0, money_out=0.0,
+            neutral_label='', neutral_amount=0.0, detail_url='',
+            party_id=None, customer_id=None, bank_id=None):
+        d = _parse_any_date(date_raw)
+        rows.append({
+            'date_obj': d,
+            'date': d.strftime('%d %b %Y') if d else str(date_raw or ''),
+            'source_key': source_key,
+            'source_label': source_label,
+            'ref': ref or '',
+            'name': name or '',
+            'description': description or '',
+            'category': category or '',
+            'account': account or '',
+            'money_in': float(money_in or 0),
+            'money_out': float(money_out or 0),
+            'neutral_label': neutral_label,
+            'neutral_amount': float(neutral_amount or 0),
+            'detail_url': detail_url,
+            'party_id': party_id,
+            'customer_id': customer_id,
+            'bank_id': bank_id,
+        })
+
+    # Vouchers (primary documents — their cash/bank/party side-effects
+    # are represented here, not repeated below)
+    for v in Voucher.query.all():
+        name = ''
+        if v.party_obj:
+            name = v.party_obj.name
+        elif v.customer_obj:
+            name = v.customer_obj.name
+        account = v.payment_method or ''
+        if v.bank_obj:
+            account = f"{account} • {v.bank_obj.bank_name}"
+        desc = v.description or ''
+        extra = f"Total ৳{_num(v.total_amount):,.2f}"
+        if _num(v.due_amount) > 0:
+            extra += f" • Due ৳{_num(v.due_amount):,.2f}"
+        desc = f"{desc} ({extra})" if desc else extra
+        if v.type == 'Credit':
+            add(v.date, 'credit_voucher', 'Credit Voucher', v.voucher_no, name,
+                desc, v.category, account, money_in=_num(v.amount_paid),
+                detail_url=url_for('main.print_voucher', id=v.id),
+                party_id=v.party_id, customer_id=v.customer_id, bank_id=v.bank_id)
+        else:
+            add(v.date, 'debit_voucher', 'Debit Voucher', v.voucher_no, name,
+                desc, v.category, account, money_out=_num(v.amount_paid),
+                detail_url=url_for('main.print_voucher', id=v.id),
+                party_id=v.party_id, customer_id=v.customer_id, bank_id=v.bank_id)
+
+    # Contra transfers (neutral — money moves between own accounts)
+    for c in ContraEntry.query.all():
+        account = f"{c.from_account} → {c.to_account}"
+        if c.bank_obj:
+            account += f" • {c.bank_obj.bank_name}"
+        desc = c.description or ''
+        if c.cheque_no:
+            desc = f"{desc} (Chq: {c.cheque_no})" if desc else f"Chq: {c.cheque_no}"
+        add(c.date, 'contra', 'Contra Transfer', c.contra_no, '', desc, '',
+            account, neutral_label='Transfer', neutral_amount=_num(c.amount),
+            detail_url=url_for('main.print_contra_entry', id=c.id),
+            bank_id=c.bank_id)
+
+    # Customer payments not already represented by a voucher
+    for t in Transaction.query.filter(Transaction.voucher_id.is_(None)).all():
+        cust = t.customer
+        name = cust.name if cust else ''
+        account = t.payment_method or ''
+        if t.bank_name:
+            account = f"{account} • {t.bank_name}" if account else t.bank_name
+        desc = t.remarks or ''
+        if t.transaction_id:
+            desc = f"{desc} (Txn: {t.transaction_id})" if desc else f"Txn: {t.transaction_id}"
+        add(t.date, 'customer_payment', 'Customer Payment', '',
+            name, desc, t.installment_type, account, money_in=_num(t.amount),
+            detail_url=url_for('main.manage_transactions', customer_id=t.customer_id),
+            customer_id=t.customer_id, bank_id=t.bank_id)
+
+    # Standalone bank entries (not created by a voucher/contra/payment)
+    for bt in BankTransaction.query.filter(
+            BankTransaction.voucher_id.is_(None),
+            BankTransaction.contra_entry_id.is_(None),
+            BankTransaction.transaction_id.is_(None)).all():
+        bank_name = bt.bank.bank_name if bt.bank else ''
+        desc = bt.narration or bt.transaction_details or ''
+        if bt.cheque_no:
+            desc = f"{desc} (Chq: {bt.cheque_no})" if desc else f"Chq: {bt.cheque_no}"
+        if _num(bt.credit) > 0:
+            add(bt.date, 'bank', 'Bank Deposit', bt.ref_no or '', bank_name,
+                desc, bt.category, f"Bank • {bank_name}",
+                money_in=_num(bt.credit),
+                detail_url=url_for('main.bank_ledger', id=bt.bank_id),
+                bank_id=bt.bank_id)
+        elif _num(bt.debit) > 0:
+            add(bt.date, 'bank', 'Bank Withdrawal', bt.ref_no or '', bank_name,
+                desc, bt.category, f"Bank • {bank_name}",
+                money_out=_num(bt.debit),
+                detail_url=url_for('main.bank_ledger', id=bt.bank_id),
+                bank_id=bt.bank_id)
+
+    # Standalone petty cash entries
+    for p in PettyCash.query.filter(
+            PettyCash.voucher_id.is_(None),
+            PettyCash.contra_entry_id.is_(None),
+            PettyCash.transaction_id.is_(None)).all():
+        if p.type == 'Income':
+            add(p.date, 'petty_cash', 'Petty Cash In', '', '', p.description,
+                p.category, 'Cash', money_in=_num(p.amount),
+                detail_url=url_for('main.manage_petty_cash'))
+        else:
+            add(p.date, 'petty_cash', 'Petty Cash Out', '', '', p.description,
+                p.category, 'Cash', money_out=_num(p.amount),
+                detail_url=url_for('main.manage_petty_cash'))
+
+    # Standalone party ledger entries (manual bills & payments)
+    for e in PartyLedger.query.filter(PartyLedger.voucher_id.is_(None)).all():
+        party_name = e.party.name if e.party else ''
+        if _num(e.bill_amount) > 0:
+            add(e.date, 'party_bill', 'Party Bill', e.reference or '',
+                party_name, e.description, '', '',
+                neutral_label='Bill', neutral_amount=_num(e.bill_amount),
+                detail_url=url_for('main.view_party_ledger', id=e.party_id),
+                party_id=e.party_id)
+        if _num(e.paid_amount) > 0:
+            add(e.date, 'party_payment', 'Party Payment', e.reference or '',
+                party_name, e.description, '', '',
+                money_out=_num(e.paid_amount),
+                detail_url=url_for('main.view_party_ledger', id=e.party_id),
+                party_id=e.party_id)
+
+    return rows
+
+
+def _filter_all_transactions(rows, args):
+    start, end = _date_filter_bounds(args)
+    selected = args.getlist('src')
+    search = (args.get('search') or '').strip().lower()
+    party_id = args.get('party_id') or ''
+    customer_id = args.get('customer_id') or ''
+    bank_id = args.get('bank_id') or ''
+    method = args.get('method') or ''
+    category = (args.get('category') or '').strip().lower()
+    min_amount = args.get('min_amount') or ''
+    max_amount = args.get('max_amount') or ''
+    try:
+        min_amount = float(min_amount) if min_amount else None
+    except ValueError:
+        min_amount = None
+    try:
+        max_amount = float(max_amount) if max_amount else None
+    except ValueError:
+        max_amount = None
+
+    def keep(r):
+        if start and (r['date_obj'] is None or r['date_obj'] < start):
+            return False
+        if end and (r['date_obj'] is None or r['date_obj'] > end):
+            return False
+        if selected and r['source_key'] not in selected:
+            return False
+        if party_id and str(r['party_id'] or '') != party_id:
+            return False
+        if customer_id and str(r['customer_id'] or '') != customer_id:
+            return False
+        if bank_id and str(r['bank_id'] or '') != bank_id:
+            return False
+        if method and method != 'All':
+            if not r['account'].lower().startswith(method.lower()):
+                return False
+        if category and category not in (r['category'] or '').lower():
+            return False
+        if search:
+            hay = f"{r['ref']} {r['name']} {r['description']} {r['category']}".lower()
+            if search not in hay:
+                return False
+        amount = max(r['money_in'], r['money_out'], r['neutral_amount'])
+        if min_amount is not None and amount < min_amount:
+            return False
+        if max_amount is not None and amount > max_amount:
+            return False
+        return True
+
+    rows = [r for r in rows if keep(r)]
+
+    sort = args.get('sort') or 'date_desc'
+    far = datetime.min.date()
+    if sort == 'date_asc':
+        rows.sort(key=lambda r: (r['date_obj'] or far))
+    elif sort == 'amount_desc':
+        rows.sort(key=lambda r: max(r['money_in'], r['money_out'], r['neutral_amount']), reverse=True)
+    elif sort == 'amount_asc':
+        rows.sort(key=lambda r: max(r['money_in'], r['money_out'], r['neutral_amount']))
+    else:
+        rows.sort(key=lambda r: (r['date_obj'] or far), reverse=True)
+    return rows
+
+
+def _all_tx_totals(rows):
+    return {
+        'count': len(rows),
+        'total_in': sum(r['money_in'] for r in rows),
+        'total_out': sum(r['money_out'] for r in rows),
+        'total_transfer': sum(r['neutral_amount'] for r in rows if r['neutral_label'] == 'Transfer'),
+        'total_bill': sum(r['neutral_amount'] for r in rows if r['neutral_label'] == 'Bill'),
+    }
+
+
+@main.route('/all-transactions')
+@login_required
+def all_transactions():
+    all_rows = _collect_all_transactions()
+    categories = sorted({r['category'] for r in all_rows if r['category']})
+    rows = _filter_all_transactions(all_rows, request.args)
+    totals = _all_tx_totals(rows)
+    limit = request.args.get('limit') or '250'
+    total_count = len(rows)
+    if limit != 'all':
+        try:
+            rows = rows[:int(limit)]
+        except ValueError:
+            rows = rows[:250]
+    parties = Party.query.order_by(Party.name).all()
+    customers = Customer.query.order_by(Customer.name).all()
+    banks = Bank.query.order_by(Bank.bank_name).all()
+    return render_template(
+        'all_transactions.html', rows=rows, totals=totals,
+        total_count=total_count, shown_count=len(rows),
+        sources=ALL_TX_SOURCES, selected_sources=request.args.getlist('src'),
+        parties=parties, customers=customers, banks=banks, categories=categories,
+        f=request.args)
+
+
+@main.route('/all-transactions/export')
+@login_required
+def export_all_transactions():
+    rows = _filter_all_transactions(_collect_all_transactions(), request.args)
+    out = []
+    for r in rows:
+        out.append({
+            'Date': r['date'],
+            'Type': r['source_label'],
+            'Reference': r['ref'],
+            'Party / Customer / Bank': r['name'],
+            'Description': r['description'],
+            'Category': r['category'],
+            'Account': r['account'],
+            'Money In': r['money_in'] or '',
+            'Money Out': r['money_out'] or '',
+            'Transfer / Bill': r['neutral_amount'] or '',
+            'Transfer/Bill Label': r['neutral_label'],
+        })
+    t = _all_tx_totals(rows)
+    out.append({})
+    out.append({'Date': 'TOTAL', 'Type': f"{t['count']} transactions",
+                'Money In': t['total_in'], 'Money Out': t['total_out'],
+                'Transfer / Bill': t['total_transfer'] + t['total_bill']})
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(out, f'All_Transactions_{stamp}.xlsx', 'All Transactions')
+
+
+# ----------------------------------------------------------------------
+# More Excel exports
+# ----------------------------------------------------------------------
+@main.route('/contra/export')
+@login_required
+def export_contra():
+    entries = _contra_filtered_query(request.args).all()
+    rows = []
+    for c in entries:
+        rows.append({
+            'Contra No': c.contra_no,
+            'Date': c.date,
+            'From': c.from_account,
+            'To': c.to_account,
+            'Bank': c.bank_obj.bank_name if c.bank_obj else '',
+            'Amount': _num(c.amount),
+            'Cheque No': c.cheque_no or '',
+            'Description': c.description or '',
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Contra_Transfers_{stamp}.xlsx', 'Contra')
+
+
+@main.route('/customers/export')
+@login_required
+def export_customers():
+    query = Customer.query
+    director_id = request.args.get('director_id')
+    if director_id:
+        query = query.filter(Customer.director_id == director_id)
+    search = (request.args.get('search') or '').strip()
+    if search:
+        query = query.filter(
+            (Customer.name.contains(search)) |
+            (Customer.customer_id.contains(search)) |
+            (Customer.phone.contains(search)) |
+            (Customer.plot_no.contains(search))
+        )
+    customers = query.order_by(Customer.customer_id).all()
+    if request.args.get('due_only'):
+        customers = [c for c in customers if _num(c.due_amount) > 0]
+    rows = []
+    for c in customers:
+        rows.append({
+            'Customer ID': c.customer_id,
+            'Name': c.name,
+            'Phone': c.phone or '',
+            'Plot No': c.plot_no or '',
+            'Director': c.director.name if c.director else '',
+            'Shares': _num(c.shares),
+            'Total Price': _num(c.total_price),
+            'Down Payment': _num(c.down_payment),
+            'Monthly Installment': _num(c.monthly_installment),
+            'Total Paid': _num(c.total_paid),
+            'Due Amount': _num(c.due_amount),
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Customers_{stamp}.xlsx', 'Customers')
+
+
+@main.route('/directors/export')
+@login_required
+def export_directors():
+    directors = Director.query.order_by(Director.name).all()
+    rows = []
+    for d in directors:
+        assigned = sum(_num(c.shares) for c in d.customers)
+        rows.append({
+            'Director': d.name,
+            'Phone': d.phone or '',
+            'Bank': d.bank_name or '',
+            'Total Shares': _num(d.total_share),
+            'Assigned Shares': assigned,
+            'Available Shares': _num(d.total_share) - assigned,
+            'Customers': len(d.customers),
+            'Total Paid': _num(d.total_paid),
+            'Total Due': _num(d.total_due),
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Directors_{stamp}.xlsx', 'Directors')
+
+
+@main.route('/parties/export')
+@login_required
+def export_parties():
+    parties = _party_filtered_list(request.args)
+    rows = []
+    for p in parties:
+        bal = _num(p.current_balance)
+        rows.append({
+            'Party': p.name,
+            'Category': p.category or '',
+            'Phone': p.phone or '',
+            'Address': p.address or '',
+            'Current Balance': bal,
+            'Status': 'We owe them' if bal > 0 else ('Advance with them' if bal < 0 else 'Settled'),
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Parties_{stamp}.xlsx', 'Parties')
+
+
+@main.route('/banks/export')
+@login_required
+def export_banks():
+    banks = Bank.query.order_by(Bank.bank_name).all()
+    rows = []
+    for b in banks:
+        balance = sum(_num(t.credit) - _num(t.debit) for t in b.transactions)
+        rows.append({
+            'Bank': b.bank_name,
+            'Branch': b.branch or '',
+            'Account Holder': b.account_holder_name or '',
+            'Account No': b.account_no,
+            'Account Type': b.account_type or '',
+            'Currency': b.currency or '',
+            'Status': b.status or '',
+            'Transactions': len(b.transactions),
+            'Balance': balance,
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Banks_{stamp}.xlsx', 'Banks')
+
+
+@main.route('/accounting/journal/export')
+@login_required
+def export_journal():
+    entries = _journal_filtered_query(request.args).all()
+    rows = []
+    for e in entries:
+        for line in e.lines:
+            rows.append({
+                'Entry No': e.entry_number,
+                'Date': e.entry_date.isoformat() if e.entry_date else '',
+                'Reference Type': e.reference_type or '',
+                'Reference ID': e.reference_id or '',
+                'Description': e.description or '',
+                'Account Code': line.account_code,
+                'Account Name': line.account_name,
+                'Debit': _num(line.debit_amount),
+                'Credit': _num(line.credit_amount),
+                'Narration': line.narration or '',
+                'Posted By': e.posted_by or '',
+                'Reversed': 'Yes' if e.is_reversed else 'No',
+            })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Journal_{stamp}.xlsx', 'Journal')
+
+
+@main.route('/accounting/coa/export')
+@login_required
+def export_coa():
+    accounts = _coa_filtered_query(request.args).all()
+    rows = []
+    for a in accounts:
+        rows.append({
+            'Account Code': a.account_code,
+            'Account Name': a.account_name,
+            'Type': a.account_type,
+            'Category': a.account_category or '',
+            'Normal Balance': a.normal_balance,
+            'Control Account': 'Yes' if a.is_control_account else 'No',
+            'System': 'Yes' if a.is_system else 'No',
+            'Parent Code': a.parent_code or '',
+            'Description': a.description or '',
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Chart_of_Accounts_{stamp}.xlsx', 'CoA')
+
+
+@main.route('/accounting/reports/trial-balance/export')
+@login_required
+def export_trial_balance():
+    from logic import get_trial_balance
+    data = get_trial_balance(request.args.get('start_date'), request.args.get('end_date'))
+    rows = []
+    for r in data['accounts']:
+        rows.append({
+            'Account Code': r['code'],
+            'Account Name': r['name'],
+            'Debit': _num(r['debit']),
+            'Credit': _num(r['credit']),
+            'Control Account': 'Yes' if r['is_control'] else 'No',
+        })
+    rows.append({})
+    rows.append({'Account Code': '', 'Account Name': 'TOTAL',
+                 'Debit': _num(data['total_debit']), 'Credit': _num(data['total_credit'])})
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Trial_Balance_{stamp}.xlsx', 'Trial Balance')
+
+
+@main.route('/accounting/reports/pnl/export')
+@login_required
+def export_pnl():
+    from logic import get_profit_loss
+    data = get_profit_loss(request.args.get('start_date'), request.args.get('end_date'))
+    rows = []
+    for r in data['revenues']:
+        rows.append({'Section': 'Revenue', 'Account': r.account_name, 'Amount': _num(r.balance)})
+    rows.append({'Section': 'Revenue', 'Account': 'TOTAL REVENUE', 'Amount': _num(data['total_revenue'])})
+    for r in data['cogs']:
+        rows.append({'Section': 'COGS', 'Account': r.account_name, 'Amount': _num(r.balance)})
+    rows.append({'Section': 'COGS', 'Account': 'TOTAL COGS', 'Amount': _num(data['total_cogs'])})
+    rows.append({'Section': '', 'Account': 'GROSS PROFIT', 'Amount': _num(data['gross_profit'])})
+    for r in data['expenses']:
+        rows.append({'Section': 'Expense', 'Account': r.account_name, 'Amount': _num(r.balance)})
+    rows.append({'Section': 'Expense', 'Account': 'TOTAL EXPENSES', 'Amount': _num(data['total_expenses'])})
+    rows.append({'Section': '', 'Account': 'NET PROFIT', 'Amount': _num(data['net_profit'])})
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Profit_Loss_{stamp}.xlsx', 'Profit & Loss')
+
+
+@main.route('/accounting/reports/balance-sheet/export')
+@login_required
+def export_balance_sheet():
+    from logic import get_balance_sheet
+    data = get_balance_sheet(request.args.get('as_of_date'))
+    rows = []
+    for a in data['assets']:
+        rows.append({'Section': 'Asset', 'Category': a.account_category, 'Account': a.account_name, 'Amount': _num(a.balance)})
+    rows.append({'Section': 'Asset', 'Category': '', 'Account': 'TOTAL ASSETS', 'Amount': _num(data['total_assets'])})
+    for a in data['liabilities']:
+        rows.append({'Section': 'Liability', 'Category': a.account_category, 'Account': a.account_name, 'Amount': _num(a.balance)})
+    rows.append({'Section': 'Liability', 'Category': '', 'Account': 'TOTAL LIABILITIES', 'Amount': _num(data['total_liabilities'])})
+    for a in data['equity']:
+        rows.append({'Section': 'Equity', 'Category': a.account_category, 'Account': a.account_name, 'Amount': _num(a.balance)})
+    rows.append({'Section': 'Equity', 'Category': '', 'Account': 'NET PROFIT', 'Amount': _num(data['net_profit'])})
+    rows.append({'Section': 'Equity', 'Category': '', 'Account': 'TOTAL EQUITY', 'Amount': _num(data['total_equity'])})
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Balance_Sheet_{stamp}.xlsx', 'Balance Sheet')
+
+
+@main.route('/employees/export')
+@login_required
+def export_employees():
+    employees = _employee_filtered_query(request.args).all()
+    rows = []
+    for e in employees:
+        rows.append({
+            'Employee ID': e.employee_id,
+            'Name': e.name,
+            'Designation': e.designation or '',
+            'Department': e.department or '',
+            'Phone': e.phone or '',
+            'Joining Date': e.joining_date or '',
+            'Net Salary': _num(e.net_salary),
+            'Casual Leave': e.cl_total,
+            'Medical Leave': e.ml_total,
+            'Festival Leave': e.fl_total,
+            'Earned Leave': e.el_total,
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Employees_{stamp}.xlsx', 'Employees')
+
+
+@main.route('/installments/export')
+@login_required
+def export_installments():
+    installments = _installment_filtered_query(request.args).all()
+    rows = []
+    for i in installments:
+        rows.append({
+            'Installment': i.name,
+            'Amount Per Share': _num(i.amount_per_share),
+            'Customers': len(i.customer_installments),
+            'Total Expected': _num(i.total_expected),
+            'Total Collected': _num(i.total_collected),
+            'Total Due': _num(i.total_due),
+            'Created': i.created_at.strftime('%Y-%m-%d') if i.created_at else '',
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Installments_{stamp}.xlsx', 'Installments')
+
+
+@main.route('/installment/<int:id>/details/export')
+@login_required
+def export_installment_details(id):
+    installment = Installment.query.get_or_404(id)
+    cis = sorted(installment.customer_installments, key=lambda x: x.customer.name)
+    rows = []
+    for ci in cis:
+        rows.append({
+            'Customer ID': ci.customer.customer_id if ci.customer else '',
+            'Customer': ci.customer.name if ci.customer else '',
+            'Total Amount': _num(ci.total_amount),
+            'Paid Amount': _num(ci.paid_amount),
+            'Due Amount': _num(ci.due_amount),
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    safe_name = ''.join(ch if ch.isalnum() else '_' for ch in installment.name)
+    return _xlsx_download(rows, f'Installment_{safe_name}_{stamp}.xlsx', installment.name)
+
+
+@main.route('/customer/<int:customer_id>/transactions/export')
+@login_required
+def export_customer_transactions(customer_id):
+    customer = Customer.query.get_or_404(customer_id)
+    txs = sorted(customer.transactions, key=lambda t: (_parse_any_date(t.date) or datetime.min.date(), t.id), reverse=True)
+    start, end = _date_filter_bounds(request.args)
+    if start or end:
+        txs = [t for t in txs
+               if (not start or (_parse_any_date(t.date) or datetime.min.date()) >= start)
+               and (not end or (_parse_any_date(t.date) or datetime.min.date()) <= end)]
+    _m = request.args.get('method') or ''
+    if _m and _m != 'All':
+        txs = [t for t in txs if (t.payment_method or '') == _m]
+    _q = (request.args.get('q') or '').strip().lower()
+    if _q:
+        txs = [t for t in txs if _q in f"{t.remarks or ''} {t.transaction_id or ''} {t.installment_type or ''} {t.bank_name or ''}".lower()]
+    rows = []
+    for t in txs:
+        rows.append({
+            'Date': t.date,
+            'Amount': _num(t.amount),
+            'Installment Type': t.installment_type or '',
+            'Payment Method': t.payment_method or '',
+            'Bank': t.bank_name or '',
+            'Transaction ID': t.transaction_id or '',
+            'Remarks': t.remarks or '',
+        })
+    stamp = datetime.now().strftime('%Y%m%d')
+    return _xlsx_download(rows, f'Customer_{customer.customer_id}_Transactions_{stamp}.xlsx', 'Transactions')
+
+
+# ----------------------------------------------------------------------
+# Shared filter helpers for list pages (page + export use the same set)
+# ----------------------------------------------------------------------
+def _contra_filtered_query(args):
+    query = ContraEntry.query
+    start, end = _date_filter_bounds(args)
+    # Contra dates are stored as YYYY-MM-DD strings; compare in Python-safe
+    # way by normalising through the string when possible, else skip.
+    entries = query.order_by(ContraEntry.id.desc()).all()
+    from_account = args.get('from_account') or ''
+    to_account = args.get('to_account') or ''
+    bank_id = args.get('bank_id') or ''
+    search = (args.get('search') or '').strip().lower()
+    min_amount = args.get('min_amount') or ''
+    max_amount = args.get('max_amount') or ''
+    try:
+        min_amount = float(min_amount) if min_amount else None
+    except ValueError:
+        min_amount = None
+    try:
+        max_amount = float(max_amount) if max_amount else None
+    except ValueError:
+        max_amount = None
+
+    def keep(c):
+        d = _parse_any_date(c.date)
+        if start and (d is None or d < start):
+            return False
+        if end and (d is None or d > end):
+            return False
+        if from_account and from_account != 'All' and c.from_account != from_account:
+            return False
+        if to_account and to_account != 'All' and c.to_account != to_account:
+            return False
+        if bank_id and str(c.bank_id or '') != bank_id:
+            return False
+        if search:
+            hay = f"{c.contra_no} {c.description or ''} {c.cheque_no or ''}".lower()
+            if search not in hay:
+                return False
+        if min_amount is not None and _num(c.amount) < min_amount:
+            return False
+        if max_amount is not None and _num(c.amount) > max_amount:
+            return False
+        return True
+
+    filtered = [c for c in entries if keep(c)]
+    filtered.sort(key=lambda c: (_parse_any_date(c.date) or datetime.min.date(), c.id), reverse=True)
+
+    class _ListQuery:
+        def __init__(self, items):
+            self._items = items
+
+        def all(self):
+            return self._items
+
+    return _ListQuery(filtered)
+
+
+def _party_filtered_list(args):
+    query = Party.query
+    category = args.get('category') or ''
+    if category and category != 'All':
+        query = query.filter(Party.category == category)
+    search = (args.get('search') or '').strip()
+    if search:
+        query = query.filter(
+            (Party.name.contains(search)) |
+            (Party.phone.contains(search)) |
+            (Party.address.contains(search))
+        )
+    parties = query.order_by(Party.name).all()
+    balance = args.get('balance') or ''
+    if balance == 'owed':
+        parties = [p for p in parties if _num(p.current_balance) > 0]
+    elif balance == 'advance':
+        parties = [p for p in parties if _num(p.current_balance) < 0]
+    elif balance == 'settled':
+        parties = [p for p in parties if _num(p.current_balance) == 0]
+    return parties
+
+
+def _journal_filtered_query(args):
+    start_date = args.get('start_date')
+    end_date = args.get('end_date')
+    if not start_date:
+        start_date = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+    if not end_date:
+        end_date = datetime.now().strftime('%Y-%m-%d')
+    query = JournalEntry.query
+    if start_date:
+        query = query.filter(JournalEntry.entry_date >= start_date)
+    if end_date:
+        query = query.filter(JournalEntry.entry_date <= end_date)
+    ref_type = args.get('reference_type') or ''
+    if ref_type and ref_type != 'All':
+        query = query.filter(JournalEntry.reference_type == ref_type)
+    search = (args.get('search') or '').strip()
+    if search:
+        query = query.filter(
+            (JournalEntry.description.contains(search)) |
+            (JournalEntry.entry_number.contains(search))
+        )
+    account_code = (args.get('account_code') or '').strip()
+    if account_code:
+        query = query.join(JournalLine, JournalLine.journal_entry_id == JournalEntry.id) \
+                     .filter(JournalLine.account_code == account_code).distinct()
+    return query.order_by(JournalEntry.entry_date.desc(), JournalEntry.posted_at.desc())
+
+
+def _coa_filtered_query(args):
+    query = ChartOfAccounts.query
+    a_type = args.get('account_type') or ''
+    if a_type and a_type != 'All':
+        query = query.filter(ChartOfAccounts.account_type == a_type)
+    category = args.get('account_category') or ''
+    if category and category != 'All':
+        query = query.filter(ChartOfAccounts.account_category == category)
+    search = (args.get('search') or '').strip()
+    if search:
+        query = query.filter(
+            (ChartOfAccounts.account_name.contains(search)) |
+            (ChartOfAccounts.account_code.contains(search))
+        )
+    return query.order_by(ChartOfAccounts.account_code)
+
+
+def _employee_filtered_query(args):
+    query = Employee.query
+    search = (args.get('search') or '').strip()
+    if search:
+        query = query.filter(
+            (Employee.name.contains(search)) |
+            (Employee.employee_id.contains(search)) |
+            (Employee.designation.contains(search)) |
+            (Employee.phone.contains(search))
+        )
+    department = args.get('department') or ''
+    if department and department != 'All':
+        query = query.filter(Employee.department == department)
+    return query.order_by(db.cast(Employee.employee_id, db.Integer))
+
+
+def _installment_filtered_query(args):
+    query = Installment.query
+    search = (args.get('search') or '').strip()
+    if search:
+        query = query.filter(Installment.name.contains(search))
+    return query.order_by(Installment.created_at)

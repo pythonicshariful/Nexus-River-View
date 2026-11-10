@@ -10,6 +10,44 @@
 </div>
 
 <div class="card shadow mb-4">
+    <div class="card-body py-2">
+        <form method="GET" action="{{ url_for('main.view_leaves') }}" class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for s in ['Pending', 'Approved', 'Rejected'] %}
+                    <option value="{{ s }}" {% if f_status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1">Employee</label>
+                <select name="employee_id" class="form-select form-select-sm">
+                    <option value="">All Employees</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if f_employee|string == emp.id|string %}selected{% endif %}>{{ emp.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1">Leave Type</label>
+                <select name="leave_type" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for t in ['CL', 'ML', 'FL', 'EL'] %}
+                    <option value="{{ t }}" {% if f_type == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Filter</button>
+                <a href="{{ url_for('main.view_leaves') }}" class="btn btn-light btn-sm border">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
     <div class="card-header bg-light">
         <h5 class="mb-0">Employee Leave Balances</h5>
     </div>

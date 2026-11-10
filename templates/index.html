@@ -389,6 +389,22 @@
 <div class="ctrl-panel d-flex align-items-center gap-2 flex-wrap mb-3">
   <i class="fas fa-search text-muted" style="font-size:.85rem;"></i>
   <input type="text" class="form-control" id="searchBar" placeholder="Search customers by name, phone, plot…" style="max-width:280px;">
+  <select id="directorFilter" class="form-select" style="max-width:200px;">
+    <option value="">All Directors</option>
+    {% for director in directors %}
+    <option value="{{ director.id }}">{{ director.name }}</option>
+    {% endfor %}
+  </select>
+  <div class="form-check mb-0">
+    <input class="form-check-input" type="checkbox" id="dueOnlyFilter">
+    <label class="form-check-label small fw-bold text-muted" for="dueOnlyFilter">Due only</label>
+  </div>
+  <button type="button" class="btn btn-sm btn-success rounded-pill" style="font-size:.72rem;" onclick="exportCustomersFiltered()">
+    <i class="fas fa-file-excel me-1"></i>Customers Excel
+  </button>
+  <a href="{{ url_for('main.export_directors') }}" class="btn btn-sm btn-outline-success rounded-pill" style="font-size:.72rem;">
+    <i class="fas fa-file-excel me-1"></i>Directors Excel
+  </a>
   <span class="text-muted small d-none d-md-inline">Filter directors:</span>
   <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:.72rem;" onclick="toggleAllAccordions(true)">
     <i class="fas fa-expand-alt me-1"></i>Expand All
@@ -411,7 +427,7 @@
 {% else %}
 <div class="accordion dir-accordion mb-4" id="directorsAccordion">
   {% for director in directors %}
-  <div class="accordion-item" id="dir-item-{{ director.id }}">
+  <div class="accordion-item" id="dir-item-{{ director.id }}" data-director-id="{{ director.id }}">
     <h2 class="accordion-header" id="heading{{ director.id }}">
       <div class="d-flex align-items-stretch w-100">
         <!-- Accordion toggle button -->
@@ -518,7 +534,7 @@
             </thead>
             <tbody>
               {% for customer in director.customers %}
-              <tr class="searchable-row">
+              <tr class="searchable-row" data-due="{{ customer.due_amount or 0 }}">
                 <td class="ps-3 text-secondary fw-medium">{{ customer.customer_id }}</td>
                 <td class="fw-bold text-dark">{{ customer.name }}</td>
                 <td class="text-muted">{{ customer.phone }}</td>
@@ -628,31 +644,57 @@
 <script>
 // ── Search ──
 const searchBar = document.getElementById('searchBar');
-if (searchBar) {
-  searchBar.addEventListener('keyup', function () {
-    const value = this.value.toLowerCase().trim();
-    document.querySelectorAll('.accordion-item').forEach(function (item) {
-      const rows = item.querySelectorAll('.searchable-row');
-      let hasMatch = false;
-      rows.forEach(function (row) {
-        const text = row.textContent.toLowerCase();
-        const match = value === '' || text.includes(value);
-        row.style.display = match ? '' : 'none';
-        if (match && value !== '') hasMatch = true;
-      });
-      const collapseDiv = item.querySelector('.accordion-collapse');
-      if (value !== '' && hasMatch) {
-        item.style.display = '';
-        if (collapseDiv && !collapseDiv.classList.contains('show')) {
-          new bootstrap.Collapse(collapseDiv, { toggle: false }).show();
-        }
-      } else if (value === '') {
-        item.style.display = '';
-      } else {
-        item.style.display = 'none';
+const directorFilter = document.getElementById('directorFilter');
+const dueOnlyFilter = document.getElementById('dueOnlyFilter');
+
+function applyIndexFilters() {
+  const value = searchBar ? searchBar.value.toLowerCase().trim() : '';
+  const dirId = directorFilter ? directorFilter.value : '';
+  const dueOnly = dueOnlyFilter ? dueOnlyFilter.checked : false;
+  const filtering = value !== '' || dueOnly;
+  document.querySelectorAll('.accordion-item').forEach(function (item) {
+    if (dirId && item.getAttribute('data-director-id') !== dirId) {
+      item.style.display = 'none';
+      return;
+    }
+    const rows = item.querySelectorAll('.searchable-row');
+    let hasMatch = false;
+    rows.forEach(function (row) {
+      const text = row.textContent.toLowerCase();
+      let match = value === '' || text.includes(value);
+      if (match && dueOnly) {
+        match = parseFloat(row.getAttribute('data-due') || '0') > 0;
       }
+      row.style.display = match ? '' : 'none';
+      if (match && filtering) hasMatch = true;
     });
+    const collapseDiv = item.querySelector('.accordion-collapse');
+    if (filtering && hasMatch) {
+      item.style.display = '';
+      if (collapseDiv && !collapseDiv.classList.contains('show')) {
+        new bootstrap.Collapse(collapseDiv, { toggle: false }).show();
+      }
+    } else if (!filtering) {
+      item.style.display = '';
+    } else {
+      item.style.display = rows.length ? 'none' : '';
+    }
   });
+}
+
+if (searchBar) searchBar.addEventListener('keyup', applyIndexFilters);
+if (directorFilter) directorFilter.addEventListener('change', applyIndexFilters);
+if (dueOnlyFilter) dueOnlyFilter.addEventListener('change', applyIndexFilters);
+
+function exportCustomersFiltered() {
+  const params = new URLSearchParams();
+  const q = searchBar ? searchBar.value.trim() : '';
+  const dirId = directorFilter ? directorFilter.value : '';
+  const dueOnly = dueOnlyFilter ? dueOnlyFilter.checked : false;
+  if (q) params.set('search', q);
+  if (dirId) params.set('director_id', dirId);
+  if (dueOnly) params.set('due_only', '1');
+  window.location = "{{ url_for('main.export_customers') }}" + (params.toString() ? '?' + params.toString() : '');
 }
 
 // ── Expand / Collapse All ──

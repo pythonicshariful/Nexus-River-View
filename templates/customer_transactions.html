@@ -200,6 +200,34 @@
                         <h5 class="fw-bold text-dark"><i class="fas fa-history me-2"></i>History</h5>
                         <span class="badge bg-light text-dark border">{{ transactions|length }} Records</span>
                     </div>
+                    <div class="px-4 pt-3">
+                        <form method="GET" action="{{ url_for('main.manage_transactions', customer_id=customer.id) }}" class="row g-2 align-items-end">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold text-muted mb-1">From</label>
+                                <input type="date" name="start_date" class="form-control form-control-sm" value="{{ request.args.get('start_date', '') }}">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold text-muted mb-1">To</label>
+                                <input type="date" name="end_date" class="form-control form-control-sm" value="{{ request.args.get('end_date', '') }}">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Method</label>
+                                <select name="method" class="form-select form-select-sm">
+                                    <option value="">All</option>
+                                    <option value="Cash" {% if request.args.get('method') == 'Cash' %}selected{% endif %}>Cash</option>
+                                    <option value="Bank" {% if request.args.get('method') == 'Bank' %}selected{% endif %}>Bank</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                                <input type="text" name="q" class="form-control form-control-sm" placeholder="Remarks / Txn ID" value="{{ request.args.get('q', '') }}" autocomplete="off">
+                            </div>
+                            <div class="col-12 col-md-2 d-flex gap-1">
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill flex-grow-1">Filter</button>
+                                <button type="button" class="btn btn-success btn-sm rounded-pill" title="Export Excel" data-export-url="{{ url_for('main.export_customer_transactions', customer_id=customer.id) }}"><i class="fas fa-file-excel"></i></button>
+                            </div>
+                        </form>
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">

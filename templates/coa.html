@@ -7,10 +7,41 @@
             <h2 class="fw-bold text-dark-blue mb-0">Chart of Accounts</h2>
             <p class="text-muted small">Financial backbone of Nexus River View</p>
         </div>
-        <button class="btn btn-premium" data-bs-toggle="modal" data-bs-target="#addAccountModal">
-            <i class="fas fa-plus me-2"></i>New Account
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" data-export-url="{{ url_for('main.export_coa') }}">
+                <i class="fas fa-file-excel me-2"></i>Export Excel
+            </button>
+            <button class="btn btn-premium" data-bs-toggle="modal" data-bs-target="#addAccountModal">
+                <i class="fas fa-plus me-2"></i>New Account
+            </button>
+        </div>
     </div>
+
+    <form method="GET" action="{{ url_for('main.manage_coa') }}" class="row g-2 mb-3">
+        <div class="col-12 col-md-4">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search code or account name..." value="{{ f_search }}" autocomplete="off">
+        </div>
+        <div class="col-6 col-md-3">
+            <select name="account_type" class="form-select form-select-sm">
+                <option value="">All Types</option>
+                {% for t in account_types %}
+                <option value="{{ t }}" {% if f_account_type == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <select name="account_category" class="form-select form-select-sm">
+                <option value="">All Categories</option>
+                {% for c in categories %}
+                <option value="{{ c }}" {% if f_account_category == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1">Filter</button>
+            <a href="{{ url_for('main.manage_coa') }}" class="btn btn-light btn-sm rounded-pill px-2 border">Reset</a>
+        </div>
+    </form>
 
     <div class="glass-card p-0 overflow-hidden border-0">
         <div class="table-responsive">

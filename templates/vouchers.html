@@ -57,9 +57,68 @@
                         <input type="text" name="search" class="form-control" placeholder="Voucher # or desc..." value="{{ search or '' }}" autocomplete="off">
                     </div>
                 </div>
-                <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Party</label>
+                    <select name="party_id" class="form-select form-select-sm">
+                        <option value="">All Parties</option>
+                        {% for p in parties %}
+                        <option value="{{ p.id }}" {% if f_party_id|string == p.id|string %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Customer</label>
+                    <select name="customer_id" class="form-select form-select-sm">
+                        <option value="">All Customers</option>
+                        {% for c in customers %}
+                        <option value="{{ c.id }}" {% if f_customer_id|string == c.id|string %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Category</label>
+                    <select name="category" class="form-select form-select-sm">
+                        <option value="">All Categories</option>
+                        {% for cat in voucher_categories %}
+                        <option value="{{ cat }}" {% if f_category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Method</label>
+                    <select name="payment_method" class="form-select form-select-sm">
+                        <option value="">All Methods</option>
+                        <option value="Cash" {% if f_payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                        <option value="Bank" {% if f_payment_method == 'Bank' %}selected{% endif %}>Bank</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Bank</label>
+                    <select name="bank_id" class="form-select form-select-sm">
+                        <option value="">All Banks</option>
+                        {% for b in banks %}
+                        <option value="{{ b.id }}" {% if f_bank_id|string == b.id|string %}selected{% endif %}>{{ b.bank_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Amount Range</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" step="any" name="min_amount" class="form-control" placeholder="Min" value="{{ f_min_amount }}">
+                        <span class="input-group-text bg-white px-1 text-muted small">-</span>
+                        <input type="number" step="any" name="max_amount" class="form-control" placeholder="Max" value="{{ f_max_amount }}">
+                    </div>
+                </div>
+                <div class="col-6 col-md-2 d-flex align-items-end">
+                    <div class="form-check mb-1">
+                        <input class="form-check-input" type="checkbox" name="due_only" value="1" id="dueOnlyCheck" {% if f_due_only %}checked{% endif %}>
+                        <label class="form-check-label small fw-bold text-muted" for="dueOnlyCheck">Due only</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 d-flex align-items-end gap-2">
                     <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1 shadow-sm">Filter</button>
                     <a href="{{ url_for('main.manage_vouchers') }}" class="btn btn-light btn-sm rounded-pill px-2 text-muted border shadow-sm">Reset</a>
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm" data-export-url="{{ url_for('main.export_vouchers') }}"><i class="fas fa-file-excel me-1"></i>Excel</button>
                 </div>
             </form>
         </div>

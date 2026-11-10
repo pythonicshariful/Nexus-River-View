@@ -9,9 +9,69 @@
         <p class="text-muted small mb-0">Bank deposits, withdrawals, and internal transfers.</p>
     </div>
     <div class="page-header-actions">
+        <button type="button" class="btn btn-success rounded-pill btn-sm px-3 shadow-sm" data-export-url="{{ url_for('main.export_contra') }}">
+            <i class="fas fa-file-excel me-1"></i> <span class="d-none d-sm-inline">Export </span>Excel
+        </button>
         <a href="{{ url_for('main.add_contra_entry') }}" class="btn btn-primary rounded-pill btn-sm px-3 shadow-sm">
             <i class="fas fa-plus-circle me-1"></i> <span class="d-none d-sm-inline">New </span>Contra
         </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-3 rounded-3 overflow-hidden">
+    <div class="card-body p-3 bg-light bg-opacity-50">
+        <form method="GET" action="{{ url_for('main.manage_contra_entries') }}" class="row g-2">
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-muted mb-1">Date Range</label>
+                <div class="input-group input-group-sm">
+                    <input type="date" name="start_date" class="form-control" value="{{ f_start_date }}">
+                    <span class="input-group-text bg-white px-1 text-muted small">to</span>
+                    <input type="date" name="end_date" class="form-control" value="{{ f_end_date }}">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted mb-1">From</label>
+                <select name="from_account" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="Cash" {% if f_from_account == 'Cash' %}selected{% endif %}>Cash</option>
+                    <option value="Bank" {% if f_from_account == 'Bank' %}selected{% endif %}>Bank</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted mb-1">To</label>
+                <select name="to_account" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="Cash" {% if f_to_account == 'Cash' %}selected{% endif %}>Cash</option>
+                    <option value="Bank" {% if f_to_account == 'Bank' %}selected{% endif %}>Bank</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted mb-1">Bank</label>
+                <select name="bank_id" class="form-select form-select-sm">
+                    <option value="">All Banks</option>
+                    {% for b in banks %}
+                    <option value="{{ b.id }}" {% if f_bank_id|string == b.id|string %}selected{% endif %}>{{ b.bank_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="No, desc, cheque..." value="{{ f_search }}" autocomplete="off">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-muted mb-1">Amount Range</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" step="any" name="min_amount" class="form-control" placeholder="Min" value="{{ f_min_amount }}">
+                    <span class="input-group-text bg-white px-1 text-muted small">-</span>
+                    <input type="number" step="any" name="max_amount" class="form-control" placeholder="Max" value="{{ f_max_amount }}">
+                </div>
+            </div>
+            <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1 shadow-sm">Filter</button>
+                <a href="{{ url_for('main.manage_contra_entries') }}" class="btn btn-light btn-sm rounded-pill px-2 text-muted border shadow-sm">Reset</a>
+            </div>
+        </form>
     </div>
 </div>
 
